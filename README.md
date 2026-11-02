@@ -39,3 +39,19 @@ Yêu cầu: Docker Desktop đang chạy, Ollama cài trên máy, đủ dung lư�
 
 Sau khi cài dependency, chạy `python -m pytest backend/tests -q` và `cd frontend && npm ci && npm run build`. Docker chưa được coi là kiểm thử thành công chỉ vì có cấu hình. Các bước Cloudflare/GitHub và danh sách việc chưa hoàn thành nằm trong [ANTIGRAVITY_TASKS.md](ANTIGRAVITY_TASKS.md).
 # project-agent-diabets
+
+## Cloudflare Tunnel cho máy này
+
+DNS `diabetes.handq2212.site` đã được cấu hình tới tunnel `diabetes-handq2212`. Khóa và cấu hình cục bộ trong `.cloudflared/` là bí mật, không đưa lên Git. Khi Docker Desktop đang chạy, dùng:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d --build
+```
+
+Tắt toàn bộ dịch vụ và tunnel bằng:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml down
+```
+
+Tunnel trỏ đến container web trên mạng nội bộ Docker. Website chỉ hoạt động khi máy, Docker Desktop và các dịch vụ đang chạy. Đây là demo công khai chưa thiết lập Cloudflare Access; không nhập thông tin sức khỏe cá nhân. Ollama chạy trên máy chủ và cần được khởi động riêng cho chức năng RAG.

@@ -10,7 +10,8 @@ services:
       retries: 15
   neo4j:
     image: neo4j:5-community
-    env_file: .env
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH}
     volumes: [neo4j_data:/data]
     ports: ["127.0.0.1:7474:7474"]
     healthcheck:
