@@ -1,0 +1,23 @@
+[
+  {
+    "id": "who-diabetes",
+    "title": "WHO: Diabetes",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
+    "text": "Diabetes is a chronic disease that affects how the body regulates blood glucose. Information about symptoms, prevention and care should be discussed with a qualified health professional.",
+    "topic": "Diabetes"
+  },
+  {
+    "id": "cdc-basics",
+    "title": "CDC: About Diabetes",
+    "url": "https://www.cdc.gov/diabetes/about/index.html",
+    "text": "Diabetes affects how the body turns food into energy. Different types of diabetes exist; professional testing is needed to determine whether a person has diabetes.",
+    "topic": "Diabetes"
+  },
+  {
+    "id": "cdc-prevention",
+    "title": "CDC: Preventing Type 2 Diabetes",
+    "url": "https://www.cdc.gov/diabetes/prevention/index.html",
+    "text": "Healthy eating and regular physical activity are among the steps discussed in prevention of type 2 diabetes. Individual plans should be discussed with healthcare professionals.",
+    "topic": "Prevention"
+  }
+]

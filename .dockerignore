@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+!.env.example
+data/
+artifacts/
+frontend/
+__pycache__/
+.pytest_cache/
+*.pyc
+IMG_7908.jpeg

@@ -1,0 +1,37 @@
+services:
+  mysql:
+    image: mysql:8.4
+    env_file: .env
+    volumes: [mysql_data:/var/lib/mysql]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+  neo4j:
+    image: neo4j:5-community
+    env_file: .env
+    volumes: [neo4j_data:/data]
+    ports: ["127.0.0.1:7474:7474"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+  api:
+    build: .
+    env_file: .env
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./data:/app/data
+    depends_on:
+      mysql: {condition: service_healthy}
+      neo4j: {condition: service_healthy}
+    ports: ["127.0.0.1:8000:8000"]
+  web:
+    build: ./frontend
+    depends_on: [api]
+    ports: ["127.0.0.1:8080:80"]
+volumes:
+  mysql_data:
+  neo4j_data:
