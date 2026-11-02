@@ -38,3 +38,4 @@ Yêu cầu: Docker Desktop đang chạy, Ollama cài trên máy, đủ dung lư�
 ## Kiểm tra và triển khai
 
 Sau khi cài dependency, chạy `python -m pytest backend/tests -q` và `cd frontend && npm ci && npm run build`. Docker chưa được coi là kiểm thử thành công chỉ vì có cấu hình. Các bước Cloudflare/GitHub và danh sách việc chưa hoàn thành nằm trong [ANTIGRAVITY_TASKS.md](ANTIGRAVITY_TASKS.md).
+# project-agent-diabets
