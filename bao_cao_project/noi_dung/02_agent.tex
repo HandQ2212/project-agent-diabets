@@ -1,0 +1,16 @@
+\subsection{Mô hình hóa agent, trạng thái và điều phối}
+Một agent trong hệ thống tính toán thường được mô tả qua quan sát, trạng thái, tập hành động và mục tiêu. Agent không nhất thiết phải được cài đặt bằng LLM: một hàm quy tắc hoặc một mô hình dự đoán cũng có thể đảm nhiệm vai trò tác tử trong mô hình thiết kế. Ở đồ án, các vai trò được biểu diễn chủ yếu bằng các hàm trong cùng tiến trình FastAPI, chia sẻ các hợp đồng dữ liệu; điều này khác với hệ phân tán gồm nhiều tiến trình giao tiếp độc lập.
+
+Trạng thái hỏi đáp \texttt{CoordinatorState} gồm câu hỏi, lịch sử, kết quả kiểm tra an toàn, nhóm vi phạm, danh sách nguồn, câu trả lời và trace. Từng node nhận trạng thái hiện có và trả về các trường cần cập nhật. Thiết kế này giúp tách nhiệm vụ, nhưng bản thân trace là chuỗi do chương trình ghi nhận chứ không phải nhật ký kiểm toán độc lập chống sửa đổi.
+\subsection{Đồ thị LangGraph cho yêu cầu hỏi đáp}
+Trong endpoint đồng bộ \texttt{/api/chat}, đồ thị được biên dịch với cạnh \texttt{START $\rightarrow$ rules}. Nếu kết quả \texttt{safety\_passed} là sai, luồng đi đến \texttt{blocked} rồi kết thúc. Một số câu chào, cảm ơn và câu hỏi Claude cụ thể được xử lý bởi nhánh \texttt{conversation}; các câu khác đi đến \texttt{knowledge} và \texttt{response}. Đây là luồng điều phối xác định, không có vòng lặp thương lượng giữa các agent.
+
+Endpoint \texttt{/api/chat/stream} không gọi trực tiếp \texttt{coordinator.invoke}. Nó tái sử dụng các hàm node quy tắc, chặn, hội thoại, truy xuất và hàm sinh từng đoạn để xuất dữ liệu. Vì hai endpoint có cách điều phối riêng, khi thay đổi logic node cần kiểm thử cả hai để tránh hành vi lệch nhau.
+\subsection{Hợp đồng trao đổi và quy tắc xử lý lỗi}
+Câu hỏi được ràng buộc từ 2 đến 1.500 ký tự; lịch sử tối đa 10 tin nhắn, từng tin có vai trò user hoặc assistant và tối đa 1.500 ký tự. API kiểm tra danh sách đặc trưng của mô hình phải đúng bộ cột yêu cầu. Nếu thiếu mô hình, endpoint phân loại trả trạng thái 503 thay vì tự tạo dự đoán mẫu. Nếu Neo4j hoặc Ollama lỗi, luồng chat trả lỗi và giao diện báo cho người dùng.
+
+Điểm quan trọng khi trình bày là \textbf{phản hồi từng đoạn không bảo đảm kiểm chứng từng đoạn}. Các token đã xuất ra không thể tự động thu hồi nếu mô hình sinh sai ở phần sau. Cơ chế stream chủ yếu giảm thời gian chờ cảm nhận; an toàn nội dung vẫn phụ thuộc quy tắc, tài liệu, mô hình và các bước kiểm định bổ sung.
+\subsection{Ví dụ đường đi của một yêu cầu}
+Với câu hỏi “Tiểu đường là gì?” trong ảnh minh chứng, quy tắc trả trạng thái cho phép, truy xuất tìm thấy một nguồn web tự động và nhánh phản hồi chỉ hiển thị liên kết chưa kiểm duyệt. Trace hiển thị thứ tự Coordinator, Rule Agent, Knowledge Agent và Response Agent. Tài liệu được tìm thấy trong trường hợp này không đủ để kết luận hệ thống luôn trả đúng nguồn cho những câu hỏi khác; trường hợp ngoài lĩnh vực trong bộ test là một ví dụ cần kiểm tra thêm.
+
+Với yêu cầu điều chỉnh liều, phương thức \texttt{evaluate} phát hiện mẫu liên quan, đặt trạng thái an toàn là sai và loại vi phạm là yêu cầu điều chỉnh thuốc. Node chặn tạo thông báo cố định, danh sách nguồn rỗng và không đi vào nhánh truy xuất. Trật tự các bộ lọc thực tế là prompt injection, khẩn cấp, thuốc, sau đó thông tin nhạy cảm; vì thế một câu khớp nhiều nhóm được gán nhóm xuất hiện trước theo mã.

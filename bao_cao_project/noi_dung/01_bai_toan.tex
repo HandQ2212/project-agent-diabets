@@ -1,0 +1,23 @@
+\subsection{Phát biểu bài toán}
+Trong đồ án này, đầu vào không được giả định là một bệnh án có cấu trúc duy nhất. Người dùng có thể đặt câu hỏi ngôn ngữ tự nhiên, điền một biểu mẫu đặc trưng của bộ dữ liệu hoặc lựa chọn nhu cầu học tập. Ba loại đầu vào này có ý nghĩa khác nhau và không nên gộp thành một điểm số chung:
+\begin{itemize}
+\item \textbf{Hỏi đáp tri thức:} đầu vào là câu hỏi tiếng Việt và một phần ngữ cảnh hội thoại; đầu ra là câu trả lời có danh sách nguồn, hoặc phản hồi an toàn/thiếu tài liệu. Chất lượng phụ thuộc vào độ phù hợp của tài liệu truy xuất và độ trung thực của quá trình sinh.
+\item \textbf{Phân loại dữ liệu bảng:} đầu vào phải khớp với hợp đồng đặc trưng của một mô hình UCI hoặc BRFSS; đầu ra là điểm sigmoid, lớp theo ngưỡng và chú thích về giới hạn. Nhãn hai bộ không có cùng cách thu thập.
+\item \textbf{Gợi ý học tập:} đầu vào là bốn giá trị nhị phân biểu thị các chủ đề chưa học; đầu ra là tên chủ đề được chọn trong một môi trường giả lập. Đây không phải đề xuất thuốc hoặc quyết định điều trị.
+\end{itemize}
+\noindent Như vậy nhiệm vụ hệ thống có thể xem là ánh xạ $f(x,t)\rightarrow y$, trong đó $t$ xác định loại tác vụ. Không tồn tại bằng chứng trong mã hoặc dữ liệu cho phép coi $y$ là kết luận chẩn đoán lâm sàng. Việc thiết kế API riêng cho từng tác vụ giúp xác thực hợp đồng đầu vào và giải thích ý nghĩa đầu ra rõ ràng hơn.
+\subsection{Phạm vi, yêu cầu và tiêu chí đánh giá}
+\begin{longtable}{p{2.7cm}p{5.7cm}p{5.3cm}}\toprule
+\textbf{Nhóm} & \textbf{Yêu cầu} & \textbf{Bằng chứng cần đối chiếu}\\\midrule\endhead
+Chức năng & Hỏi đáp, phân loại, mô phỏng giáo dục & Ảnh giao diện; kết quả API; trace từng nhánh.\\
+Dữ liệu & Xác định nguồn, biến, nhãn và phép chia & \texttt{docs/DATA.md}; mã tiền xử lý; report JSON.\\
+Hiệu năng & Có phương pháp đánh giá và baseline & Ma trận nhầm lẫn, precision, recall, ROC-AUC; heuristic cho DQN.\\
+An toàn & Có nhánh xử lý một số đầu vào đặc biệt & Rule Agent và kiểm thử ca cụ thể; không suy rộng cho mọi trường hợp.\\
+Vận hành & Có hướng dẫn chạy và thông tin deploy & Compose, health endpoint, URL, kết quả kiểm tra tại thời điểm báo cáo.\\\bottomrule\end{longtable}
+\noindent Các tiêu chí trên giúp kiểm tra nguyên mẫu học thuật. Chúng không tương đương tiêu chuẩn công nhận một sản phẩm y tế; triển khai thực tế còn cần kiểm định độc lập, quản trị dữ liệu và quy trình chuyên môn phù hợp.
+\subsection{Đối tượng sử dụng và kịch bản}
+Người trình bày có thể lần lượt giới thiệu câu hỏi về kiến thức, một biểu mẫu giả lập và bài toán chọn chủ đề giáo dục. Người xem có thể đối chiếu nguồn được hiển thị, vị trí node trong mã và kết quả JSON. Toàn bộ ví dụ trong báo cáo đều là dữ liệu giả lập hoặc số liệu đã tổng hợp từ tập nghiên cứu, không phải hồ sơ người bệnh cụ thể.
+
+Với câu hỏi ngắn liên quan đến tiểu đường, đường đi dự kiến gồm kiểm tra luật, truy xuất và phản hồi. Với câu hỏi yêu cầu điều chỉnh liều, nhánh chặn trả thông báo cố định. Hai kịch bản này minh họa cơ chế rẽ nhánh, song không chứng minh độ bao phủ của bộ luật đối với mọi cách diễn đạt tiếng Việt.
+\subsection{Đóng góp và giới hạn của đồ án}
+Điểm tích hợp của đồ án nằm ở việc kết nối ba dòng công việc trong cùng giao diện và cung cấp các tệp tái lập: mã backend, mã huấn luyện, dữ liệu định nghĩa nguồn, artifact và notebook trình bày. Giá trị của đồ án là cho phép quan sát mối quan hệ giữa dữ liệu, mô hình, tri thức và điều phối tác vụ. Không có đánh giá người dùng thật, thử nghiệm lâm sàng hoặc chứng cứ khái quát hóa sang dân số Việt Nam trong phạm vi hiện tại.

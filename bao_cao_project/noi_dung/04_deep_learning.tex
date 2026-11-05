@@ -1,0 +1,48 @@
+\subsubsection{Định nghĩa nhãn và ý nghĩa của hai bài toán}
+Bộ UCI mô tả 16 thuộc tính gồm tuổi, giới và các triệu chứng/cờ được thu thập tại một cơ sở. Tập gốc có hai nhãn Positive/Negative; sau chuẩn hóa chữ và loại bản ghi không có nhãn, chương trình loại nhóm có cùng đặc trưng nhưng nhãn xung đột, rồi loại hồ sơ trùng đặc trưng. Báo cáo artifact ghi không có dòng xung đột và còn 251 hồ sơ; đây là số hồ sơ đặc trưng khác nhau, không khẳng định là 251 cá nhân đã xác minh danh tính.
+
+BRFSS sử dụng các năm khảo sát riêng. Mã giữ \texttt{DIABETE4=1} và \texttt{DIABETE4=3}, mã hóa lần lượt thành 1 và 0. Các giá trị khác bị loại khỏi bài toán nhị phân. Mục tiêu là phân loại trạng thái từng được báo mắc theo khảo sát; do cách thu thập cắt ngang, không nên gọi đây là mô hình dự báo thời điểm một người sẽ mắc bệnh trong tương lai. Các số lượng 423.958, 429.880 và 418.492 trong báo cáo JSON là số dòng sau lọc nhãn, không phải tổng số hồ sơ thô của từng tệp XPT.
+\begin{table}[H]\centering\small\begin{tabular}{llp{7.2cm}}\toprule
+Biến & Kiểu sau xử lý & Ý nghĩa trong pipeline\\\midrule
+\texttt{\_BMI5} & Số & Chia 100; ngoài khoảng 10--100 chuyển thành thiếu.\\
+\texttt{\_AGEG5YR} & Phân loại & Nhóm tuổi từ 1 đến 13.\\
+\texttt{SEXVAR} & Phân loại & Giá trị 1 hoặc 2 theo bộ dữ liệu.\\
+\texttt{\_SMOKER3} & Phân loại & Bốn nhóm tình trạng hút thuốc.\\
+\texttt{\_TOTINDA} & Phân loại & Hai nhóm hoạt động thể chất theo khảo sát.\\\bottomrule\end{tabular}\caption{Đặc trưng BRFSS được sử dụng; định nghĩa chi tiết phải đối chiếu codebook theo từng năm}\end{table}
+\subsubsection{Cách chia dữ liệu và ngăn rò rỉ}
+Với UCI, sau loại trùng, \texttt{train\_test\_split} giữ 20\% cho test theo phân tầng nhãn; phần còn lại tiếp tục chia 80/20 cho train/validation. Với BRFSS, dữ liệu 2021--2022 tạo tập train/validation và năm 2023 giữ riêng cho test. Phép chia theo thời gian giảm nguy cơ sử dụng chính năm test khi điều chỉnh mô hình, nhưng không bảo đảm tách cá nhân giữa các năm hoặc độc lập với mọi nguồn dữ liệu ngoài.
+
+Chỉ tập train được dùng để \texttt{fit} median imputation, standardization và one-hot encoder. Validation và test chỉ được \texttt{transform}. Biến số thiếu được điền bằng trung vị tập train; biến phân loại thiếu được điền bằng giá trị phổ biến nhất, các giá trị mới tại test được bộ mã hóa bỏ qua thay vì làm chương trình dừng. Việc lưu \texttt{preprocessor.joblib} cùng model bảo đảm giao diện suy luận sử dụng đúng phép biến đổi đã học.
+\subsubsection{Cơ sở mạng nơ-ron, hàm mất mát và baseline}
+Với vector đặc trưng sau tiền xử lý $x$, MLP tính logit $z=f_\theta(x)$ qua các phép biến đổi tuyến tính và ReLU, sau đó đưa về khoảng $[0,1]$ bằng sigmoid $p=\sigma(z)=1/(1+e^{-z})$. Mô hình có 64 nút ẩn ở lớp đầu, dropout 0,2, 32 nút ở lớp tiếp theo và một logit đầu ra. Dropout được bật trong giai đoạn train và tắt khi đánh giá.
+
+Do tỷ lệ hai lớp khác nhau, \texttt{BCEWithLogitsLoss} dùng trọng số dương bằng tỷ lệ số mẫu âm trên số mẫu dương trong tập train. Công thức minh họa là
+\[
+ L=-\frac1N\sum_{i=1}^{N}\big[w_+y_i\log \sigma(z_i)+(1-y_i)\log(1-\sigma(z_i))\big].
+\]
+Trọng số có thể thay đổi hành vi của điểm số và đánh đổi giữa hai loại sai; không tự làm cho đầu ra được hiệu chỉnh thành xác suất bệnh thực tế. Adam dùng learning rate 0,001, batch size 256, tối đa 60 epoch. Trọng số có validation loss tốt nhất được lưu lại; nếu validation không cải thiện sau 7 lượt thì dừng sớm.
+
+Baseline là Logistic Regression với \texttt{class\_weight='balanced'}, cùng đầu vào đã được biến đổi. Baseline giúp kiểm tra liệu MLP có thêm giá trị so với mô hình tuyến tính hay không; trong kết quả hiện có, sự chênh lệch nhỏ và phụ thuộc chỉ số/tập dữ liệu.
+\subsubsection{Thước đo và cách đọc kết quả}
+Với TP, TN, FP, FN là số dương đúng, âm đúng, dương giả và âm giả, ta có:
+\[
+\mathrm{Precision}=\frac{TP}{TP+FP},\qquad
+\mathrm{Recall}=\frac{TP}{TP+FN}.
+\]
+\[
+F_1=\frac{2PR}{P+R},\qquad
+\mathrm{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}.
+\]
+ROC-AUC đánh giá khả năng xếp hạng mẫu dương so với mẫu âm qua các ngưỡng, không trực tiếp cho biết số dương giả tại một ngưỡng cụ thể. Brier score là trung bình $(p_i-y_i)^2$; nó phản ánh sai số dự báo tổng hợp và không tự chứng minh hiệu chỉnh xác suất tốt. Cần xem đồng thời calibration curve và đánh giá ngoài trước khi diễn giải xác suất.
+\begin{table}[H]\centering\small\begin{tabular}{lrrrrr}\toprule
+Ngưỡng & Precision (+) & Recall (+) & F1 (+) & Accuracy & FP\\\midrule
+0,3 & 0,2035 & 0,9300 & 0,3339 & 0,4699 & 217.671\\
+0,4 & 0,2235 & 0,8733 & 0,3559 & 0,5484 & 181.422\\
+0,5 & 0,2556 & 0,7567 & 0,3822 & 0,6505 & 131.729\\
+0,6 & 0,3037 & 0,5713 & 0,3966 & 0,7516 & 78.315\\
+0,7 & 0,3652 & 0,3515 & 0,3582 & 0,8201 & 36.521\\\bottomrule\end{tabular}\caption{Đánh đổi ngưỡng MLP trên test BRFSS 2023, trích từ report.json; chỉ phục vụ phân tích mô tả}\end{table}
+Khi tăng ngưỡng từ 0,3 lên 0,7, recall giảm trong khi precision tăng ở bảng này. Các giá trị test đã được xem để minh họa; không được chọn ngưỡng tối ưu từ cùng tập test rồi coi đây là ước lượng độc lập. Việc chọn ngưỡng cho một ứng dụng thực tế cần tiêu chí và tập validation riêng, sau đó kiểm định trên tập chưa nhìn thấy.
+\subsubsection{Phân tích nhóm và giới hạn suy diễn}
+Báo cáo đã lưu cho BRFSS ghi ROC-AUC 0,7666 ở nhóm mã giới tính nam và 0,7614 ở nhóm nữ; ở nhóm 18--39, 40--59 và 60+ lần lượt khoảng 0,7313, 0,7315 và 0,6809. Các kết quả mô tả này không đủ chứng minh công bằng giữa các nhóm: chưa có khoảng tin cậy, chưa phân tích đầy đủ các lỗi theo ngưỡng, ảnh hưởng thiếu dữ liệu hoặc sai lệch nhãn. Các nhóm có dữ liệu thiếu có thể không xuất hiện trong các tổng nhóm.
+
+Bộ dữ liệu cũ của assignment 03/04 có 324.372 dòng và nhãn \texttt{Diabetes\_binary}, nhưng nguồn gốc bản xử lý và khả năng trùng với BRFSS hiện tại chưa được xác minh. Ở assignment 07, cột \texttt{Outcome} được tạo trực tiếp từ \texttt{glyhb > 6.5}; nếu cho cùng biến này vào dự đoán nhãn thì bài toán bị rò rỉ quy tắc tạo nhãn. Do đó đồ án giữ hai pipeline hiện hành và chưa công bố việc thay thế bằng dữ liệu cũ.

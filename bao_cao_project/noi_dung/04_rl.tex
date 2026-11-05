@@ -1,0 +1,6 @@
+\subsubsection{Mô hình hóa bài toán DQN}
+Gọi $s_t\in\{0,1\}^{4}$ là trạng thái cần học và $a_t\in\{0,1,2,3\}$ là hành động chọn chủ đề. Khi $s_t[a_t]=1$, hệ thống cho thưởng 1 và đặt thành phần đó về 0. Nếu chọn lại chủ đề đã hoàn tất trong khi còn nhu cầu thì phạt 0,25. Episode kết thúc khi cả bốn cờ bằng 0 hoặc đủ bốn bước. Trạng thái ban đầu được lấy ngẫu nhiên bằng bộ sinh số của môi trường.
+
+DQN xấp xỉ hàm giá trị $Q(s,a)$ bằng mạng nơ-ron; về ý tưởng, mục tiêu TD sử dụng giá trị thưởng trước mắt cộng giá trị tương lai chiết khấu $r+\gamma\max_{a'}Q(s',a')$ khi chưa kết thúc. Mã sử dụng Stable-Baselines3, $\gamma=0,99$, buffer 10.000, batch 64, bắt đầu học sau 200 bước và seed 42. Phần cài đặt replay buffer và cập nhật mạng do thư viện thực hiện.
+
+Chính sách greedy trong bài toán đơn giản này luôn chọn chỉ số đầu tiên còn bằng 1, và oracle trong mã có cùng nguyên tắc chọn. Vì trạng thái giả lập cho biết trực tiếp chủ đề nào cần học, heuristic đã rất mạnh. Kết quả DQN bằng heuristic trên dữ liệu đánh giá đã lưu là một phép so sánh hữu ích nhưng không chứng minh DQN cần thiết cho ứng dụng thực.

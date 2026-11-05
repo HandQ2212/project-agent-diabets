@@ -1,0 +1,18 @@
+\subsection{Thực nghiệm notebook và lựa chọn mô hình}
+Sáu notebook trong \texttt{notebooks/training} được tổ chức theo từng bài toán: UCI, BRFSS, NHANES bốn chỉ số, NHANES 15 chỉ số, bộ assignment 02 và mô phỏng DQN. Các notebook phân loại phân tích phân phối, thiếu dữ liệu, histogram và tương quan trên tập train; làm sạch, chia train/validation/test trước khi fit bộ tiền xử lý; so sánh Dummy, Logistic Regression, HistGradientBoosting và mạng nơ-ron. Với mạng nơ-ron, ba seed 42, 43 và 44 được huấn luyện tối đa 200 epoch, tối thiểu 40 epoch, dừng sớm sau 25 epoch không cải thiện validation loss. Batch BRFSS là 4.096; số epoch giữa các dataset không tương đương số bước cập nhật. Mô hình được chọn theo ROC-AUC validation; ngưỡng F1 được chọn trên validation, sau đó chỉ đánh giá ứng viên được chọn trên test. Ba seed thay đổi khởi tạo nhưng không thay thế đánh giá trên nhiều lần chia độc lập.
+
+\begin{longtable}{p{2.8cm}p{3.6cm}p{1.7cm}p{1.5cm}p{3.8cm}}\toprule
+\textbf{Bài toán} & \textbf{Chọn trên validation} & \textbf{AUC test} & \textbf{F1 test} & \textbf{Epoch thực tế; tốt nhất}\\\midrule\endhead
+UCI & MLP seed 42 & 0,9196 & 0,8485 & 60/35; 60/35; 64/39.\\
+BRFSS & HistGradientBoosting & 0,7648 & 0,3975 & 77/52; 54/29; 84/59.\\
+NHANES 4 biến & CNN seed 43 & 0,9491 & 0,7724 & 40/13; 42/17; 46/21.\\
+NHANES 15 biến & CNN seed 42 & 0,9314 & 0,7549 & 70/45; 62/37; 56/31.\\
+Assignment 02 & Logistic Regression & 0,9231 & 0,6364 & 41/16; 42/17; 48/23.\\\bottomrule\end{longtable}
+Các cặp epoch được ghi theo ba seed 42, 43, 44; ngưỡng trong test tương ứng lần lượt là 0,25; 0,60; 0,75; 0,80; 0,85. Kết quả không so sánh trực tiếp giữa những bộ có nhãn và quần thể khác nhau. Khoảng bootstrap phân tầng của AUC chưa tính thiết kế khảo sát; tập test đã được xem trong các lần chạy trước, do đó không còn là kiểm định cuối độc lập. Bảng chi tiết, đường loss và ma trận nhầm lẫn nằm trong notebook và \texttt{notebooks/training/KET\_QUA\_NANG\_CAP.md}.
+
+\subsubsection{Dữ liệu xét nghiệm và nhãn}
+NHANES do CDC thu thập tại Hoa Kỳ, không phải bộ WHO hoặc dữ liệu Việt Nam. Nhãn \texttt{DIQ010} là câu trả lời từng được nhân viên y tế thông báo mắc bệnh; glucose và HbA1c đo cùng thời điểm có thể liên quan đến việc chẩn đoán hoặc điều trị trước đó. Các mô hình NHANES là phân loại hồi cứu, không dự đoán bệnh mới. Bộ assignment 02 gồm các chỉ số xét nghiệm và nhân trắc; nhãn trong assignment 07 được tạo theo \texttt{glyhb > 6.5}. Thí nghiệm dùng 12 biến số và 3 biến phân loại theo assignment 02, loại \texttt{glyhb} khỏi đầu vào, nhưng nhãn vẫn là nhãn tạo từ một xét nghiệm chứ không phải chẩn đoán độc lập.
+
+Đối với mô phỏng RL, ba seed được huấn luyện mỗi seed 30.000 bước, đánh giá theo checkpoint 5.000 bước; so sánh cùng greedy và random trên validation. Greedy được chọn khi có reward validation bằng DQN, đạt reward trung bình test 2,026 trên môi trường giả lập. Đây không chứng minh tác động giáo dục hay y khoa.
+
+Website ngoài các model ban đầu còn có biểu mẫu NHANES 15 chỉ số, dùng checkpoint CNN seed 42 và ngưỡng 0,80 từ notebook tương ứng. BMI được tính từ chiều cao/cân nặng; thứ tự biến và bộ tiền xử lý được kiểm tra khi nạp. Các kết quả notebook khác, kể cả HistGradientBoosting của BRFSS và greedy được chọn trong thí nghiệm RL, là kết quả so sánh nghiên cứu, chưa tự thay thế model MLP BRFSS và DQN đang dùng trên website. Toàn bộ biểu mẫu chỉ để chạy số liệu giả lập, không sàng lọc hay chẩn đoán.

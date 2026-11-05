@@ -1,0 +1,430 @@
+{
+  "dataset": "CDC NHANES USA 2015–2016 and 2017–2018; not WHO and not Vietnamese",
+  "target": "DIQ010: 1 ever told diabetes, 2 no; excludes other values",
+  "model_scope": "retrospective experimental survey-response classification; no diagnosis, screening or new-onset prediction",
+  "source_urls": {
+    "DEMO_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/DEMO_I.xpt",
+    "DIQ_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/DIQ_I.xpt",
+    "BMX_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/BMX_I.xpt",
+    "BPX_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/BPX_I.xpt",
+    "GLU_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/GLU_I.xpt",
+    "GHB_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/GHB_I.xpt",
+    "TCHOL_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/TCHOL_I.xpt",
+    "HDL_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/HDL_I.xpt",
+    "TRIGLY_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/TRIGLY_I.xpt",
+    "BIOPRO_I.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2015/DataFiles/BIOPRO_I.xpt",
+    "DEMO_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/DEMO_J.xpt",
+    "DIQ_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/DIQ_J.xpt",
+    "BMX_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/BMX_J.xpt",
+    "BPX_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/BPX_J.xpt",
+    "GLU_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/GLU_J.xpt",
+    "GHB_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/GHB_J.xpt",
+    "TCHOL_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/TCHOL_J.xpt",
+    "HDL_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/HDL_J.xpt",
+    "TRIGLY_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/TRIGLY_J.xpt",
+    "BIOPRO_J.xpt": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/BIOPRO_J.xpt"
+  },
+  "cycles": {
+    "2015_2016": {
+      "survey_year": 2015,
+      "demo_rows": 9971,
+      "eligible": 5856,
+      "complete": 2094,
+      "positive": 307,
+      "missing_before_eligibility": {
+        "RIDAGEYR": 0,
+        "RIAGENDR": 0,
+        "BMXBMI": 1215,
+        "BMXWAIST": 1658,
+        "BPXSY1": 2826,
+        "BPXDI1": 2826,
+        "LBXGLU": 6999,
+        "LBXGH": 3645,
+        "LBXTC": 2715,
+        "LBDHDD": 2715,
+        "LBXTR": 7248,
+        "LBXSATSI": 3715,
+        "LBXSCR": 3716,
+        "BMXWT": 526,
+        "BMXHT": 1202
+      },
+      "sha256": {
+        "DEMO_I.xpt": "c9297c6c37ae8f78f29be9568fa2a03cf3b112616a39afee04030fc775a66a0d",
+        "DIQ_I.xpt": "e87587479b29f175b63eee5dd40d582837e3e3fe2665503012085eefdb978e0d",
+        "BMX_I.xpt": "d31da84e14212b4e58e8340598a5b8e2144fac83333563e966eb1b332e4141d6",
+        "BPX_I.xpt": "45d5c9fa101ccc6da82241bd45c99611595e699665eed2cfed232e9070b52cc1",
+        "GLU_I.xpt": "3a52f14346060819c79faa8d646c1dfc33d5a85c1df13d23e10aa4fff0d1bb87",
+        "GHB_I.xpt": "e4bc626cd12f6057c7806aef4f85874c9bf1407a7480d6621a4af142260addd2",
+        "TCHOL_I.xpt": "e7f51cf7c002db01d023278922d89d72318c679967e72ff259ba532b2d72e54d",
+        "HDL_I.xpt": "c967ff1ba25e2f8c7611e078c68ede2e1287823c10f109e3a0b8590532e56747",
+        "TRIGLY_I.xpt": "dd5a24f7b3bff19f899db38b766445bc4217b6ec6d1bd1accf7065a037e8a59d",
+        "BIOPRO_I.xpt": "1c6dd63f97db81f50891a0327c2b0f90d889c991518fea5ac2113cbf8e1a94ac"
+      }
+    },
+    "2017_2018": {
+      "survey_year": 2017,
+      "demo_rows": 9254,
+      "eligible": 5678,
+      "complete": 2038,
+      "positive": 334,
+      "missing_before_eligibility": {
+        "RIDAGEYR": 0,
+        "RIAGENDR": 0,
+        "BMXBMI": 1249,
+        "BMXWAIST": 1653,
+        "BPXSY1": 2952,
+        "BPXDI1": 2952,
+        "LBXGLU": 6363,
+        "LBXGH": 3209,
+        "LBXTC": 2516,
+        "LBDHDD": 2516,
+        "LBXTR": 6420,
+        "LBXSATSI": 3352,
+        "LBXSCR": 3351,
+        "BMXWT": 674,
+        "BMXHT": 1238
+      },
+      "sha256": {
+        "DEMO_J.xpt": "c0b46e0345ea19404928656277c8b0d10b0cca348a9b2fe4fc3c67e8b7ee73ec",
+        "DIQ_J.xpt": "1ecbf5360dfc331d1efbf32198553dc30e9a1f4cff0a907ed30ca72bac797f89",
+        "BMX_J.xpt": "8d675e42d8826ac98714b2c3dd4c5138a5e353fb4424f7eff5e6db4a01ce838a",
+        "BPX_J.xpt": "f98f1d9a4c18173e715c749b4294f6f1525140d5ad5751316bb17cc038fb3423",
+        "GLU_J.xpt": "5b38897d0d7bfbc69dd9ca74ffdaf2f6a9bed5a91d4a7bf46e07f1332cc3379e",
+        "GHB_J.xpt": "35f07094573a0061a03ed609a5a363b34eb1b1c7065d1623b43d72e132a8a654",
+        "TCHOL_J.xpt": "0291a6a4f6d82dac8392c8c992b519946824dfeda01647935520cf506ed9f4ab",
+        "HDL_J.xpt": "9f4eb41b89f0c9f3d6262f873e671eeb2f2eb40581a8426b2a3c8fd4fc19439e",
+        "TRIGLY_J.xpt": "3995696f9686ad84aeb008c655639387adb45df5b6bee953acde6f474fe06ffc",
+        "BIOPRO_J.xpt": "5bcd5722c1892883b96a9d7fed0befadabacae313f800fadc0133cd5dd00c4c6"
+      }
+    }
+  },
+  "features_order": [
+    "RIDAGEYR",
+    "RIAGENDR",
+    "BMXBMI",
+    "BMXWAIST",
+    "BPXSY1",
+    "BPXDI1",
+    "LBXGLU",
+    "LBXGH",
+    "LBXTC",
+    "LBDHDD",
+    "LBXTR",
+    "LBXSATSI",
+    "LBXSCR",
+    "BMXWT",
+    "BMXHT"
+  ],
+  "seed": 42,
+  "split": "2015–2016 cluster grouped train/validation; 2017–2018 test",
+  "n": {
+    "train": 1680,
+    "validation": 414,
+    "test": 2038
+  },
+  "best_epoch": 50,
+  "metrics_unweighted": {
+    "cnn": {
+      "roc_auc": 0.929498397571055,
+      "pr_auc": 0.7859734905134401,
+      "accuracy": 0.8719332679097154,
+      "precision": 0.5731462925851704,
+      "recall": 0.8562874251497006,
+      "f1": 0.6866746698679472,
+      "brier": 0.09627220034599304,
+      "confusion_matrix": [
+        [
+          1491,
+          213
+        ],
+        [
+          48,
+          286
+        ]
+      ]
+    },
+    "logistic_regression": {
+      "roc_auc": 0.9358975710550729,
+      "pr_auc": 0.7858711430215266,
+      "accuracy": 0.8552502453385672,
+      "precision": 0.5363128491620112,
+      "recall": 0.8622754491017964,
+      "f1": 0.661308840413318,
+      "brier": 0.10168632119894028,
+      "confusion_matrix": [
+        [
+          1455,
+          249
+        ],
+        [
+          46,
+          288
+        ]
+      ]
+    }
+  },
+  "threshold": 0.5,
+  "validation_history": [
+    {
+      "epoch": 1,
+      "validation_loss": 0.9905959963798523
+    },
+    {
+      "epoch": 2,
+      "validation_loss": 0.7438945770263672
+    },
+    {
+      "epoch": 3,
+      "validation_loss": 0.6321077346801758
+    },
+    {
+      "epoch": 4,
+      "validation_loss": 0.5858122110366821
+    },
+    {
+      "epoch": 5,
+      "validation_loss": 0.5661605596542358
+    },
+    {
+      "epoch": 6,
+      "validation_loss": 0.5572531819343567
+    },
+    {
+      "epoch": 7,
+      "validation_loss": 0.552111804485321
+    },
+    {
+      "epoch": 8,
+      "validation_loss": 0.5419062972068787
+    },
+    {
+      "epoch": 9,
+      "validation_loss": 0.5844776630401611
+    },
+    {
+      "epoch": 10,
+      "validation_loss": 0.5366578698158264
+    },
+    {
+      "epoch": 11,
+      "validation_loss": 0.541033148765564
+    },
+    {
+      "epoch": 12,
+      "validation_loss": 0.5485579371452332
+    },
+    {
+      "epoch": 13,
+      "validation_loss": 0.5295208692550659
+    },
+    {
+      "epoch": 14,
+      "validation_loss": 0.5254194736480713
+    },
+    {
+      "epoch": 15,
+      "validation_loss": 0.5348145365715027
+    },
+    {
+      "epoch": 16,
+      "validation_loss": 0.5233451128005981
+    },
+    {
+      "epoch": 17,
+      "validation_loss": 0.5163891911506653
+    },
+    {
+      "epoch": 18,
+      "validation_loss": 0.5304095149040222
+    },
+    {
+      "epoch": 19,
+      "validation_loss": 0.516973078250885
+    },
+    {
+      "epoch": 20,
+      "validation_loss": 0.5138452649116516
+    },
+    {
+      "epoch": 21,
+      "validation_loss": 0.5178690552711487
+    },
+    {
+      "epoch": 22,
+      "validation_loss": 0.5130614638328552
+    },
+    {
+      "epoch": 23,
+      "validation_loss": 0.511361837387085
+    },
+    {
+      "epoch": 24,
+      "validation_loss": 0.5102224946022034
+    },
+    {
+      "epoch": 25,
+      "validation_loss": 0.511155366897583
+    },
+    {
+      "epoch": 26,
+      "validation_loss": 0.5152744054794312
+    },
+    {
+      "epoch": 27,
+      "validation_loss": 0.5265980362892151
+    },
+    {
+      "epoch": 28,
+      "validation_loss": 0.5219087600708008
+    },
+    {
+      "epoch": 29,
+      "validation_loss": 0.5425428748130798
+    },
+    {
+      "epoch": 30,
+      "validation_loss": 0.5286371111869812
+    },
+    {
+      "epoch": 31,
+      "validation_loss": 0.5067982077598572
+    },
+    {
+      "epoch": 32,
+      "validation_loss": 0.5135053396224976
+    },
+    {
+      "epoch": 33,
+      "validation_loss": 0.5092326998710632
+    },
+    {
+      "epoch": 34,
+      "validation_loss": 0.5156337022781372
+    },
+    {
+      "epoch": 35,
+      "validation_loss": 0.5103325843811035
+    },
+    {
+      "epoch": 36,
+      "validation_loss": 0.5076613426208496
+    },
+    {
+      "epoch": 37,
+      "validation_loss": 0.5112870335578918
+    },
+    {
+      "epoch": 38,
+      "validation_loss": 0.5096871852874756
+    },
+    {
+      "epoch": 39,
+      "validation_loss": 0.5012919902801514
+    },
+    {
+      "epoch": 40,
+      "validation_loss": 0.5046732425689697
+    },
+    {
+      "epoch": 41,
+      "validation_loss": 0.4969460368156433
+    },
+    {
+      "epoch": 42,
+      "validation_loss": 0.5094122290611267
+    },
+    {
+      "epoch": 43,
+      "validation_loss": 0.5102928876876831
+    },
+    {
+      "epoch": 44,
+      "validation_loss": 0.515448808670044
+    },
+    {
+      "epoch": 45,
+      "validation_loss": 0.5058941841125488
+    },
+    {
+      "epoch": 46,
+      "validation_loss": 0.5138638019561768
+    },
+    {
+      "epoch": 47,
+      "validation_loss": 0.5124912261962891
+    },
+    {
+      "epoch": 48,
+      "validation_loss": 0.5009735226631165
+    },
+    {
+      "epoch": 49,
+      "validation_loss": 0.5151450634002686
+    },
+    {
+      "epoch": 50,
+      "validation_loss": 0.49336665868759155
+    },
+    {
+      "epoch": 51,
+      "validation_loss": 0.5040684938430786
+    },
+    {
+      "epoch": 52,
+      "validation_loss": 0.4956611096858978
+    },
+    {
+      "epoch": 53,
+      "validation_loss": 0.5139910578727722
+    },
+    {
+      "epoch": 54,
+      "validation_loss": 0.5062640309333801
+    },
+    {
+      "epoch": 55,
+      "validation_loss": 0.5077493786811829
+    },
+    {
+      "epoch": 56,
+      "validation_loss": 0.5133936405181885
+    },
+    {
+      "epoch": 57,
+      "validation_loss": 0.5072841048240662
+    },
+    {
+      "epoch": 58,
+      "validation_loss": 0.5176554918289185
+    },
+    {
+      "epoch": 59,
+      "validation_loss": 0.5053278803825378
+    },
+    {
+      "epoch": 60,
+      "validation_loss": 0.5095021724700928
+    }
+  ],
+  "derived_sha256": {
+    "train.csv": "c727352b1cce64c99eedbb36b04f497eb9b23a4eb5267006a159261536939dd9",
+    "validation.csv": "009281659853a3e7b069bff804c04dd03c8447e6ac5a6c2095b279e710a8949c",
+    "test.csv": "74853e41b9f8215f7ac362dd991935cdebd5eefa3d3f0bbcb00396715b533f6b"
+  },
+  "versions": {
+    "python": "3.14.6",
+    "pandas": "3.0.3",
+    "numpy": "2.4.6",
+    "sklearn": "1.9.0",
+    "torch": "2.14.0"
+  },
+  "executed_utc": "2026-11-05T07:26:14.172455+00:00",
+  "limitations": [
+    "US NHANES, not Vietnamese",
+    "self-reported historical diagnosis, not incident disease",
+    "complete fasting cases and unweighted metrics",
+    "treatment and diagnostic testing affect predictors",
+    "no clinical validation or probability calibration",
+    "not for patient use"
+  ]
+}

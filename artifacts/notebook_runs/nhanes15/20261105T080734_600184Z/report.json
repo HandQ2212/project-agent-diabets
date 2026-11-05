@@ -1,0 +1,290 @@
+{
+  "experiment": "nhanes15",
+  "purpose": "NHANES Hoa Kỳ, nhãn tự khai DIQ010; BMI, cân nặng, chiều cao có tính dư thừa. Đây là mô phỏng hồi cứu, không phải chẩn đoán.",
+  "model_type": "CNN",
+  "seed": 42,
+  "smoke_test": false,
+  "source_sha256": {
+    "data/raw/nhanes/DEMO_I.xpt": "c9297c6c37ae8f78f29be9568fa2a03cf3b112616a39afee04030fc775a66a0d",
+    "data/raw/nhanes/DIQ_I.xpt": "e87587479b29f175b63eee5dd40d582837e3e3fe2665503012085eefdb978e0d",
+    "data/raw/nhanes/BMX_I.xpt": "d31da84e14212b4e58e8340598a5b8e2144fac83333563e966eb1b332e4141d6",
+    "data/raw/nhanes/BPX_I.xpt": "45d5c9fa101ccc6da82241bd45c99611595e699665eed2cfed232e9070b52cc1",
+    "data/raw/nhanes/GLU_I.xpt": "3a52f14346060819c79faa8d646c1dfc33d5a85c1df13d23e10aa4fff0d1bb87",
+    "data/raw/nhanes/GHB_I.xpt": "e4bc626cd12f6057c7806aef4f85874c9bf1407a7480d6621a4af142260addd2",
+    "data/raw/nhanes/TCHOL_I.xpt": "e7f51cf7c002db01d023278922d89d72318c679967e72ff259ba532b2d72e54d",
+    "data/raw/nhanes/HDL_I.xpt": "c967ff1ba25e2f8c7611e078c68ede2e1287823c10f109e3a0b8590532e56747",
+    "data/raw/nhanes/TRIGLY_I.xpt": "dd5a24f7b3bff19f899db38b766445bc4217b6ec6d1bd1accf7065a037e8a59d",
+    "data/raw/nhanes/BIOPRO_I.xpt": "1c6dd63f97db81f50891a0327c2b0f90d889c991518fea5ac2113cbf8e1a94ac",
+    "data/raw/nhanes/DEMO_J.xpt": "c0b46e0345ea19404928656277c8b0d10b0cca348a9b2fe4fc3c67e8b7ee73ec",
+    "data/raw/nhanes/DIQ_J.xpt": "1ecbf5360dfc331d1efbf32198553dc30e9a1f4cff0a907ed30ca72bac797f89",
+    "data/raw/nhanes/BMX_J.xpt": "8d675e42d8826ac98714b2c3dd4c5138a5e353fb4424f7eff5e6db4a01ce838a",
+    "data/raw/nhanes/BPX_J.xpt": "f98f1d9a4c18173e715c749b4294f6f1525140d5ad5751316bb17cc038fb3423",
+    "data/raw/nhanes/GLU_J.xpt": "5b38897d0d7bfbc69dd9ca74ffdaf2f6a9bed5a91d4a7bf46e07f1332cc3379e",
+    "data/raw/nhanes/GHB_J.xpt": "35f07094573a0061a03ed609a5a363b34eb1b1c7065d1623b43d72e132a8a654",
+    "data/raw/nhanes/TCHOL_J.xpt": "0291a6a4f6d82dac8392c8c992b519946824dfeda01647935520cf506ed9f4ab",
+    "data/raw/nhanes/HDL_J.xpt": "9f4eb41b89f0c9f3d6262f873e671eeb2f2eb40581a8426b2a3c8fd4fc19439e",
+    "data/raw/nhanes/TRIGLY_J.xpt": "3995696f9686ad84aeb008c655639387adb45df5b6bee953acde6f474fe06ffc",
+    "data/raw/nhanes/BIOPRO_J.xpt": "5bcd5722c1892883b96a9d7fed0befadabacae313f800fadc0133cd5dd00c4c6"
+  },
+  "features": [
+    "RIDAGEYR",
+    "RIAGENDR",
+    "BMXBMI",
+    "BMXWAIST",
+    "BPXSY1",
+    "BPXDI1",
+    "LBXGLU",
+    "LBXGH",
+    "LBXTC",
+    "LBDHDD",
+    "LBXTR",
+    "LBXSATSI",
+    "LBXSCR",
+    "BMXWT",
+    "BMXHT"
+  ],
+  "sizes": {
+    "train": 1680,
+    "validation": 414,
+    "test": 2038
+  },
+  "validation_roc_auc": {
+    "neural_network": 0.9464036920933473,
+    "logistic_regression": 0.9499303378613724
+  },
+  "selection_rule": "highest validation ROC-AUC; tie -> logistic regression",
+  "selected_model": "logistic_regression",
+  "test_selected_only": {
+    "roc_auc": 0.9358975710550729,
+    "pr_auc": 0.7858711430215266,
+    "accuracy": 0.8552502453385672,
+    "precision": 0.5363128491620112,
+    "recall": 0.8622754491017964,
+    "f1": 0.661308840413318,
+    "brier": 0.10168632119894028,
+    "confusion_matrix": [
+      [
+        1455,
+        249
+      ],
+      [
+        46,
+        288
+      ]
+    ]
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "val_loss": 1.1671230792999268
+    },
+    {
+      "epoch": 2,
+      "val_loss": 1.087996006011963
+    },
+    {
+      "epoch": 3,
+      "val_loss": 0.9909029603004456
+    },
+    {
+      "epoch": 4,
+      "val_loss": 0.8889915943145752
+    },
+    {
+      "epoch": 5,
+      "val_loss": 0.8051627278327942
+    },
+    {
+      "epoch": 6,
+      "val_loss": 0.7366461157798767
+    },
+    {
+      "epoch": 7,
+      "val_loss": 0.6829584836959839
+    },
+    {
+      "epoch": 8,
+      "val_loss": 0.6434783339500427
+    },
+    {
+      "epoch": 9,
+      "val_loss": 0.6164394617080688
+    },
+    {
+      "epoch": 10,
+      "val_loss": 0.6028742790222168
+    },
+    {
+      "epoch": 11,
+      "val_loss": 0.5838063955307007
+    },
+    {
+      "epoch": 12,
+      "val_loss": 0.5862191915512085
+    },
+    {
+      "epoch": 13,
+      "val_loss": 0.5696992874145508
+    },
+    {
+      "epoch": 14,
+      "val_loss": 0.564990758895874
+    },
+    {
+      "epoch": 15,
+      "val_loss": 0.5609644055366516
+    },
+    {
+      "epoch": 16,
+      "val_loss": 0.558003842830658
+    },
+    {
+      "epoch": 17,
+      "val_loss": 0.5518145561218262
+    },
+    {
+      "epoch": 18,
+      "val_loss": 0.5539308190345764
+    },
+    {
+      "epoch": 19,
+      "val_loss": 0.5560968518257141
+    },
+    {
+      "epoch": 20,
+      "val_loss": 0.5490604639053345
+    },
+    {
+      "epoch": 21,
+      "val_loss": 0.5497195720672607
+    },
+    {
+      "epoch": 22,
+      "val_loss": 0.5449874401092529
+    },
+    {
+      "epoch": 23,
+      "val_loss": 0.5455827116966248
+    },
+    {
+      "epoch": 24,
+      "val_loss": 0.5475960969924927
+    },
+    {
+      "epoch": 25,
+      "val_loss": 0.5476579666137695
+    },
+    {
+      "epoch": 26,
+      "val_loss": 0.5426859259605408
+    },
+    {
+      "epoch": 27,
+      "val_loss": 0.5473785996437073
+    },
+    {
+      "epoch": 28,
+      "val_loss": 0.5452424883842468
+    },
+    {
+      "epoch": 29,
+      "val_loss": 0.5449519157409668
+    },
+    {
+      "epoch": 30,
+      "val_loss": 0.548593282699585
+    },
+    {
+      "epoch": 31,
+      "val_loss": 0.5433803796768188
+    },
+    {
+      "epoch": 32,
+      "val_loss": 0.5439804196357727
+    },
+    {
+      "epoch": 33,
+      "val_loss": 0.5386694669723511
+    },
+    {
+      "epoch": 34,
+      "val_loss": 0.5377704501152039
+    },
+    {
+      "epoch": 35,
+      "val_loss": 0.5390464067459106
+    },
+    {
+      "epoch": 36,
+      "val_loss": 0.5360961556434631
+    },
+    {
+      "epoch": 37,
+      "val_loss": 0.5328748226165771
+    },
+    {
+      "epoch": 38,
+      "val_loss": 0.5380800366401672
+    },
+    {
+      "epoch": 39,
+      "val_loss": 0.5359030365943909
+    },
+    {
+      "epoch": 40,
+      "val_loss": 0.5372921824455261
+    },
+    {
+      "epoch": 41,
+      "val_loss": 0.5380346775054932
+    },
+    {
+      "epoch": 42,
+      "val_loss": 0.5371639728546143
+    },
+    {
+      "epoch": 43,
+      "val_loss": 0.530136227607727
+    },
+    {
+      "epoch": 44,
+      "val_loss": 0.5259113907814026
+    },
+    {
+      "epoch": 45,
+      "val_loss": 0.5295649170875549
+    },
+    {
+      "epoch": 46,
+      "val_loss": 0.5321230888366699
+    },
+    {
+      "epoch": 47,
+      "val_loss": 0.5335118174552917
+    },
+    {
+      "epoch": 48,
+      "val_loss": 0.5382381677627563
+    },
+    {
+      "epoch": 49,
+      "val_loss": 0.5289350748062134
+    },
+    {
+      "epoch": 50,
+      "val_loss": 0.5323224067687988
+    },
+    {
+      "epoch": 51,
+      "val_loss": 0.5301384925842285
+    }
+  ],
+  "libraries": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "sklearn": "1.9.1",
+    "torch": "2.15.0+cpu"
+  },
+  "warning": "Research experiment only; no diagnosis, clinical use, or claims about Vietnamese population."
+}

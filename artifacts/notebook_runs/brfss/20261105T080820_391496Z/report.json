@@ -1,0 +1,131 @@
+{
+  "experiment": "brfss",
+  "purpose": "BRFSS là khảo sát Hoa Kỳ tự khai. Nhãn là từng được thông báo mắc bệnh, không phải dự báo mắc mới. Không dùng survey weights.",
+  "model_type": "MLP",
+  "seed": 42,
+  "smoke_test": false,
+  "source_sha256": {
+    "data/raw/LLCP2021.XPT": "ae7fea17e09740fd2bd306b217c58df42d86060eab85baf0d6af67e977a1eca2",
+    "data/raw/LLCP2022.XPT": "a65fc471134c04c136294055a9b0d2b1ecd1dec54b7675d1b8408a784e6e8ba4",
+    "data/raw/LLCP2023.XPT": "3d3bf8ef5195bde227828ddc4c90745b76e8b304f8f5b9a043b6d99895fd1615"
+  },
+  "features": [
+    "_BMI5",
+    "_AGEG5YR",
+    "SEXVAR",
+    "_SMOKER3",
+    "_TOTINDA"
+  ],
+  "sizes": {
+    "train": 683070,
+    "validation": 170768,
+    "test": 418492
+  },
+  "validation_roc_auc": {
+    "neural_network": 0.7661075598818137,
+    "logistic_regression": 0.7627279321571057
+  },
+  "selection_rule": "highest validation ROC-AUC; tie -> logistic regression",
+  "selected_model": "neural_network",
+  "test_selected_only": {
+    "roc_auc": 0.764352067685762,
+    "pr_auc": 0.3293689996118668,
+    "accuracy": 0.6504688261663305,
+    "precision": 0.2556337868993264,
+    "recall": 0.7566821663934701,
+    "f1": 0.3821603858857717,
+    "brier": 0.20168612897396088,
+    "confusion_matrix": [
+      [
+        226977,
+        131729
+      ],
+      [
+        14547,
+        45239
+      ]
+    ]
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "val_loss": 0.9889956712722778
+    },
+    {
+      "epoch": 2,
+      "val_loss": 0.9862043261528015
+    },
+    {
+      "epoch": 3,
+      "val_loss": 0.9852599501609802
+    },
+    {
+      "epoch": 4,
+      "val_loss": 0.9854129552841187
+    },
+    {
+      "epoch": 5,
+      "val_loss": 0.9860259890556335
+    },
+    {
+      "epoch": 6,
+      "val_loss": 0.9851863980293274
+    },
+    {
+      "epoch": 7,
+      "val_loss": 0.9858580827713013
+    },
+    {
+      "epoch": 8,
+      "val_loss": 0.9852896332740784
+    },
+    {
+      "epoch": 9,
+      "val_loss": 0.9859074950218201
+    },
+    {
+      "epoch": 10,
+      "val_loss": 0.984987199306488
+    },
+    {
+      "epoch": 11,
+      "val_loss": 0.9845806956291199
+    },
+    {
+      "epoch": 12,
+      "val_loss": 0.9848564863204956
+    },
+    {
+      "epoch": 13,
+      "val_loss": 0.9851770997047424
+    },
+    {
+      "epoch": 14,
+      "val_loss": 0.9865512251853943
+    },
+    {
+      "epoch": 15,
+      "val_loss": 0.9845899939537048
+    },
+    {
+      "epoch": 16,
+      "val_loss": 0.9845603108406067
+    },
+    {
+      "epoch": 17,
+      "val_loss": 0.9850919842720032
+    },
+    {
+      "epoch": 18,
+      "val_loss": 0.9855208992958069
+    }
+  ],
+  "libraries": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "sklearn": "1.9.1",
+    "torch": "2.15.0+cpu"
+  },
+  "warning": "Research experiment only; no diagnosis, clinical use, or claims about Vietnamese population."
+}

@@ -1,0 +1,82 @@
+{
+  "task": "Classify self-reported prior diagnosis, not predict onset or diagnose diabetes",
+  "features": [
+    "RIDAGEYR",
+    "BMXBMI",
+    "LBXGLU",
+    "LBXGH"
+  ],
+  "train_cycle": {
+    "merged": 3191,
+    "eligible": 2663,
+    "complete": 2485,
+    "positive": 374,
+    "sha256": {
+      "DEMO_I.xpt": "c9297c6c37ae8f78f29be9568fa2a03cf3b112616a39afee04030fc775a66a0d",
+      "DIQ_I.xpt": "e87587479b29f175b63eee5dd40d582837e3e3fe2665503012085eefdb978e0d",
+      "BMX_I.xpt": "d31da84e14212b4e58e8340598a5b8e2144fac83333563e966eb1b332e4141d6",
+      "GLU_I.xpt": "3a52f14346060819c79faa8d646c1dfc33d5a85c1df13d23e10aa4fff0d1bb87",
+      "GHB_I.xpt": "e4bc626cd12f6057c7806aef4f85874c9bf1407a7480d6621a4af142260addd2"
+    }
+  },
+  "test_cycle": {
+    "merged": 3036,
+    "eligible": 2567,
+    "complete": 2408,
+    "positive": 405,
+    "sha256": {
+      "DEMO_J.xpt": "c0b46e0345ea19404928656277c8b0d10b0cca348a9b2fe4fc3c67e8b7ee73ec",
+      "DIQ_J.xpt": "1ecbf5360dfc331d1efbf32198553dc30e9a1f4cff0a907ed30ca72bac797f89",
+      "BMX_J.xpt": "8d675e42d8826ac98714b2c3dd4c5138a5e353fb4424f7eff5e6db4a01ce838a",
+      "GLU_J.xpt": "5b38897d0d7bfbc69dd9ca74ffdaf2f6a9bed5a91d4a7bf46e07f1332cc3379e",
+      "GHB_J.xpt": "35f07094573a0061a03ed609a5a363b34eb1b1c7065d1623b43d72e132a8a654"
+    }
+  },
+  "train_n": 1988,
+  "validation_n": 497,
+  "seed": 42,
+  "best_epoch": 28,
+  "cnn": {
+    "roc_auc": 0.9489937932607262,
+    "average_precision": 0.827339653922668,
+    "accuracy": 0.8866279069767442,
+    "precision": 0.611864406779661,
+    "recall": 0.891358024691358,
+    "f1": 0.7256281407035176,
+    "confusion_matrix": [
+      [
+        1774,
+        229
+      ],
+      [
+        44,
+        361
+      ]
+    ]
+  },
+  "logistic_regression": {
+    "roc_auc": 0.9418810056520158,
+    "average_precision": 0.804695206474384,
+    "accuracy": 0.8916112956810631,
+    "precision": 0.6281138790035588,
+    "recall": 0.8716049382716049,
+    "f1": 0.7300930713547052,
+    "confusion_matrix": [
+      [
+        1794,
+        209
+      ],
+      [
+        52,
+        353
+      ]
+    ]
+  },
+  "limitations": [
+    "Retrospective self-report; disease treatment can affect measurements",
+    "Complete cases from fasting subsample; unweighted survey; not population representative",
+    "HbA1c and glucose are diagnostic measurements; possible overlap with historical diagnosis",
+    "CNN feature order is arbitrary; no clinical or external validation for Vietnam",
+    "Not for individual screening, clinical decisions, or diagnosis"
+  ]
+}

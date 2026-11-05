@@ -1,0 +1,38 @@
+{
+  "episodes_per_seed": 200,
+  "evaluation_seeds": [
+    1000,
+    2000,
+    3000,
+    4000,
+    5000
+  ],
+  "topics": [
+    "Tổng quan về tiểu đường",
+    "Ăn uống cân bằng",
+    "Vận động thể chất",
+    "Theo dõi sức khỏe"
+  ],
+  "state_definition": "Vector nhị phân 4 chiều [Tổng quan, Ăn uống, Vận động, Theo dõi]; 1 = cần học, 0 = đã hoàn tất.",
+  "action_definition": "Chọn 1 trong 4 chủ đề giáo dục tương ứng với chỉ số [0, 1, 2, 3].",
+  "reward_definition": "+1.0 nếu chủ đề đang cần học; -0.25 nếu chọn trùng chủ đề đã hoàn tất; 0.0 khi hoàn tất hết.",
+  "results": {
+    "dqn_policy": {
+      "mean_return": 2.026,
+      "std_return": 0.041999999999999996
+    },
+    "greedy_heuristic": {
+      "mean_return": 2.026,
+      "std_return": 0.041999999999999996
+    },
+    "random_baseline": {
+      "mean_return": 0.9317500000000001,
+      "std_return": 0.06883222355844683
+    },
+    "optimal_oracle": {
+      "mean_return": 2.026,
+      "std_return": 0.041999999999999996
+    }
+  },
+  "warning": "Synthetic reward; simulated educational task, zero evidence of clinical benefit or medical treatment."
+}

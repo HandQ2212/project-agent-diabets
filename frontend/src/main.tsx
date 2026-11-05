@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
 
 type Answer = {
   answer?: string;
-  sources?: { title: string; url: string; topic?: string }[];
+  sources?: { title: string; url: string; topic?: string; review_status?: string | null; fetched_at?: string | null }[];
   trace?: string[];
   score?: number;
   classification?: number;
+  threshold?: number;
   topic?: string;
   disclaimer?: string;
   meaning?: string;
@@ -16,9 +17,17 @@ type Answer = {
   message?: string;
 };
 
+type ChatTurn = {
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: Answer['sources'];
+  trace?: string[];
+  isError?: boolean;
+};
+
 type HealthStatus = {
   status: string;
-  models: { symptoms: boolean; brfss: boolean };
+  models: { symptoms: boolean; brfss: boolean; nhanes_research: boolean; nhanes15_research: boolean };
   rl: boolean;
   services?: { neo4j: boolean; ollama: boolean };
 };
@@ -82,7 +91,7 @@ const brfssLabels: Record<string, { label: string; hint: string }> = {
 const views = [
   ['home', 'Tổng quan'],
   ['risk', 'Đánh giá mô hình'],
-  ['chat', 'Hỏi đáp đa Agent'],
+  ['chat', 'Hỏi đáp'],
   ['rl', 'Mô phỏng RL']
 ] as const;
 
@@ -108,14 +117,17 @@ async function postApi(path: string, body: unknown): Promise<Answer> {
 
 function App() {
   const [view, setView] = useState<'home' | 'risk' | 'chat' | 'rl'>('home');
-  const [kind, setKind] = useState<'symptoms' | 'brfss'>('brfss');
+  const [kind, setKind] = useState<'symptoms' | 'brfss' | 'nhanes_research' | 'nhanes15_research'>('nhanes15_research');
   const [values, setValues] = useState<Record<string, string>>({});
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [question, setQuestion] = useState('');
+  const [conversation, setConversation] = useState<ChatTurn[]>([]);
+  const chatEnd = useRef<HTMLDivElement>(null);
   const [needs, setNeeds] = useState<number[]>([1, 1, 1, 1]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [health, setHealth] = useState<HealthStatus | null>(null);
+  const servicesReady = health?.status === 'ok' && health.services?.neo4j === true && health.services?.ollama === true;
 
   useEffect(() => {
     fetch('/api/health')
@@ -123,6 +135,10 @@ function App() {
       .then(data => setHealth(data))
       .catch(() => setHealth(null));
   }, []);
+
+  useEffect(() => {
+    if (view === 'chat') chatEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [conversation, busy, view]);
 
   const reset = (v: 'home' | 'risk' | 'chat' | 'rl') => {
     setView(v);
@@ -139,6 +155,63 @@ function App() {
       setAnswer(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Có lỗi xảy ra.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendChat() {
+    const text = question.trim();
+    if (busy || text.length < 2) {
+      if (text.length < 2) setError('Vui lòng nhập câu hỏi có ít nhất 2 ký tự.');
+      return;
+    }
+    const history = conversation.filter(turn => !turn.isError).slice(-10)
+      .map(turn => ({ role: turn.role, content: turn.content.slice(0, 1500) }));
+    setConversation(current => [...current, { role: 'user', content: text }]);
+    setQuestion('');
+    setError('');
+    setBusy(true);
+    try {
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text, history })
+      });
+      if (!response.ok || !response.body) throw Error('Không thể kết nối tới dịch vụ hỏi đáp.');
+      setConversation(current => [...current, { role: 'assistant', content: '' }]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let done = false;
+      const updateLast = (change: Partial<ChatTurn>) => setConversation(current => {
+        const copy = [...current];
+        const last = copy[copy.length - 1];
+        if (last?.role === 'assistant') copy[copy.length - 1] = { ...last, ...change, content: change.content === undefined ? last.content : last.content + change.content };
+        return copy;
+      });
+      while (true) {
+        const chunk = await reader.read();
+        buffer += decoder.decode(chunk.value, { stream: !chunk.done });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line) continue;
+          const event = JSON.parse(line);
+          if (event.type === 'delta') updateLast({ content: event.text });
+          if (event.type === 'done') { updateLast({ sources: event.sources, trace: event.trace }); done = true; }
+          if (event.type === 'error') throw Error(event.message);
+        }
+        if (chunk.done) break;
+      }
+      if (!done) throw Error('Kết nối bị gián đoạn. Vui lòng thử lại.');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Có lỗi xảy ra.';
+      setConversation(current => {
+        const last = current[current.length - 1];
+        if (last?.role === 'assistant') return [...current.slice(0, -1), { ...last, content: last.content ? last.content + '\n\n' + message : message, isError: true }];
+        return [...current, { role: 'assistant', content: message, isError: true }];
+      });
+      setQuestion(text);
     } finally {
       setBusy(false);
     }
@@ -165,7 +238,7 @@ function App() {
         <button className="brand" onClick={() => reset('home')}>
           <span className="logo">✳</span>
           <span>
-            đường an<small>HỆ ĐA AGENT HỌC THUẬT TIỂU ĐƯỜNG</small>
+            đường an<small>THÔNG TIN VỀ ĐÁI THÁO ĐƯỜNG</small>
           </span>
         </button>
         <nav>
@@ -180,9 +253,9 @@ function App() {
           ))}
         </nav>
         <div className="header-status">
-          <span className={`status-dot ${health?.status === 'ok' ? 'online' : 'offline'}`} />
+          <span className={`status-dot ${servicesReady ? 'online' : 'offline'}`} />
           <span className="status-text">
-            {health?.status === 'ok' ? 'Dịch vụ: Trực tuyến' : 'Dịch vụ: Ngoại tuyến'}
+            {servicesReady ? 'Dịch vụ: Trực tuyến' : health ? 'Một số dịch vụ chưa sẵn sàng' : 'Không kết nối được API'}
           </span>
         </div>
       </header>
@@ -201,7 +274,7 @@ function App() {
                   <em>chăm sóc tốt hơn.</em>
                 </h1>
                 <p>
-                  Nền tảng học thuật ứng dụng hệ đa Agent (Multi-Agent System) phối hợp điều phối các mô hình Deep Learning, kho tri thức đồ thị Neo4j, kỹ thuật RAG và Học tăng cường (RL) hỗ trợ tìm hiểu thông tin về bệnh đái tháo đường.
+                  Tìm hiểu về bệnh đái tháo đường qua những câu trả lời có nguồn tham khảo và các công cụ nghiên cứu dữ liệu.
                 </p>
                 <div className="actions">
                   <button className="primary" onClick={() => reset('risk')}>
@@ -219,7 +292,7 @@ function App() {
                 <div className="art-card">
                   <div className="pulse">✦</div>
                   <div>
-                    <strong>Kiến thức có nguồn kiểm chứng.</strong>
+                    <strong>Kiến thức có nguồn tham khảo.</strong>
                     <small>WHO · CDC · Bộ Y tế VN · ADA</small>
                   </div>
                 </div>
@@ -243,8 +316,8 @@ function App() {
 
             <section className="cards">
               {[
-                ['01', 'Đánh giá mô hình', 'Phân loại dữ liệu dựa trên mô hình mạng nơ-ron PyTorch MLP và Logistic Regression.', 'risk'],
-                ['02', 'Hỏi đáp có nguồn', 'Hệ RAG truy xuất tài liệu từ Neo4j và tổng hợp câu trả lời với trích dẫn minh bạch.', 'chat'],
+                ['01', 'Đánh giá mô hình', 'Thử nghiệm phân loại trên dữ liệu UCI, BRFSS và NHANES.', 'risk'],
+                ['02', 'Hỏi đáp có nguồn', 'Đặt câu hỏi và xem các nguồn tham khảo đi kèm.', 'chat'],
                 ['03', 'Mô phỏng RL', 'Tác tử học tăng cường DQN tự động đề xuất lộ trình chủ đề giáo dục phù hợp.', 'rl']
               ].map(([n, t, d, v]) => (
                 <button className="feature" key={n} onClick={() => reset(v as any)}>
@@ -267,23 +340,29 @@ function App() {
                 {view === 'risk'
                   ? 'Khám phá dữ liệu và mô hình phân loại'
                   : view === 'chat'
-                  ? 'Hỏi đáp thông tin y tế có kiểm chứng'
+                  ? 'Hỏi đáp thông tin y tế có nguồn'
                   : 'Học tăng cường điều phối lộ trình học tập'}
               </h1>
               <p>
                 {view === 'risk'
-                  ? 'Hai mô hình phân loại: Bộ dữ liệu khảo sát BRFSS (CDC Hoa Kỳ 2021-2023) và Bộ triệu chứng UCI Early Stage (CC BY 4.0).'
+                  ? 'Các thí nghiệm phân loại trên dữ liệu UCI, BRFSS và NHANES. Chỉ nhập số liệu giả lập; kết quả không phải chẩn đoán.'
                   : view === 'chat'
                   ? 'Rule Agent kiểm soát an toàn trước khi Knowledge Agent truy xuất tài liệu từ Neo4j và Response Agent trích dẫn nguồn.'
                   : 'Mô hình DQN học chính sách tối ưu hóa lựa chọn chủ đề giáo dục sức khỏe dựa trên nhu cầu giả lập.'}
               </p>
             </div>
 
-            <div className="workgrid">
+            <div className={`workgrid ${view === 'chat' ? 'chat-workgrid' : ''}`}>
               <section className="panel">
                 {view === 'risk' ? (
                   <>
                     <div className="tabs">
+                      <button className={kind === 'nhanes15_research' ? 'selected' : ''} onClick={() => { setKind('nhanes15_research'); setValues({}); setAnswer(null); }}>
+                        NHANES 15 chỉ số
+                      </button>
+                      <button className={kind === 'nhanes_research' ? 'selected' : ''} onClick={() => { setKind('nhanes_research'); setValues({}); setAnswer(null); }}>
+                        Chỉ số xét nghiệm (NHANES thử nghiệm)
+                      </button>
                       <button
                         className={kind === 'brfss' ? 'selected' : ''}
                         onClick={() => {
@@ -306,27 +385,60 @@ function App() {
                       </button>
                     </div>
 
+                    {(kind === 'nhanes_research' || kind === 'nhanes15_research') && <p className="chat-note">Chỉ nhập số liệu giả lập. Mô hình thử nghiệm phân loại câu trả lời khảo sát NHANES Hoa Kỳ về chẩn đoán trước đó; không dự báo bệnh mới, sàng lọc hay chẩn đoán cho cá nhân. BMI của biểu mẫu 15 chỉ số được tính từ cân nặng và chiều cao.</p>}
+
                     <form
                       onSubmit={e => {
                         e.preventDefault();
-                        run('predict', { kind, features: values });
+                        if (kind === 'brfss') {
+                          const { weight_kg, height_cm, ...features } = values;
+                          const weight = Number(weight_kg);
+                          const height = Number(height_cm) / 100;
+                          const bmi = weight / (height * height);
+                          if (!Number.isFinite(bmi) || bmi < 10 || bmi > 100) {
+                            setAnswer(null);
+                            setError('Cân nặng và chiều cao tương ứng với BMI ngoài khoảng mô hình hỗ trợ (10–100). Vui lòng kiểm tra lại.');
+                            return;
+                          }
+                          run('predict', { kind, features: { ...features, _BMI5: bmi } });
+                        } else if (kind === 'nhanes15_research') {
+                          const bmi = Number(values.BMXWT) / (Number(values.BMXHT) / 100) ** 2;
+                          if (!Number.isFinite(bmi) || bmi < 10 || bmi > 100) {
+                            setAnswer(null); setError('BMI tính từ cân nặng và chiều cao cần nằm trong khoảng 10–100.'); return;
+                          }
+                          run('predict', { kind, features: { ...values, BMXBMI: bmi } });
+                        } else {
+                          run('predict', { kind, features: values });
+                        }
                       }}
                     >
                       <div className="formgrid">
                         {kind === 'brfss' ? (
                           <>
                             <label>
-                              Chỉ số BMI (10 – 100)
-                              <small className="field-hint">BMI = Cân nặng (kg) / [Chiều cao (m)]²</small>
+                              Cân nặng (kg)
                               <input
                                 type="number"
                                 step="0.1"
-                                min="10"
-                                max="100"
+                                min="1"
+                                max="500"
                                 required
-                                placeholder="Ví dụ: 24.5"
-                                value={values._BMI5 || ''}
-                                onChange={e => setValues({ ...values, _BMI5: e.target.value })}
+                                placeholder="Ví dụ: 65"
+                                value={values.weight_kg || ''}
+                                onChange={e => setValues({ ...values, weight_kg: e.target.value })}
+                              />
+                            </label>
+                            <label>
+                              Chiều cao (cm)
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="1"
+                                max="300"
+                                required
+                                placeholder="Ví dụ: 170"
+                                value={values.height_cm || ''}
+                                onChange={e => setValues({ ...values, height_cm: e.target.value })}
                               />
                             </label>
                             {Object.entries(brfssOptions).map(([k, o]) => (
@@ -334,6 +446,40 @@ function App() {
                                 {brfssLabels[k].label}
                                 <small className="field-hint">{brfssLabels[k].hint}</small>
                                 {select(k, o)}
+                              </label>
+                            ))}
+                          </>
+                        ) : kind === 'nhanes15_research' ? (
+                          <>
+                            <label>Giới tính theo mã khảo sát NHANES {select('RIAGENDR', [['1', 'Nam'], ['2', 'Nữ']])}</label>
+                            {([
+                              ['RIDAGEYR', 'Tuổi (năm)', 18, 80, '1'],
+                              ['BMXWT', 'Cân nặng (kg)', 20, 350, '0.1'],
+                              ['BMXHT', 'Chiều cao (cm)', 100, 250, '0.1'],
+                              ['BMXWAIST', 'Vòng eo (cm)', 30, 250, '0.1'],
+                              ['BPXSY1', 'Huyết áp tâm thu (mmHg)', 50, 300, '1'],
+                              ['BPXDI1', 'Huyết áp tâm trương (mmHg)', 20, 200, '1'],
+                              ['LBXGLU', 'Glucose huyết tương lúc đói (mg/dL)', 40, 500, '0.1'],
+                              ['LBXGH', 'HbA1c (%)', 3, 20, '0.1'],
+                              ['LBXTC', 'Cholesterol toàn phần (mg/dL)', 50, 800, '0.1'],
+                              ['LBDHDD', 'HDL cholesterol (mg/dL)', 5, 200, '0.1'],
+                              ['LBXTR', 'Triglyceride (mg/dL)', 10, 3000, '0.1'],
+                              ['LBXSATSI', 'ALT (U/L)', 1, 1000, '0.1'],
+                              ['LBXSCR', 'Creatinine huyết thanh (mg/dL)', 0.1, 15, '0.01']
+                            ] as const).map(([key, label, min, max, step]) => (
+                              <label key={key}>{label}<input type="number" min={min} max={max} step={step} required value={values[key] || ''} onChange={e => setValues({ ...values, [key]: e.target.value })} /></label>
+                            ))}
+                          </>
+                        ) : kind === 'nhanes_research' ? (
+                          <>
+                            {([
+                              ['RIDAGEYR', 'Tuổi (năm)', 18, 80, '1'],
+                              ['BMXBMI', 'BMI (kg/m²)', 10, 100, '0.1'],
+                              ['LBXGLU', 'Glucose huyết tương lúc đói (mg/dL)', 40, 500, '0.1'],
+                              ['LBXGH', 'HbA1c (%)', 3, 20, '0.1']
+                            ] as const).map(([key, label, min, max, step]) => (
+                              <label key={key}>{label}
+                                <input type="number" min={min} max={max} step={step} required value={values[key] || ''} onChange={e => setValues({ ...values, [key]: e.target.value })} />
                               </label>
                             ))}
                           </>
@@ -377,49 +523,27 @@ function App() {
                     </form>
                   </>
                 ) : view === 'chat' ? (
-                  <>
-                    <div className="starter-box">
-                      <div className="field-hint" style={{ marginBottom: 8, fontWeight: 600 }}>
-                        Gợi ý câu hỏi tìm hiểu nhanh:
-                      </div>
-                      <div className="pills">
-                        {starterQuestions.map((q, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            className="pill"
-                            onClick={() => setQuestion(q)}
-                          >
-                            {q}
-                          </button>
-                        ))}
-                      </div>
+                  <div className="chat-shell">
+                    <div className="chat-topbar"><div><strong>Trợ lý Đường An</strong><small>Câu trả lời có nguồn tham khảo</small></div><button type="button" className="chat-clear" disabled={busy || !conversation.length} onClick={() => { setConversation([]); setQuestion(''); setError(''); }}>Cuộc trò chuyện mới</button></div>
+                    <div className="chat-messages" aria-live="polite" aria-label="Nội dung cuộc trò chuyện">
+                      {!conversation.length && <div className="chat-welcome"><span className="chat-welcome-icon">✳</span><h2>Hôm nay bạn muốn tìm hiểu điều gì?</h2><p>Đặt câu hỏi về bệnh tiểu đường và tiếp tục trao đổi theo ngữ cảnh.</p><div className="chat-suggestions">{starterQuestions.map(q => <button className="pill" type="button" key={q} onClick={() => setQuestion(q)}>{q}</button>)}</div></div>}
+                      {conversation.map((turn, index) => <div key={index} className={`chat-row ${turn.role}`}>
+                        {turn.role === 'assistant' && <span className="chat-avatar">✳</span>}
+                        <div className={`chat-bubble ${turn.isError ? 'chat-error' : ''}`}><div className="chat-text">{turn.content}</div>
+                          {!!turn.sources?.length && <div className="chat-sources"><strong>Nguồn tham khảo</strong>{turn.sources.map((source, i) => <a key={i} href={source.url} target="_blank" rel="noreferrer">[{i + 1}] {source.title} ↗{source.review_status === 'unreviewed_web' && <small> Tự động thu thập, chưa kiểm duyệt chuyên môn</small>}</a>)}</div>}
+                          {!!turn.trace?.length && <details className="chat-trace"><summary>Quá trình xử lý</summary><span>{turn.trace.join(' → ')}</span></details>}
+                        </div>
+                      </div>)}
+                      {busy && conversation[conversation.length - 1]?.role !== 'assistant' && <div className="chat-row assistant"><span className="chat-avatar">✳</span><div className="chat-bubble chat-thinking">Đang tìm trong kho tri thức…</div></div>}
+                      <div ref={chatEnd} />
                     </div>
-                    <form
-                      onSubmit={e => {
-                        e.preventDefault();
-                        run('chat', { question });
-                      }}
-                    >
-                      <label>
-                        Câu hỏi về bệnh đái tháo đường
-                        <textarea
-                          required
-                          minLength={3}
-                          maxLength={1500}
-                          value={question}
-                          onChange={e => setQuestion(e.target.value)}
-                          placeholder="Ví dụ: Những triệu chứng cảnh báo điển hình của bệnh đái tháo đường là gì?"
-                        />
-                      </label>
-                      <p className="hint">
-                        🔒 Bảo mật dữ liệu: Tuyệt đối không nhập họ tên cá nhân, số điện thoại, CCCD/CMND hoặc số bệnh án thật.
-                      </p>
-                      <button className="primary" disabled={busy} type="submit">
-                        {busy ? 'Đang truy xuất và tổng hợp…' : 'Gửi câu hỏi tới hệ Agent'} <span>↗</span>
-                      </button>
+                    <form className="chat-composer" onSubmit={e => { e.preventDefault(); sendChat(); }}>
+                      <label className="sr-only" htmlFor="chat-question">Nhập câu hỏi</label>
+                      <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" />
+                      <button type="submit" disabled={busy || question.trim().length < 3} aria-label="Gửi câu hỏi">↑</button>
                     </form>
-                  </>
+                    <p className="chat-note">Hội thoại chỉ lưu trong phiên này. Không nhập thông tin cá nhân hoặc bệnh án thật. Nội dung chỉ để tham khảo.</p>
+                  </div>
                 ) : (
                   <>
                     <div className="rl-header">
@@ -459,31 +583,27 @@ function App() {
                 )}
               </section>
 
-              <aside className="result">
+              {view !== 'chat' && <aside className="result">
                 <div className="eyebrow">KẾT QUẢ ĐIỀU PHỐI</div>
                 {answer ? (
                   <>
                     <h2>
                       {answer.topic ||
                         (answer.score !== undefined
-                          ? `Kết quả đánh giá: ${(answer.score * 100).toFixed(1)}%`
+                          ? 'Điểm phân loại của mô hình'
                           : 'Thông tin tri thức')}
                     </h2>
 
                     {answer.score !== undefined && (
                       <div className="score-card">
                         <div className="score">
-                          {(answer.score * 100).toFixed(1)}
-                          <small> / 100</small>
+                          {answer.score.toFixed(3)}
+                          <small> / 1</small>
                         </div>
-                        <div
-                          className={`classification-badge ${
-                            answer.classification ? 'high-risk' : 'low-risk'
-                          }`}
-                        >
-                          Phân loại tại ngưỡng 0.5:{' '}
+                        <div className="classification-badge">
+                          Lớp dự đoán tại ngưỡng {answer.threshold ?? 0.5}:{' '}
                           <strong>
-                            {answer.classification ? 'Nhóm nguy cơ cao (Dương tính)' : 'Nhóm nguy cơ thấp (Âm tính)'}
+                            {answer.classification ? 'Lớp 1' : 'Lớp 0'}
                           </strong>
                         </div>
                         <p className="meaning-text">{answer.meaning}</p>
@@ -496,7 +616,7 @@ function App() {
 
                     {answer.sources && answer.sources.length > 0 && (
                       <div className="sources-container">
-                        <h3>Nguồn tài liệu kiểm chứng</h3>
+                        <h3>Nguồn tham khảo</h3>
                         {answer.sources.map((s, idx) => (
                           <a
                             className="source-card"
@@ -509,6 +629,7 @@ function App() {
                             <div>
                               <strong>{s.title}</strong>
                               <small>{s.url}</small>
+                              {s.review_status === 'unreviewed_web' && <small>Nội dung tự động thu thập, chưa được kiểm duyệt chuyên môn{s.fetched_at ? ` · ${new Date(s.fetched_at).toLocaleDateString('vi-VN')}` : ''}</small>}
                             </div>
                             <span className="source-arrow">↗</span>
                           </a>
@@ -541,7 +662,7 @@ function App() {
                     <p>Hãy hoàn tất biểu mẫu hoặc gửi câu hỏi để quan sát hệ đa Agent phối hợp xử lý.</p>
                   </div>
                 )}
-              </aside>
+              </aside>}
             </div>
           </>
         )}
@@ -551,7 +672,7 @@ function App() {
         <div>
           <strong>✳ đường an</strong> — Hệ đa tác tử học thuật nghiên cứu bệnh đái tháo đường.
         </div>
-        <div>MacBook Pro Apple Silicon M1 Pro · LangGraph · PyTorch · Neo4j · Ollama</div>
+        <div>Kiến thức tham khảo cho mục đích học tập</div>
         <span>PHI LÂM SÀNG · DỰ ÁN HỌC THUẬT</span>
       </footer>
     </div>

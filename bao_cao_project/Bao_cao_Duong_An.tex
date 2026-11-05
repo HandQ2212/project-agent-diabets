@@ -1,0 +1,150 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry,graphicx,booktabs,tabularx,longtable,array,float,amsmath,xcolor,xurl,hyperref,fancyhdr,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\geometry{left=25mm,right=20mm,top=25mm,bottom=25mm}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!65!black}
+\setlength{\headheight}{15pt}\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small Học viện Công nghệ Bưu chính Viễn thông}\fancyhead[R]{\small Đồ án hệ đa tác tử}\fancyfoot[C]{\thepage}
+\setlength{\parskip}{5pt}\setlength{\parindent}{1em}\linespread{1.2}
+\graphicspath{{hinh_anh/}}
+\newcommand{\fig}[3]{\begin{figure}[H]\centering\includegraphics[width=#2\linewidth]{#1}\caption{#3}\end{figure}}
+\begin{document}
+\begin{titlepage}
+\centering
+\vspace*{6cm}
+{\LARGE\bfseries Project: Dự đoán bệnh tiểu đường\par}
+\vspace{1.2cm}
+{\large\bfseries Môn học: Phát triển các hệ thống thông minh\par}
+\vfill
+{\large Năm 2026\par}
+\end{titlepage}
+\pagenumbering{roman}\setcounter{tocdepth}{2}\tableofcontents\newpage\listoffigures\newpage
+\section*{Phạm vi và lưu ý}\addcontentsline{toc}{section}{Phạm vi và lưu ý}
+Đường An là nguyên mẫu học thuật minh họa kiến trúc đa tác tử, phân loại dữ liệu, truy xuất tri thức và học tăng cường. Kết quả không phải chẩn đoán, không dùng để kê đơn hoặc thay thế bác sĩ. Nội dung tóm tắt thủ công chưa được thẩm định chuyên môn độc lập. Không nhập thông tin sức khỏe hoặc định danh thật khi demo.
+
+Báo cáo dùng kết quả huấn luyện đã lưu trong \texttt{artifacts/*/report.json}; không khẳng định đã huấn luyện lại khi viết báo cáo. Các ảnh giao diện được chụp từ ứng dụng đang chạy ngày 04/11/2026, dùng câu hỏi hoặc dữ liệu giả lập. Ảnh chụp là minh chứng lịch sử; cấu hình và kết quả notebook mới được ghi rõ ở phần thực nghiệm.
+\newpage\pagenumbering{arabic}
+\section{Giới thiệu}
+\subsection{Bài toán và động lực}
+Bệnh đái tháo đường liên quan đến nhiều nội dung cần tìm hiểu như biểu hiện, yếu tố nguy cơ, dinh dưỡng và chăm sóc. Mục tiêu đồ án là xây dựng một nguyên mẫu giúp trình bày thông tin có nguồn, khảo sát khả năng phân loại trên dữ liệu nghiên cứu và minh họa lựa chọn nội dung giáo dục thông qua học tăng cường. Dự án kết hợp giao diện web, các quy tắc an toàn, cơ sở tri thức đồ thị và các mô hình học máy.
+
+\textbf{Các chức năng thực hiện:} hỏi đáp dựa trên tài liệu, hiển thị đường dẫn nguồn và vết xử lý; thử nghiệm phân loại UCI, BRFSS và NHANES bằng MLP/CNN; mô phỏng gợi ý chủ đề bằng DQN; kiểm tra tình trạng dịch vụ và triển khai bằng Docker Compose.
+\subsection{Mục tiêu và phạm vi theo gợi ý của giảng viên}
+Báo cáo trình bày bài toán, hệ đa agent, kiến trúc tổng quan, các thành phần Deep Learning, cơ sở tri thức và RAG, học tăng cường, luật an toàn, cùng mã nguồn và minh chứng demo. Sơ đồ ở phần 3 thể hiện các thành phần đang được triển khai trong hệ thống.
+\input{noi_dung/01_bai_toan.tex}
+\section{Hệ đa agent}
+\subsection{Agent}
+Agent là thành phần nhận đầu vào, xử lý theo chức năng được giao và trả lại kết quả. Hệ đa agent phối hợp nhiều vai trò để giải quyết một công việc. Trong nguyên mẫu này, tên agent mô tả \emph{vai trò xử lý}; không nên hiểu rằng mọi vai trò đều là một tiến trình độc lập hoặc một LLM tự chủ.
+\subsection{Hệ đa agent và vai trò trong Đường An}
+\begin{longtable}{p{3.4cm}p{10.6cm}}\toprule
+\textbf{Vai trò}&\textbf{Chức năng và biểu hiện trong mã}\\\midrule\endhead
+Coordinator & Luồng hỏi đáp được mô tả bằng LangGraph: rules, blocked, knowledge, response; định tuyến theo kết quả kiểm tra. API streaming tái sử dụng các hàm node và tuần tự xuất dữ liệu.\\
+Rule Agent & Áp dụng các mẫu/quy tắc để nhận diện một số tình huống khẩn cấp, hỏi liều, dữ liệu nhạy cảm và prompt injection. Đây không phải bộ phát hiện ngữ nghĩa đầy đủ.\\
+Knowledge Agent & Viết lại câu hỏi tiếp nối khi có lịch sử, tạo embedding và tìm đoạn tương đồng trong Neo4j.\\
+Response Agent & Trả lời dựa trên đoạn nhập thủ công; khi chỉ tìm thấy nguồn web chưa kiểm duyệt thì đưa liên kết thay vì tự tổng hợp.\\
+Prediction Agent & API kiểm tra biểu mẫu, nạp bộ tiền xử lý, MLP hoặc CNN rồi trả điểm và vết xử lý.\\
+Learning Agent & API dùng chính sách DQN chọn chủ đề trong môi trường giáo dục giả lập; có quy tắc dự phòng nếu chọn chủ đề đã hoàn tất.\\\bottomrule
+\end{longtable}
+\input{noi_dung/02_agent.tex}
+\section{Kiến trúc tổng quan}
+\subsection{Vai trò của các agent và sơ đồ triển khai}
+\begin{figure}[H]\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,minimum width=2.8cm,minimum height=1cm,fill=green!7}, arrow/.style={-{Latex},thick}, node distance=1cm]
+\node[box] (web) {Người dùng\\React / Nginx};
+\node[box,right=1.8cm of web] (api) {FastAPI\\điều phối yêu cầu};
+\node[box,right=2.0cm of api,yshift=2.3cm] (pred) {Prediction\\MLP / CNN + preprocessor};
+\node[box,right=2.0cm of api] (rag) {Rules $\rightarrow$ Knowledge\\$\rightarrow$ Response};
+\node[box,right=2.0cm of api,yshift=-2.3cm] (rl) {Learning Agent\\DQN mô phỏng};
+\node[box,right=1.7cm of rag,yshift=1.0cm] (neo) {Neo4j\\Document / Topic};
+\node[box,right=1.7cm of rag,yshift=-1.0cm] (ollama) {Ollama host\\embedding + LLM};
+\node[box,below=1.0cm of web] (tunnel) {Cloudflare Tunnel\\địa chỉ demo};
+\draw[arrow] (web)--node[above]{HTTP / stream}(api);\draw[arrow] (api)--(pred);\draw[arrow] (api)--(rag);\draw[arrow] (api)--(rl);\draw[arrow] (rag)--(neo);\draw[arrow] (rag)--(ollama);\draw[arrow] (tunnel)--(web);
+\end{tikzpicture}}
+\caption{Kiến trúc hiện thực: luồng hỏi đáp, phân loại và mô phỏng là các nhánh API riêng}\label{fig:architecture}\end{figure}
+Các container gồm web, API, MySQL và Neo4j; tunnel là dịch vụ bổ sung. Ollama chạy trên máy host. MySQL chỉ ghi thời điểm và loại sự kiện nếu bật cấu hình lịch sử; không là nguồn huấn luyện hay kho tri thức. Website không tự thu thập dữ liệu trong lúc chat: nguồn được nạp riêng bằng lệnh refresh.
+\subsection{Luồng một lượt hỏi đáp và các node chạy}
+\begin{enumerate}
+\item Gửi câu hỏi và tối đa 10 tin nhắn lịch sử; Rule Agent kiểm tra trước khi truy xuất.
+\item Nếu vi phạm quy tắc, nhánh \texttt{blocked} tạo cảnh báo, không gọi truy xuất. Nếu đạt, một số câu hội thoại đơn giản được xử lý trực tiếp; các câu khác qua \texttt{knowledge} tìm tối đa ba nguồn theo độ tương đồng.
+\item \texttt{response} sử dụng nguồn nhập thủ công để tạo phản hồi có trích dẫn; nguồn tự động chưa duyệt chỉ được hiển thị như liên kết tham khảo.
+\item API \texttt{/api/chat/stream} gửi từng đoạn dạng NDJSON trên HTTP; Nginx tắt buffering. Cuối luồng gửi nguồn và trace. Không phải WebSocket.
+\end{enumerate}
+\input{noi_dung/03_thiet_ke.tex}
+\section{Các thành phần của hệ thống}
+\subsection{Deep Learning và Prediction Agent}
+\subsubsection{Dữ liệu, tiền xử lý và chia tập}
+UCI Early Stage có 520 dòng ban đầu; sau loại trùng còn 251 hồ sơ khác nhau, chia train/validation/test 160/40/51. Tập thuộc một cơ sở ở Bangladesh và rất nhỏ. BRFSS là khảo sát cắt ngang tự báo cáo. Bản hiện tại giữ nhãn đã từng được báo mắc (mã 1) hoặc không mắc (mã 3), loại các mã khác; không phải nhãn dự báo mắc mới. Dữ liệu đã lọc năm 2021 và 2022 được ghép, chia train/validation; 2023 làm test theo thời gian. Không dùng survey weight và chưa chứng minh người tham gia không trùng giữa các năm.
+
+Mỗi nhánh có bộ tiền xử lý riêng: điền thiếu, chuẩn hóa đặc trưng số, one-hot cho đặc trưng phân loại. Chỉ fit tiền xử lý trên train. MLP có hai lớp ẩn 64 và 32 nút, ReLU, dropout 0,2; Adam, BCE có trọng số lớp và early stopping theo validation. Logistic Regression cân bằng lớp làm baseline. Điểm MLP không được xem là xác suất chẩn đoán đã hiệu chỉnh.
+\subsubsection{Kết quả test của artifact MLP cũ}
+\begin{table}[H]\centering\small
+\begin{tabular}{llrrrr}\toprule
+Tập test & Phương pháp & Số mẫu & Accuracy & Recall (+) & ROC-AUC\\\midrule
+UCI & MLP & 51 & 0,804 & 0,714 & 0,923\\
+UCI & Logistic Regression & 51 & 0,824 & 0,771 & 0,913\\
+BRFSS 2023 & MLP & 418.492 & 0,650 & 0,757 & 0,764\\
+BRFSS 2023 & Logistic Regression & 418.492 & 0,652 & 0,754 & 0,762\\\bottomrule
+\end{tabular}\caption{Kết quả từ artifacts/*/report.json; ngưỡng phân loại 0,5}\end{table}
+\fig{06_ma_tran_nham_lan.png}{.95}{Ma trận nhầm lẫn MLP; tính từ số liệu lưu sau huấn luyện, không phải ảnh một lần chạy mới}
+Trong BRFSS, precision lớp dương của MLP chỉ khoảng 0,256 và có 131.729 dương tính giả. Trên UCI, chỉ 51 trường hợp test nên kết quả biến động lớn; Logistic Regression có accuracy cao hơn MLP trong lần chạy đã lưu. Không khẳng định MLP vượt baseline hoặc dùng kết quả này cho chẩn đoán.
+\input{noi_dung/04_deep_learning.tex}
+\input{noi_dung/04_thuc_nghiem_moi.tex}
+\subsection{Knowledge Base và RAG}
+Kho tri thức gồm đoạn tổng hợp nhập thủ công trong \texttt{knowledge/sources.json} và danh sách nguồn web trong \texttt{knowledge/web\_sources.json}. Neo4j lưu node Document, Topic, WebSource cùng quan hệ ABOUT, FROM\_SOURCE và vector embedding. Nomic Embed Text tạo embedding; truy vấn dùng cosine similarity, lọc ngưỡng và URL trùng. Mô hình \texttt{qwen3:4b-instruct} tạo câu trả lời tiếng Việt từ ngữ cảnh nhập thủ công.
+
+Thu thập web là tác vụ riêng: kiểm tra HTTPS, host cho phép, robots.txt, kích thước và redirect; sau đó tạo embedding và cập nhật dữ liệu theo transaction. Nguồn web mang nhãn \texttt{unreviewed\_web}; nguồn nhập thủ công cũng chưa được chuyên gia xác nhận. Cần kiểm chứng nội dung và kiểm thử truy xuất trước ứng dụng thực tế.
+\input{noi_dung/04_rag.tex}
+\subsection{Reinforcement Learning: tác tử gợi ý học tập}
+Môi trường gồm bốn chủ đề. Trạng thái là bốn cờ nhị phân cần học, hành động chọn một chủ đề; phần thưởng $+1$ cho chủ đề cần học, $-0,25$ khi chọn lại, và $0$ nếu tất cả đã hoàn tất. Một episode tối đa bốn bước. DQN được huấn luyện 30.000 timestep; đánh giá 200 episode cho mỗi nhóm trong 5 nhóm seed.
+\fig{07_ket_qua_rl.png}{.85}{Tổng thưởng trung bình qua năm nhóm seed, lấy từ báo cáo RL đã lưu}
+DQN và heuristic đều đạt 2,026; ngẫu nhiên đạt 0,932. Trong bài toán đơn giản này DQN không cải thiện so với heuristic. Đây là môi trường giả lập và không chứng minh lợi ích y khoa.
+\input{noi_dung/04_rl.tex}
+\subsection{Agent luật an toàn}
+Các mẫu luật nhận diện một số dấu hiệu khẩn cấp, yêu cầu điều chỉnh thuốc, thông tin định danh và prompt injection. Luật giúp định tuyến nhưng có thể bỏ sót hoặc nhầm; không thay thế nhân viên y tế. Khi không có nguồn phù hợp, hệ thống trả lời không tìm thấy; khi chỉ có nguồn tự động chưa duyệt, hệ thống trả liên kết.
+\input{noi_dung/04_rule.tex}
+\subsection{Điều phối và kết quả tự động}
+Trong nguyên mẫu, Coordinator điều phối luồng hỏi đáp và giao diện trình bày câu trả lời, nguồn cùng trace. Hệ thống không có bác sĩ trưởng, hội chẩn đa bác sĩ hay chức năng tự sinh báo cáo bệnh án. Báo cáo đồ án này được biên soạn từ mã, artifact và minh chứng thực tế, không phải đầu ra tự sinh của ứng dụng.
+\section{Code và Demo}
+\subsection{Cấu trúc mã nguồn}
+\begin{itemize}
+\item \texttt{backend/app/main.py}: API, định tuyến và các node LangGraph; \texttt{agents.py}: Rule Agent; \texttt{rag.py}: embedding, truy xuất và tạo câu trả lời.
+\item \texttt{ml/train.py}: làm sạch dữ liệu, huấn luyện MLP và baseline; \texttt{ml/rl.py}: môi trường DQN; \texttt{ml/seed\_knowledge.py} và \texttt{ml/refresh\_web.py}: nạp tri thức.
+\item \texttt{frontend/src/main.tsx}: giao diện React; \texttt{docker-compose.yml}: cấu hình dịch vụ; thư mục \texttt{artifacts/} chứa mô hình và báo cáo kết quả.
+\item Sáu notebook trong \texttt{notebooks/training} tách theo bài toán, có cell phân tích, làm sạch, huấn luyện, chọn model theo validation và đánh giá test; artifact mỗi lần chạy được lưu riêng.
+\end{itemize}
+\input{noi_dung/05_ham_chinh.tex}
+\subsection{Demo giao diện và triển khai}
+Địa chỉ local: \url{http://localhost:8080}; tài liệu API: \url{http://localhost:8001/docs}. Địa chỉ demo được cấu hình: \url{https://diabetes.handq2212.site}; mã nguồn GitHub: \url{https://github.com/HandQ2212/project-agent-diabets}. Ngày 05/11/2026, yêu cầu kiểm tra tự động nhận HTTP 403 từ Cloudflare; chưa xác nhận truy cập công khai bằng trình duyệt. Website phụ thuộc máy host, Docker Desktop và Ollama đang chạy, không phải dịch vụ luôn sẵn sàng.
+
+Ngày 05/11/2026, danh sách có 18 đoạn thủ công và 25 nguồn web; sau lần nạp đã kiểm tra, Neo4j ghi nhận 25 nguồn và 190 đoạn web có embedding. Nguồn web vẫn chưa được kiểm duyệt chuyên môn. Các ảnh sau chụp ngày 04/11/2026, trước khi bổ sung biểu mẫu NHANES 15 chỉ số; chỉ minh họa giao diện phiên bản thời điểm chụp.
+\subsubsection{Minh chứng giao diện và trace}
+\fig{01_trang_chu.png}{.95}{Trang chủ Đường An chụp từ ứng dụng đang chạy}
+\fig{02_giao_dien_chat.png}{.95}{Giao diện nhập câu hỏi và các câu hỏi gợi ý}
+\fig{03_chat_va_truy_vet.png}{.95}{Ví dụ hỏi đáp thực tế: nguồn web chưa duyệt được hiển thị dạng liên kết; trace cho thấy các bước đã chạy}
+\fig{04_danh_gia_mo_hinh.png}{.95}{Giao diện phiên bản trước khi bổ sung biểu mẫu NHANES 15 chỉ số}
+\fig{05_mo_phong_rl.png}{.95}{Giao diện mô phỏng lựa chọn chủ đề giáo dục}
+\fig{08_ket_qua_phan_loai.png}{.95}{Kết quả phân loại BRFSS với dữ liệu giả lập và trace Prediction Agent}
+\fig{09_ket_qua_rl.png}{.95}{Kết quả chọn chủ đề DQN với trạng thái giả lập và trace Learning Agent}
+Ảnh trace cho thấy Coordinator $\rightarrow$ Rule Agent $\rightarrow$ Knowledge Agent $\rightarrow$ Response Agent trên một yêu cầu cụ thể; đây là bằng chứng cho đường đi quan sát được, không chứng minh mọi trường hợp đầu vào đều an toàn hoặc chính xác.
+\subsubsection{Kết quả kiểm tra dịch vụ và lưu ý tái lập}
+Khởi động Ollama với hai mô hình \texttt{qwen3:4b-instruct}, \texttt{nomic-embed-text}; chạy \texttt{docker compose up --build -d}; nạp tài liệu thủ công và dùng profile ingest cho các nguồn web. Sáu notebook trong \texttt{notebooks/training} đã chạy đầy đủ và lưu các biểu đồ, đầu ra và báo cáo trong \texttt{artifacts/notebook\_runs}. Các artifact này không tự cập nhật model website; mô hình NHANES 15 chỉ số trên web được sao chép cố định từ lần chạy đã chọn để bảo đảm đúng bộ tiền xử lý và ngưỡng. Không đưa mật khẩu, dữ liệu gốc hoặc credential tunnel vào hồ sơ.
+
+\input{noi_dung/05_ket_thuc.tex}
+\section{Kết luận}
+Đồ án đã tích hợp các nhánh hỏi đáp RAG, mô hình phân loại và mô phỏng DQN trong một giao diện. Các minh chứng gồm ảnh chụp giao diện, trace node, báo cáo định lượng và notebook có mã nguồn. Giới hạn chính gồm chất lượng nguồn chưa được chuyên gia thẩm định, quy tắc an toàn chỉ theo mẫu, mô hình không được hiệu chỉnh/kiểm chứng ở Việt Nam, cùng sự phụ thuộc máy chủ cá nhân. Cần đánh giá RAG bằng bộ câu hỏi có đáp án, thẩm định y khoa, kiểm thử bảo mật, kiểm định ngoài và xác định rõ mục tiêu dữ liệu trước khi mở rộng.
+\section*{Tài liệu tham khảo}\addcontentsline{toc}{section}{Tài liệu tham khảo}
+\begin{enumerate}
+\item CDC BRFSS, dữ liệu và codebook 2021--2023: \url{https://www.cdc.gov/brfss/annual_data/annual_data.htm}.
+\item UCI Machine Learning Repository, Early Stage Diabetes Risk Prediction: \url{https://archive.ics.uci.edu/dataset/529/early+stage+diabetes+risk+prediction}.
+\item CDC, Diabetes Meal Planning: \url{https://www.cdc.gov/diabetes/healthy-eating/diabetes-meal-planning.html}.
+\item NIDDK, Preventing Type 2 Diabetes: \url{https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes}.
+\item Vinmec, Tổng quan về bệnh đái tháo đường: \url{https://www.vinmec.com/vie/bai-viet/tong-quan-ve-benh-dai-thao-duong-vi}.
+\item FPT Long Châu, Những câu hỏi thường gặp về bệnh tiểu đường: \url{https://nhathuoclongchau.com.vn/bai-viet/tim-hieu-loi-giai-cho-nhung-cau-hoi-thuong-gap-o-benh-tieu-duong.html}.
+\item CDC, NHANES 2017--2018: \url{https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017}.
+\item WHO, Viet Nam STEPS 2021, metadata: \url{https://extranet.who.int/ncdsmicrodata/index.php/catalog/948}. Chưa tải microdata này và không dùng để huấn luyện website.
+\item Mã dự án \texttt{ml/}, \texttt{backend/}, \texttt{knowledge/}; các tệp \texttt{artifacts/*/report.json}, truy cập ngày 04/11/2026.
+\end{enumerate}
+\end{document}

@@ -17,3 +17,11 @@ Tải CSV từ [UCI Early Stage Diabetes Risk Prediction](https://archive.ics.uc
 `knowledge/sources.json` là tập đoạn giới thiệu ngắn, không phải knowledge base y tế hoàn chỉnh. Hãy kiểm tra tính chính xác, cập nhật, giấy phép, phân đoạn, metadata và chất lượng truy xuất trước khi mở rộng; không sao chép nguyên văn hàng loạt tài liệu có bản quyền. Chỉ dùng nguồn đã được kiểm chứng và trích URL.
 
 Biến `_RFHYPE6` không có trong bộ 2022 đã tải, nên không dùng làm đầu vào cho bộ ba năm.
+
+## Đối chiếu assignment cũ (04/11/2026)
+
+- `intel-sys-assignment-03/data/diabets_new.csv` và `intel-sys-assignment-04/dataset/diabets.csv`: 324.372 dòng, 21 biến và nhãn `Diabetes_binary`; assignment 04 gọi đây là BRFSS. Chưa xác minh được năm khảo sát, nguồn tải gốc, cách tạo nhãn hoặc giấy phép của bản đã xử lý. Cần đối chiếu dữ liệu gốc và codebook trước khi huấn luyện; không gộp hoặc dùng làm test độc lập với BRFSS hiện tại khi chưa loại trừ trùng người/bản ghi.
+- `intel-sys-assignment-02/data/diabetes.csv`: 403 dòng; có `glyhb`, glucose và các chỉ số khác, nhưng không có nhãn bệnh độc lập trong bản CSV.
+- `intel-sys-assignment-07/data/diabetes.csv` và assignment 08: 403 dòng, cột `Outcome` được tạo từ `glyhb > 6.5` theo `intel-sys-assignment-07/fix_datasets.py`. Nếu dùng `glyhb` dự đoán `Outcome`, mô hình chỉ học lại quy tắc tạo nhãn; không đánh giá được khả năng dự đoán bệnh độc lập. Chưa dùng tập này thay thế mô hình hiện tại.
+
+Bộ hiện dùng vẫn là UCI Early Stage và BRFSS 2021–2023. Cần xác định mục tiêu nhãn và đối tượng triển khai trước khi đổi dataset; hiện không có bằng chứng các bộ assignment phù hợp hơn cho người dùng Việt Nam.

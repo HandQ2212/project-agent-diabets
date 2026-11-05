@@ -1,0 +1,20 @@
+\subsection{Phân tầng triển khai và luồng dữ liệu}
+Hệ thống gồm ba tầng chính. Tầng trình bày là React/TypeScript được build thành tệp tĩnh và phục vụ bởi Nginx. Nginx chuyển các đường dẫn \texttt{/api/} đến FastAPI, đồng thời tắt buffering để trình duyệt nhận dần dữ liệu stream. Tầng ứng dụng cung cấp API xác thực đầu vào, điều phối và nạp model. Tầng dữ liệu và mô hình gồm Neo4j, các artifact trên volume, Ollama ở host và MySQL tùy chọn cho metadata sự kiện.
+
+Compose gắn các thư mục \texttt{artifacts}, \texttt{data}, \texttt{knowledge}, \texttt{ml}, \texttt{backend} vào container API. Mô hình và dữ liệu nhạy về dung lượng không cần nằm trong image. Các cổng công bố trên host là 8080 cho web, mặc định 8001 cho API, 7474 cho giao diện Neo4j; cổng API có thể đổi bằng biến \texttt{API\_HOST\_PORT}. Các cổng này gắn vào loopback, không mở trực tiếp cho mạng LAN. Truy cập từ bên ngoài được cấu hình qua Cloudflare Tunnel đến web.
+\subsection{Bảng endpoint và hợp đồng}
+\begin{longtable}{p{3.2cm}p{4.4cm}p{6.3cm}}\toprule
+\textbf{Endpoint} & \textbf{Đầu vào chính} & \textbf{Kết quả và vai trò}\\\midrule\endhead
+GET /api/health & Không có body & Trạng thái API, khả năng kết nối Neo4j/Ollama, sự tồn tại tệp artifact. Kiểm tra tệp tồn tại không đồng nghĩa suy luận thành công.\\
+POST /api/predict & kind, features & Điểm model, lớp nhị phân, ngưỡng 0,5, trace và giới hạn.\\
+POST /api/chat & question, history & Câu trả lời hoàn chỉnh, nguồn và trace; sử dụng đồ thị LangGraph.\\
+POST /api/chat/stream & question, history & Dòng NDJSON chứa sự kiện delta, done hoặc error; giao diện ghép các đoạn khi nhận.\\
+POST /api/learning & needs gồm bốn cờ 0/1 & Chủ đề hoặc trạng thái hoàn thành; có thể ghi nhận việc override.\\\bottomrule\end{longtable}
+\subsection{Lưu trữ và cấu trúc đồ thị}
+Khi nạp tài liệu thủ công, chương trình tạo ràng buộc duy nhất cho ID Document và tên Topic; mỗi Document có văn bản, tiêu đề, URL, chủ đề và embedding. Với nguồn web, một WebSource có thể liên kết với nhiều Document là các đoạn của trang. Việc phân đoạn đặt giới hạn chiều dài 1.200 ký tự; giới hạn này là lựa chọn kỹ thuật, không bảo đảm ranh giới y khoa hoặc ngữ nghĩa tối ưu.
+
+Chương trình refresh tính hash nội dung trang sau phân đoạn để tránh cập nhật lại khi nội dung không đổi. Nếu nội dung thay đổi, nó tạo xong tất cả embedding trước khi xóa và tạo các đoạn mới trong transaction Neo4j; khi quá trình tải hoặc tạo embedding thất bại, dữ liệu cũ được giữ lại. Lịch cập nhật thực tế trong Compose hiện dùng profile chạy thủ công; không mặc định có bộ lập lịch chạy nền.
+\subsection{Mô hình triển khai và các điểm tin cậy}
+Các thành phần giao tiếp qua mạng Docker nội bộ; Ollama được gọi bằng địa chỉ host. Browser chỉ thấy giao diện và API qua Nginx. Cấu hình tunnel lấy từ thư mục cục bộ không đưa vào báo cáo hoặc mã nguồn công khai. Rate limiter hiện được lưu trong bộ nhớ theo IP quan sát tại ứng dụng, 60 yêu cầu mỗi 60 giây cho đường dẫn API; trong môi trường proxy hoặc nhiều worker, IP và bộ đếm có thể không phản ánh chính xác từng người dùng. Đây không phải cơ chế bảo vệ chống tấn công toàn diện.
+
+Lịch sử hội thoại được giữ trong phiên trình duyệt. MySQL, nếu tùy chọn lưu sự kiện được bật, chỉ ghi loại sự kiện và thời điểm theo thiết kế của \texttt{history.py}; không nên suy ra rằng mọi log, proxy hoặc các thành phần bên ngoài đều đã được đánh giá quyền riêng tư.

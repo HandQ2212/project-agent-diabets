@@ -1,0 +1,308 @@
+{
+  "experiment": "symptoms",
+  "purpose": "UCI Early Stage: 16 đặc trưng triệu chứng; nhãn Positive/Negative. Dữ liệu Bangladesh nhỏ, không đại diện người Việt.",
+  "model_type": "MLP",
+  "seed": 42,
+  "smoke_test": false,
+  "source_sha256": {
+    "data/raw/diabetes_data_upload.csv": "7889d9d0beb7dd1ccc58da99f72763f16afb259b5dbbaa086f8195366ff66137"
+  },
+  "features": [
+    "age",
+    "gender",
+    "polyuria",
+    "polydipsia",
+    "sudden_weight_loss",
+    "weakness",
+    "polyphagia",
+    "genital_thrush",
+    "visual_blurring",
+    "itching",
+    "irritability",
+    "delayed_healing",
+    "partial_paresis",
+    "muscle_stiffness",
+    "alopecia",
+    "obesity"
+  ],
+  "sizes": {
+    "train": 160,
+    "validation": 40,
+    "test": 51
+  },
+  "validation_roc_auc": {
+    "neural_network": 0.9880952380952381,
+    "logistic_regression": 0.9791666666666667
+  },
+  "selection_rule": "highest validation ROC-AUC; tie -> logistic regression",
+  "selected_model": "neural_network",
+  "test_selected_only": {
+    "roc_auc": 0.9232142857142858,
+    "pr_auc": 0.9688147002489486,
+    "accuracy": 0.803921568627451,
+    "precision": 1.0,
+    "recall": 0.7142857142857143,
+    "f1": 0.8333333333333334,
+    "brier": 0.13271072506904602,
+    "confusion_matrix": [
+      [
+        16,
+        0
+      ],
+      [
+        10,
+        25
+      ]
+    ]
+  },
+  "epochs": [
+    {
+      "epoch": 1,
+      "val_loss": 0.42853236198425293
+    },
+    {
+      "epoch": 2,
+      "val_loss": 0.4265369474887848
+    },
+    {
+      "epoch": 3,
+      "val_loss": 0.42461729049682617
+    },
+    {
+      "epoch": 4,
+      "val_loss": 0.42270493507385254
+    },
+    {
+      "epoch": 5,
+      "val_loss": 0.4207821488380432
+    },
+    {
+      "epoch": 6,
+      "val_loss": 0.41879957914352417
+    },
+    {
+      "epoch": 7,
+      "val_loss": 0.4166885018348694
+    },
+    {
+      "epoch": 8,
+      "val_loss": 0.41447630524635315
+    },
+    {
+      "epoch": 9,
+      "val_loss": 0.4122319221496582
+    },
+    {
+      "epoch": 10,
+      "val_loss": 0.4098976254463196
+    },
+    {
+      "epoch": 11,
+      "val_loss": 0.40745049715042114
+    },
+    {
+      "epoch": 12,
+      "val_loss": 0.4048573076725006
+    },
+    {
+      "epoch": 13,
+      "val_loss": 0.40214329957962036
+    },
+    {
+      "epoch": 14,
+      "val_loss": 0.39929884672164917
+    },
+    {
+      "epoch": 15,
+      "val_loss": 0.3962800204753876
+    },
+    {
+      "epoch": 16,
+      "val_loss": 0.39310500025749207
+    },
+    {
+      "epoch": 17,
+      "val_loss": 0.3897314667701721
+    },
+    {
+      "epoch": 18,
+      "val_loss": 0.38612645864486694
+    },
+    {
+      "epoch": 19,
+      "val_loss": 0.3823015093803406
+    },
+    {
+      "epoch": 20,
+      "val_loss": 0.3782963156700134
+    },
+    {
+      "epoch": 21,
+      "val_loss": 0.37407204508781433
+    },
+    {
+      "epoch": 22,
+      "val_loss": 0.3696536719799042
+    },
+    {
+      "epoch": 23,
+      "val_loss": 0.36497434973716736
+    },
+    {
+      "epoch": 24,
+      "val_loss": 0.36002084612846375
+    },
+    {
+      "epoch": 25,
+      "val_loss": 0.3548200726509094
+    },
+    {
+      "epoch": 26,
+      "val_loss": 0.3494129776954651
+    },
+    {
+      "epoch": 27,
+      "val_loss": 0.3438089191913605
+    },
+    {
+      "epoch": 28,
+      "val_loss": 0.3379557728767395
+    },
+    {
+      "epoch": 29,
+      "val_loss": 0.33187171816825867
+    },
+    {
+      "epoch": 30,
+      "val_loss": 0.3255382180213928
+    },
+    {
+      "epoch": 31,
+      "val_loss": 0.3189949095249176
+    },
+    {
+      "epoch": 32,
+      "val_loss": 0.3122122287750244
+    },
+    {
+      "epoch": 33,
+      "val_loss": 0.3052549660205841
+    },
+    {
+      "epoch": 34,
+      "val_loss": 0.2981036603450775
+    },
+    {
+      "epoch": 35,
+      "val_loss": 0.29085928201675415
+    },
+    {
+      "epoch": 36,
+      "val_loss": 0.2834513485431671
+    },
+    {
+      "epoch": 37,
+      "val_loss": 0.2759447693824768
+    },
+    {
+      "epoch": 38,
+      "val_loss": 0.2684056758880615
+    },
+    {
+      "epoch": 39,
+      "val_loss": 0.26079729199409485
+    },
+    {
+      "epoch": 40,
+      "val_loss": 0.253200501203537
+    },
+    {
+      "epoch": 41,
+      "val_loss": 0.24561262130737305
+    },
+    {
+      "epoch": 42,
+      "val_loss": 0.23802658915519714
+    },
+    {
+      "epoch": 43,
+      "val_loss": 0.23047557473182678
+    },
+    {
+      "epoch": 44,
+      "val_loss": 0.22294700145721436
+    },
+    {
+      "epoch": 45,
+      "val_loss": 0.21542468667030334
+    },
+    {
+      "epoch": 46,
+      "val_loss": 0.20803245902061462
+    },
+    {
+      "epoch": 47,
+      "val_loss": 0.2007686346769333
+    },
+    {
+      "epoch": 48,
+      "val_loss": 0.19369013607501984
+    },
+    {
+      "epoch": 49,
+      "val_loss": 0.18683116137981415
+    },
+    {
+      "epoch": 50,
+      "val_loss": 0.18015442788600922
+    },
+    {
+      "epoch": 51,
+      "val_loss": 0.17374615371227264
+    },
+    {
+      "epoch": 52,
+      "val_loss": 0.16766443848609924
+    },
+    {
+      "epoch": 53,
+      "val_loss": 0.16192035377025604
+    },
+    {
+      "epoch": 54,
+      "val_loss": 0.1564287543296814
+    },
+    {
+      "epoch": 55,
+      "val_loss": 0.151128351688385
+    },
+    {
+      "epoch": 56,
+      "val_loss": 0.14615735411643982
+    },
+    {
+      "epoch": 57,
+      "val_loss": 0.14157961308956146
+    },
+    {
+      "epoch": 58,
+      "val_loss": 0.1371327042579651
+    },
+    {
+      "epoch": 59,
+      "val_loss": 0.13272804021835327
+    },
+    {
+      "epoch": 60,
+      "val_loss": 0.12872204184532166
+    }
+  ],
+  "libraries": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "sklearn": "1.9.1",
+    "torch": "2.15.0+cpu"
+  },
+  "warning": "Research experiment only; no diagnosis, clinical use, or claims about Vietnamese population."
+}

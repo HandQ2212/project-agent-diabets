@@ -1,0 +1,29 @@
+\subsection{Notebook thực hành}
+Sáu notebook tự chứa trong \texttt{notebooks/training} tách theo từng bài toán. Mỗi notebook thể hiện đọc và phân tích dữ liệu, làm sạch, chia tập, tiền xử lý, huấn luyện, lựa chọn theo validation, đánh giá test và lưu artifact; các cell đã được thực thi và giữ đầu ra cùng biểu đồ. Notebook cũ \texttt{bao\_cao\_project/notebook/Training\_Duong\_An.ipynb} được giữ để tham khảo.
+
+Các artifact notebook nằm ở \texttt{artifacts/notebook\_runs}; chúng không tự ghi đè model ứng dụng. Việc chạy lại cần dữ liệu gốc, môi trường Python và thư viện tương thích; dữ liệu BRFSS lớn cần thời gian và bộ nhớ đáng kể. Snapshot model NHANES 15 chỉ số dùng cho web được lưu riêng trong \texttt{artifacts/nhanes15\_web}.
+
+\subsection{Giải thích kết quả, phản biện và độ tin cậy}
+Giao diện hiển thị điểm mô hình, ngưỡng của model tương ứng và disclaimer; NHANES 15 dùng ngưỡng validation 0,8. Đây là giải thích loại đầu ra, không phải lời giải thích nguyên nhân dự đoán cho cá nhân. Hệ thống chưa cài SHAP, LIME, độ bất định theo cá nhân hay so sánh phản thực tế. Tương tự, trace cho biết các node đã được gọi, không đo độ đúng của nội dung.
+
+Trong RAG, nguồn hiển thị giúp đối chiếu nhưng một trích dẫn hình thức không chứng minh mọi câu được hỗ trợ. Cần bổ sung bộ dữ liệu đánh giá gồm câu hỏi, tài liệu liên quan, đáp án tham chiếu và trường hợp không có câu trả lời; sau đó đo precision/recall của truy xuất, tính trung thực với nguồn, mức bao phủ trích dẫn và tỷ lệ từ chối đúng. Cần tách tập điều chỉnh ngưỡng và tập đánh giá cuối cùng.
+
+Trong RL, so sánh với một baseline mạnh là điều cần thiết: kết quả DQN bằng heuristic cho thấy có thể giải bài toán giả lập mà không cần mô hình phức tạp hơn. Nếu mở rộng môi trường, phải xác định trạng thái quan sát, phản hồi người học và phần thưởng có ý nghĩa giáo dục, sau đó đánh giá thực nghiệm với sự đồng ý phù hợp; không thể suy ra hiệu quả chăm sóc sức khỏe từ reward hiện tại.
+\subsection{Kiểm thử và đánh giá kết quả}
+\begin{longtable}{p{3.3cm}p{6.3cm}p{4.2cm}}\toprule
+\textbf{Nhóm} & \textbf{Điều được kiểm tra} & \textbf{Bằng chứng / giới hạn}\\\midrule\endhead
+Đầu vào & Thiếu trường, giá trị không hợp lệ, lịch sử quá dài & Kiểm thử API; không bao phủ mọi tổ hợp đầu vào.\\
+Luật an toàn & Một số mẫu khẩn cấp, thuốc, PII, prompt injection & Có các ca định sẵn; không đo recall trên dữ liệu thực.\\
+RAG & Có nguồn, có ký hiệu trích dẫn, câu hỏi ngoài lĩnh vực & Một ca ngoài lĩnh vực thất bại theo assertion trong lần chạy 04/11; có nguồn không liên quan được truy xuất.\\
+Stream & Chặn trước truy xuất; nhận các đoạn và nguồn cuối luồng qua mock & Kiểm tra hợp đồng; không đo độ đúng của văn bản sinh.\\
+Dữ liệu & Schema UCI, chuyển nhãn, metric trường hợp một lớp & Dữ liệu giả lập trong test, chưa phải đánh giá thống kê toàn bộ pipeline.\\
+Web ingest & HTML, redirect không tin cậy, kích thước và nguồn chưa duyệt & Mock HTTP; không thay thế kiểm tra bản quyền hoặc nội dung chuyên môn.\\\bottomrule\end{longtable}
+Trong lần chạy toàn bộ kiểm thử ngày 04/11, 23 test đạt và một test thất bại: câu hỏi nấu ăn truy xuất nguồn không liên quan, dù câu trả lời từ chối vì thiếu thông tin. Sau cập nhật biểu mẫu NHANES 15, ngày 05/11 chạy riêng các nhóm kiểm thử API, dữ liệu và nạp web: 29 test đạt, bao gồm kiểm tra thứ tự biến và ngưỡng của mô hình mới. Con số này không bao gồm bộ benchmark RAG tích hợp và không chứng minh chất lượng truy xuất hay chống ảo giác hoàn toàn.
+\subsection{Đánh giá và hạn chế}
+\textbf{Về dữ liệu:} UCI có tập test rất nhỏ; BRFSS sử dụng nhãn tự báo cáo và không dùng trọng số khảo sát. Khác biệt giữa đối tượng trong bộ dữ liệu và người dùng dự kiến có thể làm sai lệch kết quả. Không có đánh giá ngoài tại Việt Nam hay hiệu chỉnh xác suất cho người dùng ứng dụng.
+
+\textbf{Về tri thức:} các bản tóm tắt thủ công và nguồn web cần thẩm định nội dung, thời điểm, quyền sử dụng và các đoạn được truy xuất. Nguồn web có thể thay đổi, xóa hoặc thay cấu trúc HTML. Không có bảo đảm trích dẫn là chính xác chỉ vì URL xuất hiện trên giao diện.
+
+\textbf{Về vận hành:} health endpoint kiểm tra tồn tại tệp và kết nối, không xác minh toàn bộ khả năng suy luận. Rate limiter bộ nhớ không phù hợp thay thế hệ thống kiểm soát lưu lượng phân tán. Tunnel và các dịch vụ phụ thuộc thiết bị host; truy cập công khai có thể gặp thử thách Cloudflare. Các ảnh và kết quả là snapshot, không đại diện SLA hay đo tải.
+\subsection{Hướng phát triển}
+Ưu tiên ngắn hạn gồm xác minh bản tóm tắt với nguồn gốc, sửa và mở rộng benchmark ngoài lĩnh vực, bổ sung tập đánh giá RAG có gán nhãn, cải thiện kiểm tra lời sinh và xây dựng quy trình rà soát nội dung. Với mô hình dữ liệu, cần lựa chọn mục tiêu phù hợp, xác minh nguồn dữ liệu cũ, đánh giá ngoài, khảo sát hiệu chỉnh và báo cáo bất định. Với sản phẩm, cần kiểm thử giao diện, quyền riêng tư, cấu hình reverse proxy, giới hạn truy cập và giám sát lỗi trước bất kỳ triển khai rộng nào.

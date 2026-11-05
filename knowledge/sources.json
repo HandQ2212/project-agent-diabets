@@ -11,11 +11,11 @@
   {
     "id": "who-diabetes-types",
     "title": "WHO: Phân loại các thể đái tháo đường",
-    "url": "https://www.who.int/health-topics/diabetes",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
     "topic": "Phân loại đái tháo đường",
     "date": "2023-09-12",
     "license": "WHO Open Access / Public Health Guidance",
-    "text": "Đái tháo đường được chia thành các nhóm chính: Đái tháo đường típ 1 (trước đây gọi là phụ thuộc insulin, do cơ chế tự miễn phá hủy tế bào beta đảo tụy, người bệnh cần tiêm insulin hằng ngày); Đái tháo đường típ 2 (chiếm trên 95% tổng số ca, xảy ra do đề kháng insulin kết hợp giảm tiết insulin tương đối, liên quan chặt chẽ đến thừa cân và ít vận động); Đái tháo đường thai kỳ (tăng glucose máu được ghi nhận lần đầu trong thai kỳ); và Tiền đái tháo đường (mức glucose máu cao hơn bình thường nhưng chưa đạt ngưỡng chẩn đoán đái tháo đường)."
+    "text": "Các thể đái tháo đường chính gồm típ 1, típ 2 và đái tháo đường thai kỳ. Típ 1 liên quan đến cơ thể sản xuất rất ít hoặc không đủ insulin. Típ 2 liên quan đến việc cơ thể sử dụng insulin không hiệu quả. Đái tháo đường thai kỳ là tình trạng tăng đường huyết được phát hiện trong thai kỳ. Tiền đái tháo đường là tình trạng đường huyết cao hơn bình thường nhưng chưa đạt mức chẩn đoán đái tháo đường típ 2; đây không phải là một típ đái tháo đường."
   },
   {
     "id": "cdc-classic-symptoms",
@@ -37,12 +37,12 @@
   },
   {
     "id": "cdc-prevention-lifestyle",
-    "title": "CDC: Dự phòng đái tháo đường típ 2 qua thay đổi lối sống",
-    "url": "https://www.cdc.gov/diabetes/prevention/index.html",
+    "title": "NIDDK: Giảm nguy cơ đái tháo đường típ 2",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes",
     "topic": "Dự phòng và Lối sống",
     "date": "2024-04-02",
-    "license": "CDC Public Domain",
-    "text": "Đái tháo đường típ 2 hoàn toàn có thể phòng ngừa hoặc làm chậm tiến triển thông qua thay đổi lối sống lành mạnh. Chương trình Phòng ngừa Đái tháo đường Quốc gia của CDC chỉ ra rằng việc giảm từ 5% đến 7% trọng lượng cơ thể (khoảng 4 đến 6 kg ở người nặng 80 kg) kết hợp với hoạt động thể chất đều đặn có thể giảm tới 58% nguy cơ phát triển bệnh ở người tiền đái tháo đường (và giảm tới 71% ở người trên 60 tuổi)."
+    "license": "Tóm tắt tự viết, tham khảo NIDDK",
+    "text": "Có thể giảm nguy cơ hoặc làm chậm khởi phát đái tháo đường típ 2 bằng những thay đổi phù hợp và duy trì lâu dài: ăn uống lành mạnh, vận động đều đặn và kiểm soát cân nặng khi cần. Người có nguy cơ cao nên trao đổi với nhân viên y tế về kế hoạch phù hợp với sức khỏe cá nhân. Các biện pháp này không bảo đảm ngăn ngừa bệnh ở mọi người."
   },
   {
     "id": "bytvn-diagnosis-guidelines",
@@ -124,5 +124,41 @@
     "date": "2023-07-26",
     "license": "WHO Open Access",
     "text": "Người bệnh đái tháo đường hút thuốc lá có nguy cơ mắc bệnh tim mạch, đột quỵ, bệnh mạch máu ngoại biên và biến chứng thận cao gấp 2 đến 3 lần so với người không hút thuốc. Nicotine làm co mạch máu, giảm lưu thông máu đến chi dưới và làm trầm trọng thêm tình trạng kháng insulin. Kiểm soát huyết áp dưới 130/80 mmHg và cai thuốc lá hoàn toàn là hai biện pháp can thiệp phi thuốc quan trọng nhất để bảo vệ mạch máu và kéo dài tuổi thọ."
+  },
+  {
+    "id": "vinmec-diabetes-overview",
+    "title": "Vinmec: Tổng quan về bệnh đái tháo đường",
+    "url": "https://www.vinmec.com/vie/bai-viet/tong-quan-ve-benh-dai-thao-duong-vi",
+    "topic": "Tổng quan bệnh đái tháo đường",
+    "date": "2024-07-22",
+    "license": "Tóm tắt tự viết, tham khảo Vinmec",
+    "text": "Đái tháo đường có nhiều thể, bao gồm típ 1, típ 2 và đái tháo đường thai kỳ. Một số người mắc típ 2 có triệu chứng nhẹ và không nhận ra bệnh. Việc sàng lọc và xét nghiệm cần được nhân viên y tế tư vấn theo yếu tố nguy cơ của từng người."
+  },
+  {
+    "id": "vinmec-type2-signs",
+    "title": "Vinmec: Triệu chứng sớm của đái tháo đường típ 2",
+    "url": "https://www.vinmec.com/vie/bai-viet/dau-hieu-som-cua-tieu-duong-type-2-vi",
+    "topic": "Triệu chứng tiểu đường típ 2",
+    "date": "2024-07-22",
+    "license": "Tóm tắt tự viết, tham khảo Vinmec",
+    "text": "Đái tháo đường típ 2 có thể diễn biến âm thầm, với ít hoặc không có triệu chứng rõ ràng. Một số trường hợp chỉ được phát hiện khi đã xuất hiện biến chứng. Không thể loại trừ bệnh chỉ vì không thấy triệu chứng; hãy trao đổi với nhân viên y tế về việc kiểm tra phù hợp."
+  },
+  {
+    "id": "longchau-diabetes-faq",
+    "title": "Long Châu: Những câu hỏi thường gặp về bệnh tiểu đường",
+    "url": "https://nhathuoclongchau.com.vn/bai-viet/tim-hieu-loi-giai-cho-nhung-cau-hoi-thuong-gap-o-benh-tieu-duong.html",
+    "topic": "Triệu chứng và tìm hiểu bệnh tiểu đường",
+    "date": "",
+    "license": "Tóm tắt tự viết, tham khảo Long Châu",
+    "text": "Triệu chứng tiểu đường có thể khác nhau theo típ bệnh. Người mắc típ 2 có thể không có biểu hiện rõ và đôi khi phát hiện bệnh khi khám sức khỏe hoặc khi có biến chứng. Đi tiểu nhiều có thể là một dấu hiệu; chỉ triệu chứng không đủ để xác định chẩn đoán."
+  },
+  {
+    "id": "who-types-prevention-vn",
+    "title": "WHO: Các loại đái tháo đường và phòng ngừa típ 2",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
+    "topic": "Các loại tiểu đường và cách phòng ngừa",
+    "date": "2026-11-03",
+    "license": "Tóm tắt tự viết, tham khảo WHO",
+    "text": "Các loại đái tháo đường thường gặp gồm típ 1, típ 2 và đái tháo đường thai kỳ. Ở típ 1, cơ thể không sản xuất đủ insulin; hiện chưa biết cách phòng ngừa. Ở típ 2, cơ thể sử dụng insulin không hiệu quả. Đái tháo đường thai kỳ là tình trạng tăng đường huyết được phát hiện trong thai kỳ. Để giảm nguy cơ hoặc làm chậm khởi phát đái tháo đường típ 2, WHO khuyến nghị ăn uống lành mạnh, vận động thể chất thường xuyên, duy trì cân nặng phù hợp và tránh thuốc lá. Không có biện pháp nào bảo đảm ngăn ngừa bệnh ở tất cả mọi người."
   }
 ]

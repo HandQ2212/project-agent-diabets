@@ -1,17 +1,34 @@
 """Multi-Agent contracts and agent implementations for Duong An."""
 import re
+import unicodedata
 from typing import TypedDict, Literal, Optional
 from pydantic import BaseModel, Field
 
 # Agent state schema for LangGraph
 class CoordinatorState(TypedDict, total=False):
     question: str
+    history: list[dict]
     safety_passed: bool
     safety_category: Optional[str]
     safety_response: Optional[str]
     sources: list[dict]
     answer: str
     trace: list[str]
+
+
+def conversational_reply(question: str) -> Optional[str]:
+    """Handle only complete, unambiguous conversational turns without retrieval."""
+    normalized = unicodedata.normalize('NFD', question.lower().replace('đ', 'd'))
+    normalized = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
+    normalized = ' '.join(normalized.split())
+    if re.fullmatch(r'(hello|hi|hey|chao|xin chao|chao ban|xin chao ban|chao assistant|good morning|good evening)', normalized):
+        return 'Xin chào! Tôi là Đường An. Bạn muốn tìm hiểu điều gì về bệnh đái tháo đường?'
+    if re.fullmatch(r'(cam on|cam on ban|xin cam on|thanks|thank you)', normalized):
+        return 'Không có gì! Nếu bạn còn câu hỏi về đái tháo đường, tôi sẵn sàng hỗ trợ.'
+    if re.fullmatch(r'(?:(?:giup toi|ban co the) (?:tra loi|giai thich|cho biet) )?(?:claude (?:ai )?la gi|claude la ai|what is claude)', normalized):
+        return 'Nếu bạn đang nói đến Claude AI, đó là trợ lý trí tuệ nhân tạo do Anthropic phát triển. Đường An chủ yếu hỗ trợ tìm hiểu về bệnh đái tháo đường.'
+    return None
 
 # Safety categories
 RuleCategory = Literal['SAFE', 'EMERGENCY', 'MEDICATION_DOSAGE', 'PII_SENSITIVE', 'PROMPT_INJECTION']
@@ -29,6 +46,8 @@ class RuleAgent:
     EMERGENCY_PATTERNS = [
         r'\bhôn\s*mê\b',
         r'\bbất\s*tỉnh\b',
+        r'\b(lơ\s*mơ|li\s*bì|không\s*(thể\s*)?đánh\s*thức|gọi\s*không\s*(tỉnh|dậy))\b',
+        r'\b(ngừng\s*thở|không\s*thở|tím\s*tái)\b',
         r'\bngất\s*xỉu\b',
         r'\bmất\s*tri\s*giác\b',
         r'\bco\s*giật\b',
@@ -124,8 +143,8 @@ class RuleAgent:
                 reason='Phát hiện thông tin định danh cá nhân hoặc hồ sơ bệnh án (PII).',
                 response=(
                     "🔒 BẢO VỆ DỮ LIỆU CÁ NHÂN: Để đảm bảo quyền riêng tư và tuân thủ nguyên tắc y tế, "
-                    "hệ thống không lưu trữ hay xử lý thông tin nhận dạng cá nhân (họ tên bệnh nhân, số CCCD/CMND, "
-                    "số điện thoại, mã hồ sơ bệnh án). Vui lòng gửi lại câu hỏi tổng quát không chứa thông tin riêng tư."
+                        "vui lòng không nhập thông tin nhận dạng cá nhân (họ tên, CCCD/CMND, số điện thoại, hồ sơ bệnh án). "
+                        "Bộ lọc chỉ phát hiện một số mẫu và không đảm bảo nhận diện mọi thông tin riêng tư."
                 )
             )
 

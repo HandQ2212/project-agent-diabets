@@ -1,0 +1,136 @@
+{
+  "experiment": "rl_education",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "smoke_test": false,
+  "training_steps_per_seed": 30000,
+  "validation_seeds": [
+    6000,
+    7000
+  ],
+  "test_seeds": [
+    1000,
+    2000,
+    3000,
+    4000,
+    5000
+  ],
+  "validation_episodes_per_seed": 100,
+  "test_episodes_per_seed": 200,
+  "validation_returns": {
+    "greedy": 1.99,
+    "random": 0.94875,
+    "dqn_seed_42": 1.99,
+    "dqn_seed_43": 1.99,
+    "dqn_seed_44": 1.99
+  },
+  "selection_rule": "highest validation reward; tie prefer first candidate greedy",
+  "selected_policy": "greedy",
+  "test_selected_mean_return": 2.026,
+  "test_seed_returns": [
+    2.105,
+    2.005,
+    1.985,
+    2.005,
+    2.03
+  ],
+  "dqn_runs": [
+    {
+      "seed": 42,
+      "best_step": 5000,
+      "validation_return": 1.99,
+      "curve": [
+        {
+          "steps": 5000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 10000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 15000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 20000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 25000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 30000,
+          "validation_return": 1.99
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "best_step": 5000,
+      "validation_return": 1.99,
+      "curve": [
+        {
+          "steps": 5000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 10000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 15000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 20000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 25000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 30000,
+          "validation_return": 1.99
+        }
+      ]
+    },
+    {
+      "seed": 44,
+      "best_step": 5000,
+      "validation_return": 1.99,
+      "curve": [
+        {
+          "steps": 5000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 10000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 15000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 20000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 25000,
+          "validation_return": 1.99
+        },
+        {
+          "steps": 30000,
+          "validation_return": 1.99
+        }
+      ]
+    }
+  ],
+  "warning": "Synthetic education reward; test seeds previously inspected; not clinical."
+}

@@ -1,0 +1,20 @@
+\subsection{Các hàm chính và quan hệ với giao diện}
+\begin{longtable}{p{4.7cm}p{4.1cm}p{5.1cm}}\toprule
+\textbf{Hàm / vị trí} & \textbf{Đầu vào} & \textbf{Xử lý và kết quả}\\\midrule\endhead
+\texttt{validate\_features} & Tên mô hình và dict đặc trưng & Kiểm tra khóa, phạm vi, mã hợp lệ; báo lỗi 422 nếu đầu vào không hợp lệ.\\
+\texttt{RuleAgent.evaluate} & Câu hỏi & So khớp nhóm quy tắc theo thứ tự và tạo đối tượng kết quả có loại, lý do, thông báo.\\
+\texttt{knowledge\_node} & Câu hỏi và lịch sử & Viết lại câu hỏi nếu cần, truy xuất tối đa ba nguồn, cập nhật trace.\\
+\texttt{rag.retrieve} & Câu hỏi, top-k, ngưỡng & Tạo embedding, truy vấn cosine trên Neo4j, lọc điểm và loại URL trùng.\\
+\texttt{rag.answer\_parts} & Câu hỏi, nguồn, lịch sử & Sinh các đoạn Ollama hoặc trả thông báo thiếu nguồn/nguồn tự động.\\
+\texttt{train} & Nhánh, đường dẫn dữ liệu, thư mục đầu ra & Chia tập, fit tiền xử lý, huấn luyện baseline/MLP, lưu artifact và metrics.\\
+\texttt{train\_and\_evaluate} & Số timestep và thư mục đầu ra & Huấn luyện DQN, đánh giá so với baseline và lưu JSON.\\\bottomrule\end{longtable}
+\noindent Trace được tạo tại các bước xử lý để người xem biết đường đi của một yêu cầu. Đối với phân loại và RL, tên các vai trò xuất hiện trong trace mô tả bước xử lý tại endpoint; không phải tất cả các bước đều là node trong cùng đồ thị LangGraph của chat.
+\subsection{Cách chạy và tái lập}
+\begin{enumerate}
+\item Cài Docker Desktop và Ollama, kéo hai mô hình tên trong cấu hình \texttt{.env.example}. Tạo \texttt{.env} cục bộ với mật khẩu phù hợp; không chia sẻ nội dung tệp này.
+\item Chạy \texttt{docker compose up --build -d} tại thư mục dự án. Chờ MySQL và Neo4j healthy trước khi API khởi động. Mở giao diện local tại cổng 8080 và kiểm tra endpoint health.
+\item Chạy \texttt{docker compose exec api python -m ml.seed\_knowledge} để nạp các bản tóm tắt thủ công. Khi muốn lấy nguồn web, chạy \texttt{docker compose --profile ingest run --rm knowledge-refresh}; xem log để xác nhận nguồn nào thành công.
+\item Huấn luyện lại chỉ khi đã có dữ liệu và đủ tài nguyên; dùng notebook trong thư mục nộp hoặc lệnh trong README. Cần giữ môi trường thư viện tương thích và ghi lại phiên bản, seed, ngày chạy, hash dữ liệu và artifact.
+\item Nếu dùng tunnel cấu hình sẵn, thêm tệp compose tunnel theo README. Kết nối từ bên ngoài còn phụ thuộc Cloudflare, chính sách truy cập, DNS, thiết bị host và mạng. Không đưa credential vào báo cáo.
+\end{enumerate}
+\noindent Kết quả ảnh chụp là trạng thái tại thời điểm chạy; khi dịch vụ tắt hoặc dữ liệu thay đổi, thao tác lặp lại có thể không cho cùng phản hồi LLM. Việc nạp tri thức trong Neo4j không đồng nghĩa nội dung đã được thẩm định y khoa.

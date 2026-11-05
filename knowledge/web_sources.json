@@ -1,0 +1,127 @@
+[
+  {
+    "id": "cdc-overview",
+    "url": "https://www.cdc.gov/diabetes/about/index.html",
+    "topic": "Tổng quan về tiểu đường"
+  },
+  {
+    "id": "cdc-symptoms",
+    "url": "https://www.cdc.gov/diabetes/signs-symptoms/index.html",
+    "topic": "Triệu chứng tiểu đường"
+  },
+  {
+    "id": "cdc-type-2",
+    "url": "https://www.cdc.gov/diabetes/about/about-type-2-diabetes.html",
+    "topic": "Tiểu đường típ 2"
+  },
+  {
+    "id": "niddk-overview",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview",
+    "topic": "Tổng quan và quản lý tiểu đường"
+  },
+  {
+    "id": "cdc-meal-planning",
+    "url": "https://www.cdc.gov/diabetes/healthy-eating/diabetes-meal-planning.html",
+    "topic": "Lập kế hoạch bữa ăn cho người tiểu đường"
+  },
+  {
+    "id": "niddk-prevent-type-2",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes",
+    "topic": "Phòng ngừa tiểu đường típ 2"
+  },
+  {
+    "id": "niddk-prediabetes",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/what-is-diabetes/prediabetes-insulin-resistance",
+    "topic": "Tiền tiểu đường và kháng insulin"
+  },
+  {
+    "id": "niddk-tests",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/tests-diagnosis",
+    "topic": "Xét nghiệm và chẩn đoán đái tháo đường"
+  },
+  {
+    "id": "niddk-a1c",
+    "url": "https://www.niddk.nih.gov/health-information/diagnostic-tests/a1c-test",
+    "topic": "HbA1c: ý nghĩa, giới hạn và chẩn đoán"
+  },
+  {
+    "id": "niddk-medicines",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/insulin-medicines-treatments",
+    "topic": "Insulin và thuốc điều trị đái tháo đường"
+  },
+  {
+    "id": "niddk-cgm",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/managing-diabetes/continuous-glucose-monitoring",
+    "topic": "Theo dõi glucose liên tục CGM"
+  },
+  {
+    "id": "niddk-hypoglycemia",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems/low-blood-glucose-hypoglycemia",
+    "topic": "Hạ đường huyết: nhận biết và xử trí"
+  },
+  {
+    "id": "cdc-dka",
+    "url": "https://www.cdc.gov/diabetes/about/diabetic-ketoacidosis.html",
+    "topic": "Nhiễm toan ceton do đái tháo đường"
+  },
+  {
+    "id": "cdc-sick-days",
+    "url": "https://www.cdc.gov/diabetes/living-with/managing-sick-days.html",
+    "topic": "Chăm sóc đái tháo đường khi bị ốm"
+  },
+  {
+    "id": "niddk-kidney",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems/diabetic-kidney-disease",
+    "topic": "Bệnh thận do đái tháo đường"
+  },
+  {
+    "id": "niddk-neuropathy",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems/nerve-damage-diabetic-neuropathies",
+    "topic": "Biến chứng thần kinh do đái tháo đường"
+  },
+  {
+    "id": "niddk-foot",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems/foot-problems",
+    "topic": "Chăm sóc bàn chân và biến chứng bàn chân"
+  },
+  {
+    "id": "niddk-pregnancy",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/diabetes-pregnancy",
+    "topic": "Thai kỳ khi đã mắc đái tháo đường"
+  },
+  {
+    "id": "niddk-gestational",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/what-is-diabetes/gestational",
+    "topic": "Đái tháo đường thai kỳ"
+  },
+  {
+    "id": "niddk-after-pregnancy",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/what-is-diabetes/gestational/after-your-baby-is-born",
+    "topic": "Theo dõi sau đái tháo đường thai kỳ"
+  },
+  {
+    "id": "cdc-carbs",
+    "url": "https://www.cdc.gov/diabetes/healthy-eating/choosing-healthy-carbs.html",
+    "topic": "Chọn và tính khẩu phần chất bột đường"
+  },
+  {
+    "id": "cdc-activity",
+    "url": "https://www.cdc.gov/diabetes/living-with/physical-activity.html",
+    "topic": "Vận động khi mắc đái tháo đường"
+  },
+  {
+    "id": "cdc-mental-health",
+    "url": "https://www.cdc.gov/diabetes/living-with/mental-health.html",
+    "topic": "Sức khỏe tinh thần và đái tháo đường"
+  },
+  {
+    "id": "cdc-heart",
+    "url": "https://www.cdc.gov/diabetes/diabetes-complications/diabetes-and-your-heart.html",
+    "topic": "Bệnh tim mạch và đái tháo đường"
+  },
+  {
+    "id": "niddk-management",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/managing-diabetes",
+    "topic": "Quản lý bệnh và tầm soát biến chứng"
+  }
+]

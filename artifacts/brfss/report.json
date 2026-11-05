@@ -1,0 +1,327 @@
+{
+  "cohort_counts": {
+    "2021": 423958,
+    "2022": 429880,
+    "2023": 418492
+  },
+  "train": 683070,
+  "validation": 170768,
+  "test": 418492,
+  "test_positive_fraction": 0.14286055647419785,
+  "features": [
+    "_BMI5",
+    "_AGEG5YR",
+    "SEXVAR",
+    "_SMOKER3",
+    "_TOTINDA"
+  ],
+  "neural_network": {
+    "confusion_matrix": [
+      [
+        226977,
+        131729
+      ],
+      [
+        14547,
+        45239
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.9397699607492424,
+        "recall": 0.632766109292847,
+        "f1-score": 0.7563000849674292,
+        "support": 358706.0
+      },
+      "1": {
+        "precision": 0.2556337868993264,
+        "recall": 0.7566821663934701,
+        "f1-score": 0.3821603858857717,
+        "support": 59786.0
+      },
+      "accuracy": 0.6504688261663305,
+      "macro avg": {
+        "precision": 0.5977018738242844,
+        "recall": 0.6947241378431586,
+        "f1-score": 0.5692302354266005,
+        "support": 418492.0
+      },
+      "weighted avg": {
+        "precision": 0.8420338862489147,
+        "recall": 0.6504688261663305,
+        "f1-score": 0.7028502793575347,
+        "support": 418492.0
+      }
+    },
+    "roc_auc": 0.764352067685762,
+    "brier_score": 0.20168612897396088,
+    "threshold_sweep": {
+      "0.3": {
+        "precision_pos": 0.20346394800784567,
+        "recall_pos": 0.9300003345264778,
+        "f1_pos": 0.3338817863555297,
+        "accuracy": 0.4698680022557182,
+        "confusion_matrix": [
+          [
+            141035,
+            217671
+          ],
+          [
+            4185,
+            55601
+          ]
+        ]
+      },
+      "0.4": {
+        "precision_pos": 0.22347109984933572,
+        "recall_pos": 0.8732813702204529,
+        "f1_pos": 0.3558745543899829,
+        "accuracy": 0.5483832426904218,
+        "confusion_matrix": [
+          [
+            177284,
+            181422
+          ],
+          [
+            7576,
+            52210
+          ]
+        ]
+      },
+      "0.5": {
+        "precision_pos": 0.2556337868993264,
+        "recall_pos": 0.7566821663934701,
+        "f1_pos": 0.3821603858857717,
+        "accuracy": 0.6504688261663305,
+        "confusion_matrix": [
+          [
+            226977,
+            131729
+          ],
+          [
+            14547,
+            45239
+          ]
+        ]
+      },
+      "0.6": {
+        "precision_pos": 0.30368098159509205,
+        "recall_pos": 0.5712875924129395,
+        "f1_pos": 0.3965609325654839,
+        "accuracy": 0.7516177131223536,
+        "confusion_matrix": [
+          [
+            280391,
+            78315
+          ],
+          [
+            25631,
+            34155
+          ]
+        ]
+      },
+      "0.7": {
+        "precision_pos": 0.36523855044755366,
+        "recall_pos": 0.35148697019369085,
+        "f1_pos": 0.3582308367640917,
+        "accuracy": 0.8200849717557325,
+        "confusion_matrix": [
+          [
+            322185,
+            36521
+          ],
+          [
+            38772,
+            21014
+          ]
+        ]
+      }
+    }
+  },
+  "logistic_regression": {
+    "confusion_matrix": [
+      [
+        227901,
+        130805
+      ],
+      [
+        14736,
+        45050
+      ]
+    ],
+    "classification_report": {
+      "0": {
+        "precision": 0.9392673005353677,
+        "recall": 0.6353420349812938,
+        "f1-score": 0.7579734028665837,
+        "support": 358706.0
+      },
+      "1": {
+        "precision": 0.256176963976003,
+        "recall": 0.7535208911785368,
+        "f1-score": 0.38236130384780237,
+        "support": 59786.0
+      },
+      "accuracy": 0.6522251321411162,
+      "macro avg": {
+        "precision": 0.5977221322556854,
+        "recall": 0.6944314630799153,
+        "f1-score": 0.570167353357193,
+        "support": 418492.0
+      },
+      "weighted avg": {
+        "precision": 0.8416806349323497,
+        "recall": 0.6522251321411162,
+        "f1-score": 0.7043132493823191,
+        "support": 418492.0
+      }
+    },
+    "roc_auc": 0.7617740158732358,
+    "brier_score": 0.20594444870948792,
+    "threshold_sweep": {
+      "0.3": {
+        "precision_pos": 0.19518297972344814,
+        "recall_pos": 0.9446358679289466,
+        "f1_pos": 0.32351955547281136,
+        "accuracy": 0.43563317817305947,
+        "confusion_matrix": [
+          [
+            125833,
+            232873
+          ],
+          [
+            3310,
+            56476
+          ]
+        ]
+      },
+      "0.4": {
+        "precision_pos": 0.21751214125316617,
+        "recall_pos": 0.8862275449101796,
+        "f1_pos": 0.3492947718515247,
+        "accuracy": 0.5282848895558339,
+        "confusion_matrix": [
+          [
+            168099,
+            190607
+          ],
+          [
+            6802,
+            52984
+          ]
+        ]
+      },
+      "0.5": {
+        "precision_pos": 0.256176963976003,
+        "recall_pos": 0.7535208911785368,
+        "f1_pos": 0.38236130384780237,
+        "accuracy": 0.6522251321411162,
+        "confusion_matrix": [
+          [
+            227901,
+            130805
+          ],
+          [
+            14736,
+            45050
+          ]
+        ]
+      },
+      "0.6": {
+        "precision_pos": 0.3076879195268973,
+        "recall_pos": 0.5412972936807948,
+        "f1_pos": 0.39235227079847723,
+        "accuracy": 0.7604733184863749,
+        "confusion_matrix": [
+          [
+            285890,
+            72816
+          ],
+          [
+            27424,
+            32362
+          ]
+        ]
+      },
+      "0.7": {
+        "precision_pos": 0.3708335779852426,
+        "recall_pos": 0.3169136587160874,
+        "f1_pos": 0.34175993650736386,
+        "accuracy": 0.8256000114697533,
+        "confusion_matrix": [
+          [
+            326560,
+            32146
+          ],
+          [
+            40839,
+            18947
+          ]
+        ]
+      }
+    }
+  },
+  "subgroup_analysis": {
+    "sex_male": {
+      "count": 198499,
+      "positive_rate": 0.14854482894120374,
+      "roc_auc": 0.7666117347883971,
+      "brier_score": 0.20630137622356415
+    },
+    "sex_female": {
+      "count": 219993,
+      "positive_rate": 0.13773165509811675,
+      "roc_auc": 0.7613704257142673,
+      "brier_score": 0.19752179086208344
+    },
+    "age_18_39": {
+      "count": 96831,
+      "positive_rate": 0.025363778128904998,
+      "roc_auc": 0.7313243889811679,
+      "brier_score": 0.03947728872299194
+    },
+    "age_40_59": {
+      "count": 116504,
+      "positive_rate": 0.12310306942250909,
+      "roc_auc": 0.7315143453916098,
+      "brier_score": 0.18614087998867035
+    },
+    "age_60_plus": {
+      "count": 197756,
+      "positive_rate": 0.21272173789922935,
+      "roc_auc": 0.6808810809890821,
+      "brier_score": 0.2873600423336029
+    },
+    "smoker_current": {
+      "count": 43324,
+      "positive_rate": 0.1447927245868341,
+      "roc_auc": 0.7431033328268816,
+      "brier_score": 0.21290074288845062
+    },
+    "smoker_former": {
+      "count": 109157,
+      "positive_rate": 0.1796861401467611,
+      "roc_auc": 0.7399453207443284,
+      "brier_score": 0.2400103062391281
+    },
+    "smoker_never": {
+      "count": 243763,
+      "positive_rate": 0.12720142105241566,
+      "roc_auc": 0.7763636525808332,
+      "brier_score": 0.1835179477930069
+    },
+    "physically_active": {
+      "count": 314876,
+      "positive_rate": 0.11320011687140334,
+      "roc_auc": 0.755705390381661,
+      "brier_score": 0.17295131087303162
+    },
+    "physically_inactive": {
+      "count": 102457,
+      "positive_rate": 0.2332588305337849,
+      "roc_auc": 0.7158942073751458,
+      "brier_score": 0.28996041417121887
+    }
+  },
+  "limitations": "Educational use only. BRFSS is self-reported, cross-sectional and survey weights are not used in training or these metrics. Not calibrated for medical diagnosis or Vietnamese population. UCI is small (251 unique profiles) and from a single clinic in Sylhet, Bangladesh."
+}

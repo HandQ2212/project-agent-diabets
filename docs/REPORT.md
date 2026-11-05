@@ -1,4 +1,6 @@
 # BÁO CÁO NGHIÊN CỨU VÀ TRIỂN KHAI HỆ ĐA AGENT ĐƯỜNG AN
+
+> **Bản lưu lịch sử:** Tài liệu này chưa phản ánh các thí nghiệm và cập nhật website ngày 05/11/2026; một số số liệu và kết luận bên dưới đã cũ. Dùng [báo cáo nộp](../bao_cao_project/Bao_cao_Duong_An.pdf) và [kết quả notebook mới](../notebooks/training/KET_QUA_NANG_CAP.md) làm nguồn hiện tại.
 **Dự án học thuật nghiên cứu công nghệ đa tác tử (Multi-Agent System) hỗ trợ thông tin và đánh giá nguy cơ đái tháo đường**
 
 > **Tuyên bố y tế quan trọng (Non-clinical Disclaimer):**  

@@ -1,0 +1,17 @@
+\subsubsection{Các bước xây dựng và truy xuất tri thức}
+\begin{enumerate}
+\item \textbf{Lựa chọn nguồn:} danh sách web là các URL cụ thể tại CDC/NIDDK; các tóm tắt thủ công có URL của nhiều tổ chức và bệnh viện. Mỗi mục có định danh để có thể cập nhật mà không tạo vô hạn bản sao.
+\item \textbf{Tải và phân đoạn:} tác vụ thủ công kiểm tra host, robots và HTTP; trích heading, paragraph, list bên trong thẻ \texttt{main}. Các website không có cấu trúc phù hợp có thể không trích được nội dung. Tài liệu web được đánh dấu chưa kiểm duyệt.
+\item \textbf{Embedding và lưu trữ:} Ollama tạo vector cho từng đoạn; Neo4j lưu vector cùng metadata, chủ đề và quan hệ. Khi nguồn lỗi, phiên bản đã lưu được giữ lại.
+\item \textbf{Truy vấn:} hệ thống tạo embedding cho câu hỏi. Với câu hỏi tiếng Việt, hàm dịch sang tiếng Anh được dùng để tìm nguồn web; nếu dịch thất bại thì dùng câu gốc. Câu hỏi tiếp nối có thể được viết lại dựa trên các câu hỏi trước.
+\item \textbf{Xếp hạng và sinh:} Neo4j tính cosine similarity, lấy ứng viên và lọc ngưỡng 0,875, loại trùng URL rồi giữ tối đa ba nguồn. Nội dung nhập thủ công được đưa vào prompt; nguồn web chưa duyệt không được đưa vào phần ngữ cảnh để sinh tóm tắt y tế.
+\end{enumerate}
+\noindent Độ tương đồng cosine giữa vector $q$ và $d$ được tính theo công thức
+\[
+\operatorname{sim}(q,d)=\frac{q\cdot d}{\lVert q\rVert\lVert d\rVert}.
+\]
+Điểm này chỉ đo mức gần trong không gian embedding; không chứng minh tài liệu đúng, cập nhật hoặc thực sự trả lời câu hỏi. Ngưỡng 0,875 là tham số triển khai, chưa được chứng minh tối ưu trên benchmark đại diện. Mô hình dịch và viết lại câu hỏi cũng có thể thay đổi nghĩa.
+\subsubsection{Kiểm soát ngữ cảnh và trích dẫn}
+Prompt hướng dẫn mô hình trả lời tiếng Việt, dựa vào nguồn, dùng ký hiệu số và không chỉ định liều. Lịch sử được đưa vào để hiểu ngữ cảnh, không được xem là tri thức. Các yêu cầu này là chỉ dẫn cho LLM, không phải bộ kiểm chứng hậu xử lý từng mệnh đề: mã hiện không đối chiếu độc lập từng câu với nguồn hoặc kiểm tra trích dẫn có thực sự hỗ trợ phát biểu. Vì vậy kết quả cần kiểm tra thủ công, nhất là với thông tin sức khỏe.
+
+Nguồn tự động chỉ hiển thị liên kết nếu tất cả nguồn truy xuất đều thuộc nhóm chưa duyệt. Khi có cả nguồn thủ công và nguồn tự động, chỉ đoạn thủ công được đưa vào prompt sinh, còn nguồn tự động hiển thị riêng. Việc gắn nhãn “thủ công” không đồng nghĩa nội dung đã được chuyên gia thẩm định.
