@@ -4,7 +4,7 @@
 `retrieve()` trong `backend/app/rag.py` embed câu hỏi bằng `nomic-embed-text` rồi giữ Document Neo4j có cosine >= 0.875. Thực tế câu hỏi tiếng Việt hay lấy sai đoạn, và câu ngoài miền (món phở) vẫn vượt ngưỡng. Nomic thiên về tiếng Anh.
 
 Đánh giá chạy hoàn toàn offline (không Neo4j/Docker), chỉ gọi Ollama:
-- Corpus: 43 chunk (`knowledge/sources.json` 18 + `knowledge/sources_v2.json` 25), embed `text` như `ml/seed_knowledge.py`.
+- Corpus: 43 chunk *(tại thời điểm đánh giá; sau đợt sửa KB theo `KB_DOI_CHIEU_NGUON_GOC.md` còn 18 + 40 = 58 chunk; ngưỡng được hiệu chỉnh lại ở mục 6)* (`knowledge/sources.json` 18 + `knowledge/sources_v2.json` 25), embed `text` như `ml/seed_knowledge.py`.
 - Bộ câu hỏi `knowledge/eval_questions.json`: 41 câu trong miền (ngắn/dài, có/không dấu, "tiểu đường"/"đái tháo đường", triệu chứng kể chuyện), mỗi câu gắn 1-3 chunk đúng; 10 câu ngoài miền (nấu ăn, bóng đá, code, thời tiết, vàng, Windows, chính trị, du lịch, tiếng Anh, trồng rau).
 - Script: `.venv/bin/python ml/eval_embeddings.py` (tái dùng được; thêm mô hình ở `VARIANTS`). Cosine tính trên vector đã chuẩn hóa, xếp hạng toàn bộ 43 chunk.
 - Prefix: nomic thử có/không `search_query:`/`search_document:`; snowflake-arctic-embed2 dùng `query: `; qwen3-embedding dùng instruction cho query; bge-m3 và granite không prefix.
@@ -57,3 +57,28 @@ Lưu ý giới hạn: chỉ 10 câu ngoài miền và 41 câu trong miền, mộ
 - Không trộn vector khác chiều: `seed_knowledge.py` và `refresh_web.py` ghi `embedding_model`; `retrieve` chỉ so với Document có `embedding_model` = mô hình hiện tại và `size(embedding)` = số chiều vector truy vấn, nếu không có Document nào phù hợp thì log cảnh báo nhắc re-seed. `refresh_web` không còn bỏ qua nguồn "nội dung không đổi" nếu còn đoạn embed bằng mô hình khác. Neo4j không có vector index (chỉ RANGE/LOOKUP), nên không cần tạo lại index.
 - Đã nạp lại: `ml.seed_knowledge` (43 doc), `ml.seed_graph` (48 thực thể/53 quan hệ), `ml.refresh_web` (190 chunk web). Còn 3 Document cũ không có trong `sources*.json` (`who-diabetes`, `cdc-basics`, `cdc-prevention`, 768 chiều) bị loại khỏi truy vấn; chưa xóa.
 - Test: `backend/tests/test_rag_threshold.py` (ngưỡng, env, boost, lệch model/chiều, cảnh báo).
+
+## 6. Hiệu chỉnh ngưỡng 0.53 (12/11/2026)
+Lý do: DEF-BE-3 (Hawk). Sau khi KB được tách thành 18 + 38 = 56 chunk (`sources.json` + `sources_v2.json`), câu ngoài miền "Giá vé xem phim tăng huyết áp không?" đạt 0.501 với chunk mới `kb2-muc-tieu-ha-ldl-ada`, tức vượt ngưỡng 0.50. Từ đợt này, Knowledge Graph Agent chỉ được tra khi RAG có ít nhất 1 nguồn, nên ngưỡng RAG quyết định luôn cả việc có hiện nguồn từ đồ thị hay không.
+
+Đo lại bằng bge-m3 trên Neo4j đã nạp corpus 56 chunk. Điểm là cosine thuần, chỉ tính chunk curated (không tính chunk web), câu không dấu được khôi phục dấu trước (`backend/app/diacritics.py`):
+
+| Nhóm câu | Số câu | Điểm | Ở ngưỡng 0.53 |
+|---|---|---|---|
+| Trong miền (`eval_questions.json`), chunk đúng cao nhất | 44 | thấp nhất 0.567 ("Nhiễm toan ceton và tăng áp lực thẩm thấu là gì?"); kế tiếp 0.585 (câu không dấu "an nhieu uong nhieu tieu nhieu sut can la bi gi"), 0.609, 0.632 | giữ cả 44 |
+| Ngoài miền (`eval_questions.json`), điểm cao nhất | 10 | cao nhất 0.431 ("Làm sao để học tiếng Anh giao tiếp nhanh?") | loại cả 10 |
+| Ngoài miền chứa tên thực thể: "Giá vé xem phim tăng huyết áp không?" | 1 | 0.501 | loại |
+| Như trên, bản không dấu "gia ve xem phim tang huyet ap khong" | 1 | 0.516 | loại |
+| "Bóng đá Việt Nam và bệnh tim mạch" | 1 | 0.522 | loại |
+| "Giá xe máy Honda có làm tăng đường huyết không?" | 1 | 0.561 | **vẫn lọt** |
+| Câu không dấu "huyet ap muc tieu cho nguoi tieu duong la bao nhieu" | 1 | 0.406 trước khi khôi phục dấu → 0.751 sau khi khôi phục | trước bị loại, nay giữ |
+| "Cách nấu phở bò?" / "cach nau pho bo" | 2 | 0.376 / 0.412 | loại |
+
+Ngưỡng 0.53 có biên 0.008 so với câu ngoài miền chứa tên thực thể cao nhất đã bị loại (0.522), và biên 0.037 so với câu trong miền thấp nhất (0.567).
+
+Giới hạn đã ghi nhận:
+- Ngưỡng được chọn trên chính bộ câu dùng để đo nên có nguy cơ khớp quá (overfit). Cần kiểm lại bằng một bộ câu độc lập hoặc log hỏi đáp thật; mỗi lần KB đổi đáng kể thì đo lại.
+- Câu ngoài miền chứa tên thực thể có thể đạt điểm cao hơn câu trong miền khó ("xe máy" 0.561 > ceton 0.567 − 0.006). Không ngưỡng nào tách sạch được hai nhóm này; cần thêm bộ phân loại miền (domain classifier) trước RAG.
+- Biên phía ngoài miền rất hẹp (0.008), nên một chunk mới gần nghĩa vẫn có thể đẩy câu kiểu "phim + huyết áp" vượt ngưỡng.
+- Chunk web tiếng Anh (truy vấn bằng bản dịch) không có trong bảng. Chúng chịu cùng ngưỡng, và khi xếp hạng thì chunk curated được cộng `CURATED_PRIORITY=0.05` (khoản cộng này không tính vào ngưỡng).
+- Áp dụng: `DEFAULT_THRESHOLD=0.53` trong `backend/app/rag.py`, `RAG_THRESHOLD=0.53` trong `.env.example`. File `.env` thật đang đặt giá trị nào thì giá trị đó được ưu tiên.

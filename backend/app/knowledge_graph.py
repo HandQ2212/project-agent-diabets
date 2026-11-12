@@ -12,6 +12,8 @@ import re
 import unicodedata
 from typing import Iterable
 
+from backend.app.diacritics import has_diacritics, strip_diacritics
+
 log = logging.getLogger(__name__)
 
 # Diễn đạt tiếng Việt của từng loại quan hệ (chiều from -> to).
@@ -39,18 +41,40 @@ def _normalize(text: str) -> str:
     return ' '.join(re.sub(r'[^\w\s%-]', ' ', text).split())
 
 
+# Một âm tiết tiếng Việt viết không dấu: phụ âm đầu? + nguyên âm + phụ âm cuối?
+_VIETNAMESE_SYLLABLE = re.compile(r'(ngh|ng|gh|nh|ch|th|tr|ph|kh|gi|qu|[bcdghklmnpqrstvx])?[aeiouy]+(ng|nh|ch|[cmnpt])?')
+
+
+def _alias_usable_without_diacritics(alias: str) -> bool:
+    """Alias dùng được khi so không dấu: có từ 2 âm tiết, hoặc là từ viết tắt Latin (hba1c, bmi, egfr).
+
+    Alias một âm tiết đọc được như tiếng Việt bị loại vì bỏ dấu sẽ va chạm từ thường: 'tim' (tim mạch)
+    với 'tìm', 'mắt' với 'mất', 'thận' với 'than', 'béo' với 'bèo', 'đá' với 'da'.
+    """
+    if len(alias.split()) >= 2:
+        return True
+    return not _VIETNAMESE_SYLLABLE.fullmatch(strip_diacritics(alias))
+
+
 def match_entities(question: str, entities: Iterable[dict]) -> list[dict]:
     """Trả về các thực thể có tên/alias xuất hiện trọn từ trong câu hỏi.
 
+    Câu có dấu: so có dấu (để 'tìm' không khớp 'tim'). Câu gõ hoàn toàn không dấu: bỏ dấu cả hai phía,
+    chỉ dùng alias an toàn (_alias_usable_without_diacritics).
     Ưu tiên alias dài hơn (cụ thể hơn); bỏ thực thể chung nếu đã có thực thể cụ thể.
     """
-    q = f' {_normalize(question)} '
+    unaccented = not has_diacritics(question)
+    fold = strip_diacritics if unaccented else (lambda text: text)
+    q = f' {fold(_normalize(question))} '
     found: dict[str, tuple[int, dict]] = {}
     for entity in entities:
         names = [entity.get('name', ''), *entity.get('aliases', [])]
         best = 0
         for name in names:
             alias = _normalize(name)
+            if unaccented and not _alias_usable_without_diacritics(alias):
+                continue
+            alias = fold(alias)
             if alias and re.search(rf'(?<!\w){re.escape(alias)}(?!\w)', q):
                 best = max(best, len(alias))
         if best:

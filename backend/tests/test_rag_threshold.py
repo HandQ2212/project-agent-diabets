@@ -9,17 +9,17 @@ def row(score, url='u1', **extra):
 
 
 def test_default_threshold_matches_evaluation():
-    assert rag.DEFAULT_THRESHOLD == 0.50
+    assert rag.DEFAULT_THRESHOLD == 0.53
 
 
 def test_threshold_from_env_parsing(caplog):
-    assert rag._threshold_from_env(None) == 0.50
-    assert rag._threshold_from_env('') == 0.50
+    assert rag._threshold_from_env(None) == 0.53
+    assert rag._threshold_from_env('') == 0.53
     assert rag._threshold_from_env('0.62') == 0.62
     assert rag._threshold_from_env('0') == 0.0 and rag._threshold_from_env('1') == 1.0
     with caplog.at_level(logging.WARNING):
         for bad in ('abc', '1.5', '-0.1', 'nan'):
-            assert rag._threshold_from_env(bad) == 0.50
+            assert rag._threshold_from_env(bad) == 0.53
     assert 'invalid' in caplog.text
 
 
@@ -27,6 +27,23 @@ def test_threshold_boundary_is_inclusive():
     rows = [row(0.5, 'a'), row(0.4999, 'b'), row(0.8, 'c')]
     got = rag.select_results('hỏi gì đó', rows, top_k=5, threshold=0.50)
     assert [r['url'] for r in got] == ['c', 'a']
+
+
+@pytest.mark.parametrize('score,kept', [(0.5299, False), (0.53, True), (0.5301, True)])
+def test_default_threshold_boundary_below_at_and_above(score, kept):
+    got = rag.select_results('hỏi gì đó', [row(score)], 3, rag.DEFAULT_THRESHOLD)
+    assert (got != []) is kept
+
+
+@pytest.mark.parametrize('score', [0.501, 0.516, 0.522])
+def test_measured_out_of_domain_entity_questions_are_dropped_at_default(score):
+    # 'Giá vé xem phim tăng huyết áp không?' 0.501 / bản không dấu 0.516 / 'Bóng đá Việt Nam và bệnh tim mạch' 0.522
+    assert rag.select_results('câu ngoài miền', [row(score)], 3, rag.DEFAULT_THRESHOLD) == []
+
+
+def test_lowest_measured_in_domain_score_is_kept_at_default():
+    # 'Nhiễm toan ceton và tăng áp lực thẩm thấu là gì?' 0.567
+    assert len(rag.select_results('ceton', [row(0.567)], 3, rag.DEFAULT_THRESHOLD)) == 1
 
 
 def test_none_score_dedupe_and_top_k():
@@ -98,3 +115,31 @@ def test_retrieve_warns_when_only_stale_embeddings_exist(monkeypatch, caplog):
     with caplog.at_level(logging.WARNING):
         assert rag.retrieve('q') == []
     assert 're-run ml.seed_knowledge' in caplog.text
+
+
+# --- Ưu tiên curated hơn unreviewed_web có điểm sát nhau (bổ sung vòng 1, câu "Bao nhiêu tuổi thì nên xét nghiệm") ---
+
+def web(score, url, **extra):
+    return row(score, url, review_status='unreviewed_web', **extra)
+
+
+def test_curated_outranks_close_unreviewed_web_rows():
+    # điểm thật đo được: web 0.755 / 0.737, curated VN 0.734, curated ADA 0.716
+    rows = [web(0.755, 'w1'), web(0.737, 'w2'), row(0.734, 'vn'), row(0.716, 'ada')]
+    assert [r['url'] for r in rag.select_results('tuổi xét nghiệm', rows, 3, 0.5)] == ['vn', 'ada', 'w1']
+
+
+def test_web_row_far_above_curated_keeps_its_rank():
+    rows = [web(0.80, 'w'), row(0.70, 'c')]
+    assert [r['url'] for r in rag.select_results('q', rows, 3, 0.5)] == ['w', 'c']
+
+
+def test_curated_priority_does_not_lower_the_threshold():
+    rows = [row(0.5 - rag.CURATED_PRIORITY / 2, 'c'), web(0.6, 'w')]
+    assert [r['url'] for r in rag.select_results('q', rows, 3, 0.5)] == ['w']
+    assert rag.select_results('Cách nấu phở bò?', [row(0.49, 'c')], 3, 0.5) == []
+
+
+def test_url_dedupe_keeps_curated_row_over_close_web_chunk_of_same_url():
+    rows = [web(0.588, 'same', id='web:niddk-a1c:1'), row(0.562, 'same', id='kb2-hba1c-la-gi')]
+    assert [r['id'] for r in rag.select_results('hba1c', rows, 3, 0.5)] == ['kb2-hba1c-la-gi']

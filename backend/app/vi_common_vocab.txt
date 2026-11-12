@@ -1,0 +1,224 @@
+# Từ vựng nền để khôi phục dấu câu hỏi tiếng Việt gõ không dấu (backend/app/diacritics.py).
+#
+# Nguồn gốc: Rex tự soạn tay ngày 12/11/2026 (DEF-BE-5). Gồm các từ chức năng, đại từ, từ để hỏi và cụm
+# hỏi đáp đời thường về ăn uống, triệu chứng, sinh hoạt mà KB y khoa ít chứa. Không lấy từ nguồn ngoài,
+# không tải từ mạng lúc chạy.
+#
+# Quy tắc soạn:
+# - Mỗi dòng một từ hoặc cụm CÓ DẤU, viết thường. Dòng trống và dòng bắt đầu bằng '#' bị bỏ qua.
+#   Cụm nhiều từ vốn không có dấu (ra sao, rau xanh) cũng được, để khóa cách đọc đó trước n-gram KB.
+#   Hai mục cùng dạng không dấu (ba tôi / bà tôi) bị từ chối khi nạp.
+# - Chỉ đưa vào TỪ ĐƠN (1 âm tiết) khi cách đọc có dấu đó áp đảo trong câu hỏi đời thường. Âm tiết đa nghĩa
+#   (co: có/cơ/cô; tim: tim/tìm; da: da/đá/đã/dạ; mat: mắt/mất/mặt; can: cân/cần; ba: ba/bà/bá; bo: bò/bộ/bơ;
+#   dang: đang/dạng; the: thể/thế; nhung: những/nhưng; ngay: ngày/ngay) chỉ xuất hiện trong CỤM.
+# - Cụm dài hơn luôn thắng cụm ngắn hơn, kể cả cụm của KB, nên "an toàn", "vận động", "nguy cơ" trong KB
+#   vẫn đúng dù ở đây có từ đơn "ăn". Hai cụm cùng độ dài thì từ vựng nền thắng.
+
+# --- Đại từ, người ---
+tôi
+mình
+bạn tôi
+bố tôi
+mẹ tôi
+ba tôi
+má tôi
+vợ tôi
+chồng tôi
+con tôi
+ông tôi
+người
+người già
+người lớn
+trẻ em
+bác sĩ
+
+# --- Từ chức năng ---
+không
+gì
+của
+nào
+được
+bị
+và
+với
+thì
+để
+dễ bị
+dễ dàng
+an toàn
+an tâm
+vấn đề
+rất
+cũng
+vẫn còn
+vẫn bị
+sẽ
+phải
+nên
+nhiều
+ít
+trước
+hơn
+nữa
+đã bị
+đã từng
+đang bị
+đang dùng
+đang uống
+những người
+những gì
+nhưng mà
+có thể
+có thể không
+có nên
+có nên ăn
+có nên uống
+có được
+có được không
+có phải
+có phải là
+có bị
+có sao không
+có nguy hiểm
+có nguy hiểm không
+có ảnh hưởng
+có ảnh hưởng không
+có tốt không
+có hại không
+có cần
+có cần không
+có ăn được không
+có uống được không
+được không
+không được
+hay không
+như thế nào
+thế nào
+ra sao
+làm sao
+làm gì
+nên làm gì
+phải làm gì
+phải làm sao
+là gì
+là bao nhiêu
+bao nhiêu
+bao lâu
+khi nào
+lúc nào
+ở đâu
+tại sao
+vì sao
+ai nên
+mấy lần
+
+# --- Thời gian, sinh hoạt ---
+mỗi ngày
+hằng ngày
+ngày nào
+một ngày
+buổi sáng
+buổi tối
+buổi trưa
+ban đêm
+ăn tối
+bữa tối
+bữa sáng
+gần đây
+dạo này
+hôm nay
+mất ngủ
+khó ngủ
+ngủ
+thức khuya
+đi bộ
+tập thể dục
+chạy bộ
+giảm cân
+tăng cân
+giữ cân
+cân nặng
+hút thuốc
+uống rượu
+uống bia
+
+# --- Ăn uống ---
+ăn
+uống
+ăn gì
+uống gì
+ăn được
+ăn nhiều
+ăn ít
+ăn uống
+ăn kiêng
+ăn chuối
+ăn cơm
+ăn trái cây
+ăn đồ ngọt
+uống sữa
+uống nước
+uống cà phê
+chuối
+xoài
+sầu riêng
+ăn nho
+dưa hấu
+trái cây
+hoa quả
+cơm
+cơm trắng
+gạo lứt
+bánh mì
+bún
+phở bò
+thịt
+thịt bò
+thịt gà
+thịt heo
+thịt lợn
+ăn cá
+thịt cá
+trứng
+sữa
+sữa chua
+cà phê
+trà sữa
+nước ngọt
+nước dừa
+mật ong
+đồ ngọt
+bánh kẹo
+khoai lang
+rau xanh
+món ăn
+nấu ăn
+cách nấu
+
+# --- Triệu chứng, cảm giác ---
+tim đập
+tim đập nhanh
+đập nhanh
+hồi hộp
+chóng mặt
+mệt mỏi
+đau đầu
+khát nước
+hay khát
+đi tiểu
+tiểu đêm
+sụt cân
+run tay
+ra mồ hôi
+mờ mắt
+tê chân
+tê tay
+ngứa
+khó thở
+da chân
+da khô
+khô da
+vết thương
+lâu lành
+tìm hiểu
+tìm cách

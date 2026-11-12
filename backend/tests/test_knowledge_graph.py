@@ -110,15 +110,17 @@ def test_chat_appends_graph_source_and_trace(monkeypatch):
     graph_source = {'title': 'Đồ thị tri thức Neo4j: HbA1c', 'url': 'https://www.niddk.nih.gov/', 'topic': 'Đồ thị tri thức',
                     'text': 'HbA1c dùng để chẩn đoán Đái tháo đường.', 'review_status': 'curated_graph', 'facts': [{}]}
     monkeypatch.setattr(main.rag, 'standalone_question', lambda q, h: q)
-    monkeypatch.setattr(main.rag, 'retrieve', lambda *a, **k: [])
+    # Cổng DEF-BE-3: đồ thị chỉ được tra khi RAG có ≥1 nguồn.
+    rag_source = {'title': 'HbA1c', 'url': 'https://example.org/hba1c', 'text': 'x', 'topic': 'Xét nghiệm'}
+    monkeypatch.setattr(main.rag, 'retrieve', lambda *a, **k: [rag_source])
     monkeypatch.setattr(main.knowledge_graph, 'lookup', lambda q: graph_source)
     seen = {}
     monkeypatch.setattr(main.rag, 'answer', lambda q, sources, history: seen.update(sources=sources) or 'HbA1c [1].')
     response = TestClient(main.app).post('/api/chat', json={'question': 'HbA1c là gì?'})
     body = response.json()
     assert response.status_code == 200
-    assert seen['sources'] == [graph_source]
-    assert body['sources'][0]['review_status'] == 'curated_graph'
+    assert seen['sources'] == [rag_source, graph_source]
+    assert body['sources'][1]['review_status'] == 'curated_graph'
     assert 'Knowledge Graph Agent (1 facts, +0 linked docs)' in body['trace']
 
 
