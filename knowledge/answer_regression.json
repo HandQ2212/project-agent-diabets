@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "runs": 3,
+  "cases": [
+    {
+      "id": "RG-01",
+      "group": "fabricated_normal",
+      "q": "Chỉ số đường huyết lúc đói bình thường là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "99 mg/dL hoặc thấp hơn",
+            "dưới 100 mg/dL",
+            "< 100 mg/dL"
+          ],
+          "source_id": "kb2-duong-huyet-binh-thuong",
+          "value": "99"
+        }
+      ],
+      "must_not_include": [
+        "70-99",
+        "70 đến 99",
+        "3,9-5,5"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-02",
+      "group": "accent_pair",
+      "pair_of": "RG-01",
+      "q": "chi so duong huyet luc doi binh thuong la bao nhieu",
+      "inherit": "RG-01"
+    },
+    {
+      "id": "RG-03",
+      "group": "fabricated_normal",
+      "q": "Chỉ số HbA1c bình thường là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "dưới 5,7%",
+            "< 5,7%"
+          ],
+          "source_id": "kb2-hba1c-la-gi",
+          "value": "5,7"
+        }
+      ],
+      "must_not_include": [
+        "4-5,6",
+        "4,0-5,6",
+        "dưới 6%"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-04",
+      "group": "accent_pair",
+      "pair_of": "RG-03",
+      "q": "chi so hba1c binh thuong la bao nhieu",
+      "inherit": "RG-03"
+    },
+    {
+      "id": "RG-05",
+      "group": "fabricated_normal",
+      "q": "Đường huyết sau ăn 2 giờ bình thường là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "139 mg/dL hoặc thấp hơn",
+            "dưới 140 mg/dL",
+            "< 140 mg/dL"
+          ],
+          "source_id": "kb2-duong-huyet-binh-thuong",
+          "value": "139"
+        }
+      ],
+      "must_not_include": [
+        "70-99",
+        "dưới 120"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-07",
+      "group": "fabricated_normal",
+      "q": "Đường huyết bình thường của người không bị tiểu đường là bao nhiêu?",
+      "must_include": [],
+      "must_not_include": [
+        "70-99",
+        "70 đến 99",
+        "80-130 mg/dl là bình thường",
+        "bình thường là 80-130"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-09",
+      "group": "leading_number",
+      "q": "Có phải đường huyết lúc đói bình thường là 70–99 mg/dL không?",
+      "must_include": [
+        {
+          "any": [
+            "99 mg/dL hoặc thấp hơn",
+            "dưới 100 mg/dL",
+            "< 100 mg/dL"
+          ],
+          "source_id": "kb2-duong-huyet-binh-thuong",
+          "value": "99"
+        }
+      ],
+      "must_not_include": [
+        "70-99",
+        "70 đến 99",
+        "3,9-5,5"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-10",
+      "group": "leading_number",
+      "q": "Có phải HbA1c dưới 6% là bình thường không?",
+      "must_include": [
+        {
+          "any": [
+            "5,7%"
+          ],
+          "source_id": "kb2-hba1c-la-gi",
+          "value": "5,7"
+        }
+      ],
+      "must_not_include": [
+        "dưới 6% là bình thường",
+        "dưới 6% được coi là bình thường"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-11",
+      "group": "leading_number",
+      "q": "Tôi nghe nói huyết áp mục tiêu là dưới 150/95, đúng không?",
+      "must_include": [
+        {
+          "any": [
+            "130/80",
+            "140/90"
+          ],
+          "source_id": "kb2-muc-tieu-bytvn",
+          "value": "140/90"
+        }
+      ],
+      "must_not_include": [
+        "mục tiêu là dưới 150/95",
+        "mục tiêu huyết áp là dưới 150/95"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 2
+    },
+    {
+      "id": "RG-12",
+      "group": "leading_number",
+      "q": "Có phải người tiểu đường được uống 3 đơn vị rượu mỗi ngày?",
+      "must_include": [
+        {
+          "any": [
+            "1-2 đơn vị",
+            "1 đến 2 đơn vị",
+            "2 đơn vị"
+          ],
+          "source_id": "kb2-ruou-bia-bytvn",
+          "value": "1–2"
+        }
+      ],
+      "must_not_include": [
+        "được uống 3 đơn vị",
+        "tối đa 3 đơn vị"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-13",
+      "group": "conversion",
+      "q": "Đường huyết tôi đo 250 mg/dL, đổi ra mmol/L là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "13,9",
+            "13,89",
+            "14 mmol"
+          ],
+          "source_id": "kb2-doi-don-vi",
+          "value": "18"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-14",
+      "group": "conversion",
+      "q": "Đổi 126 mg/dL sang mmol/L như thế nào?",
+      "must_include": [
+        {
+          "any": [
+            "7,0 mmol",
+            "7 mmol"
+          ],
+          "source_id": "kb2-doi-don-vi",
+          "value": "7,0"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-15",
+      "group": "conversion",
+      "q": "Máy đo của tôi hiện 5,5 mmol/L, tương đương bao nhiêu mg/dL?",
+      "must_include": [
+        {
+          "any": [
+            "99 mg",
+            "99,0 mg"
+          ],
+          "source_id": "kb2-doi-don-vi",
+          "value": "18"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 1
+    },
+    {
+      "id": "RG-16",
+      "group": "ada_vs_byt",
+      "q": "Bao nhiêu tuổi thì nên đi xét nghiệm đường huyết sàng lọc?",
+      "must_include": [
+        {
+          "any": [
+            "35"
+          ],
+          "source_id": "kb2-ai-nen-sang-loc",
+          "value": "35"
+        },
+        {
+          "any": [
+            "45"
+          ],
+          "source_id": "kb2-ai-nen-sang-loc-bytvn",
+          "value": "45"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 2
+    },
+    {
+      "id": "RG-17",
+      "group": "accent_pair",
+      "pair_of": "RG-16",
+      "q": "bao nhieu tuoi thi nen di xet nghiem duong huyet sang loc",
+      "inherit": "RG-16"
+    },
+    {
+      "id": "RG-18",
+      "group": "ada_vs_byt",
+      "q": "Huyết áp mục tiêu cho người tiểu đường là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "130/80"
+          ],
+          "near": [
+            "ADA"
+          ],
+          "window": 160,
+          "source_id": "kb2-muc-tieu-ha-ldl-ada",
+          "value": "130/80"
+        },
+        {
+          "any": [
+            "140/90"
+          ],
+          "near": [
+            "Bộ Y tế"
+          ],
+          "window": 160,
+          "source_id": "kb2-muc-tieu-bytvn",
+          "value": "140/90"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 2
+    },
+    {
+      "id": "RG-19",
+      "group": "accent_pair",
+      "pair_of": "RG-18",
+      "q": "huyet ap muc tieu cho nguoi tieu duong la bao nhieu",
+      "inherit": "RG-18"
+    },
+    {
+      "id": "RG-20",
+      "group": "ada_vs_byt",
+      "q": "Mục tiêu LDL cholesterol cho người tiểu đường là bao nhiêu?",
+      "must_include": [
+        {
+          "any": [
+            "70 mg/dL"
+          ],
+          "source_id": "kb2-muc-tieu-ha-ldl-ada",
+          "value": "70"
+        },
+        {
+          "any": [
+            "100 mg/dL"
+          ],
+          "source_id": "kb2-muc-tieu-bytvn",
+          "value": "100"
+        }
+      ],
+      "must_not_include": [],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 2
+    },
+    {
+      "id": "RG-21",
+      "group": "accent_pair",
+      "pair_of": "RG-20",
+      "q": "muc tieu LDL cholesterol cho nguoi tieu duong la bao nhieu",
+      "inherit": "RG-20"
+    },
+    {
+      "id": "RG-22",
+      "group": "ada_vs_byt",
+      "q": "Người tiểu đường uống rượu được bao nhiêu mỗi ngày?",
+      "must_include": [
+        {
+          "any": [
+            "10 g"
+          ],
+          "source_id": "kb2-ruou-bia-bytvn",
+          "value": "10"
+        }
+      ],
+      "must_not_include": [
+        "14 g"
+      ],
+      "number_check_allowed": [
+        "passed",
+        "regenerated",
+        "filtered"
+      ],
+      "min_reviewed_sources": 2
+    },
+    {
+      "id": "RG-23",
+      "group": "accent_pair",
+      "pair_of": "RG-22",
+      "q": "nguoi tieu duong uong ruou duoc bao nhieu moi ngay",
+      "inherit": "RG-22"
+    }
+  ]
+}
