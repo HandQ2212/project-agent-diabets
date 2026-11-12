@@ -63,6 +63,15 @@ def load_suite(path: str | Path) -> dict:
     return data
 
 
+_NEGATION = re.compile(r'(?<!\w)(?:không|chưa|sai)(?!\w)')
+
+
+def _sentences_with(a: str, needle: str) -> list[str]:
+    """Các câu (đã chuẩn hoá) chứa needle. Câu mớm số được nhắc lại để bác bỏ ("không phải 70-99") nằm trong
+    câu có từ phủ định; case có allow_refutation=true thì câu đó không tính là vi phạm."""
+    return [s for s in re.split(r'(?<=[.!?])\s+|\n+', a) if needle in s]
+
+
 def _near_ok(answer: str, start: int, end: int, near: list[str], window: int) -> bool:
     lo, hi = max(0, start - window), min(len(answer), end + window)
     span = answer[lo:hi]
@@ -80,7 +89,7 @@ def evaluate(case: dict, answer: str, number_check: str | None, reviewed_sources
         elif exp.get('near') and not any(_near_ok(a, s, e, exp['near'], exp.get('window', 160)) for s, e in hits):
             failures.append(f'"{exp["any"][0]}" không đứng gần {exp["near"]}')
     for bad in case.get('must_not_include', []):
-        if norm(bad) in a:
+        if any(not (case.get('allow_refutation') and _NEGATION.search(sent)) for sent in _sentences_with(a, norm(bad))):
             failures.append(f'có cụm cấm: {bad}')
     allowed = case.get('number_check_allowed', [])
     if allowed and number_check not in allowed:

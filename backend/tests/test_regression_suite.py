@@ -89,3 +89,10 @@ def test_ut25_run_counts_pass_only_when_all_runs_pass_and_service_error_fails():
     c = report['cases'][0]
     assert c['passed_runs'] == 2 and c['verdict'] == 'FAIL' and c['runs'][2]['service_error']
     assert report['started_at'].endswith('+07:00') and report['ttft_s']['n'] == 2
+
+
+def test_ut26_refutation_of_a_leading_number_is_not_a_violation():
+    case = {'must_not_include': ['70-99'], 'allow_refutation': True}
+    assert rr.evaluate(case, 'Không, bình thường không phải là 70–99 mg/dL. Mức đúng là 99 hoặc thấp hơn.', None, 1) == []
+    assert rr.evaluate(case, 'Đúng vậy, bình thường là 70–99 mg/dL.', None, 1) == ['có cụm cấm: 70-99']
+    assert rr.evaluate({'must_not_include': ['70-99']}, 'Không lo, bình thường 70–99.', None, 1) == ['có cụm cấm: 70-99']

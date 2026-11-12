@@ -138,7 +138,8 @@
         "regenerated",
         "filtered"
       ],
-      "min_reviewed_sources": 1
+      "min_reviewed_sources": 1,
+      "allow_refutation": true
     },
     {
       "id": "RG-10",
@@ -162,7 +163,8 @@
         "regenerated",
         "filtered"
       ],
-      "min_reviewed_sources": 1
+      "min_reviewed_sources": 1,
+      "allow_refutation": true
     },
     {
       "id": "RG-11",
@@ -187,7 +189,8 @@
         "regenerated",
         "filtered"
       ],
-      "min_reviewed_sources": 2
+      "min_reviewed_sources": 2,
+      "allow_refutation": true
     },
     {
       "id": "RG-12",
@@ -213,7 +216,8 @@
         "regenerated",
         "filtered"
       ],
-      "min_reviewed_sources": 1
+      "min_reviewed_sources": 1,
+      "allow_refutation": true
     },
     {
       "id": "RG-13",
