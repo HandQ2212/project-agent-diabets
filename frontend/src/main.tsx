@@ -1,36 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
-
-type Answer = {
-  answer?: string;
-  sources?: { title: string; url: string; topic?: string; review_status?: string | null; fetched_at?: string | null }[];
-  trace?: string[];
-  score?: number;
-  classification?: number;
-  threshold?: number;
-  topic?: string;
-  disclaimer?: string;
-  meaning?: string;
-  model?: string;
-  status?: string;
-  message?: string;
-};
-
-type ChatTurn = {
-  role: 'user' | 'assistant';
-  content: string;
-  sources?: Answer['sources'];
-  trace?: string[];
-  isError?: boolean;
-};
-
-type HealthStatus = {
-  status: string;
-  models: { symptoms: boolean; brfss: boolean; nhanes_research: boolean; nhanes15_research: boolean };
-  rl: boolean;
-  services?: { neo4j: boolean; ollama: boolean };
-};
+import type { Answer, ChatTurn, HealthStatus } from './types';
+import { friendlyError, chatErrorMessage, postApi, readDetail, HttpError, StreamInterrupted, StreamFailed } from './api';
+import { formatTrace, isBlockedTrace } from './trace';
+import { TracePipeline } from './TracePipeline';
+import { SourceList } from './SourceList';
+import { Architecture } from './Architecture';
+import { nhanes15Groups, nhanesBasicFields, fieldHint, type NumberField } from './formSpec';
 
 const symptoms: [string, string, string][] = [
   ['polyuria', 'Đi tiểu nhiều (Polyuria)', 'Đi tiểu thường xuyên hơn bình thường, đặc biệt vào ban đêm'],
@@ -92,7 +69,8 @@ const views = [
   ['home', 'Tổng quan'],
   ['risk', 'Đánh giá mô hình'],
   ['chat', 'Hỏi đáp'],
-  ['rl', 'Mô phỏng RL']
+  ['rl', 'Mô phỏng RL'],
+  ['arch', 'Kiến trúc hệ thống']
 ] as const;
 
 const starterQuestions = [
@@ -102,32 +80,54 @@ const starterQuestions = [
   'Phương pháp đĩa ăn đái tháo đường của ADA phân chia ra sao?'
 ];
 
-async function postApi(path: string, body: unknown): Promise<Answer> {
-  const r = await fetch('/api/' + path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  const data = await r.json();
-  if (!r.ok) {
-    throw Error(typeof data.detail === 'string' ? data.detail : 'Không thể xử lý yêu cầu.');
+type View = 'home' | 'risk' | 'chat' | 'rl' | 'arch';
+type Kind = 'symptoms' | 'brfss' | 'nhanes_research' | 'nhanes15_research';
+
+const datasetTabs: [Kind, string][] = [
+  ['nhanes15_research', 'NHANES đầy đủ (15 chỉ số)'],
+  ['nhanes_research', 'NHANES rút gọn (4 chỉ số)'],
+  ['brfss', 'BRFSS (khảo sát lối sống)'],
+  ['symptoms', 'UCI (triệu chứng)']
+];
+
+const MSG_WAITING = 'Đang kiểm tra an toàn và tìm tài liệu…';
+const MSG_WRITING = 'Đang viết câu trả lời…';
+const MSG_OLLAMA_DOWN = 'Chưa gửi được vì mô hình ngôn ngữ chưa chạy. Hãy khởi động Ollama rồi tải lại trang.';
+const RL_DISCLAIMER = 'Đây là mô phỏng học tập, không phải chỉ định điều trị.';
+
+function healthLabel(h: HealthStatus | null | undefined): { text: string; state: 'loading' | 'online' | 'offline' | 'partial' } {
+  if (h === undefined) return { text: 'Đang kiểm tra dịch vụ…', state: 'loading' };
+  if (h === null) return { text: 'Không kết nối được máy chủ', state: 'offline' };
+  const neo = h.services?.neo4j === false;
+  const llm = h.services?.ollama === false;
+  if (neo || llm) {
+    const names = neo && llm ? 'Neo4j, mô hình ngôn ngữ' : neo ? 'Neo4j' : 'mô hình ngôn ngữ (Ollama)';
+    return { text: `Chưa sẵn sàng: ${names}`, state: 'partial' };
   }
-  return data;
+  if (h.status === 'ok' && h.services?.neo4j === true && h.services?.ollama === true) return { text: 'Dịch vụ: Trực tuyến', state: 'online' };
+  return { text: 'Một số dịch vụ chưa sẵn sàng', state: 'partial' };
 }
 
 function App() {
-  const [view, setView] = useState<'home' | 'risk' | 'chat' | 'rl'>('home');
-  const [kind, setKind] = useState<'symptoms' | 'brfss' | 'nhanes_research' | 'nhanes15_research'>('nhanes15_research');
+  const [view, setView] = useState<View>('home');
+  const [kind, setKind] = useState<Kind>('nhanes15_research');
   const [values, setValues] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState('');
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<ChatTurn[]>([]);
+  const [chatStatus, setChatStatus] = useState('');
   const chatEnd = useRef<HTMLDivElement>(null);
+  const nearBottom = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const resultHead = useRef<HTMLHeadingElement>(null);
   const [needs, setNeeds] = useState<number[]>([1, 1, 1, 1]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [health, setHealth] = useState<HealthStatus | null>(null);
-  const servicesReady = health?.status === 'ok' && health.services?.neo4j === true && health.services?.ollama === true;
+  const [health, setHealth] = useState<HealthStatus | null | undefined>(undefined);
+  const hl = healthLabel(health);
+  const ollamaDown = health?.services?.ollama === false;
 
   useEffect(() => {
     fetch('/api/health')
@@ -136,12 +136,37 @@ function App() {
       .catch(() => setHealth(null));
   }, []);
 
+  // Chỉ cuộn khi có tin nhắn mới hoặc khi kết thúc, và chỉ khi người dùng đang ở gần đáy (không cuộn mỗi token).
   useEffect(() => {
-    if (view === 'chat') chatEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [conversation, busy, view]);
+    if (view !== 'chat' || !nearBottom.current) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    chatEnd.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  }, [conversation.length, busy, view]);
 
-  const reset = (v: 'home' | 'risk' | 'chat' | 'rl') => {
+  useEffect(() => {
+    if (error && view !== 'chat') errorRef.current?.focus();
+  }, [error, view]);
+
+  useEffect(() => {
+    if (answer && view !== 'chat') {
+      resultHead.current?.focus({ preventScroll: true });
+      resultHead.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [answer, view]);
+
+  const reset = (v: View) => {
     setView(v);
+    setAnswer(null);
+    setError('');
+    setNotice('');
+  };
+
+  const switchKind = (k: Kind) => {
+    if (k === kind) return;
+    const hasData = Object.values(values).some(v => v !== '');
+    setNotice(hasData ? 'Đã chuyển bộ dữ liệu, các ô đã nhập được xóa.' : '');
+    setKind(k);
+    setValues({});
     setAnswer(null);
     setError('');
   };
@@ -149,46 +174,67 @@ function App() {
   async function run(path: string, body: unknown) {
     setBusy(true);
     setError('');
+    setNotice('');
     setAnswer(null);
     try {
       const res = await postApi(path, body);
       setAnswer(res);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Có lỗi xảy ra.');
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
   }
 
-  async function sendChat() {
-    const text = question.trim();
-    if (busy || text.length < 2) {
-      if (text.length < 2) setError('Vui lòng nhập câu hỏi có ít nhất 2 ký tự.');
+  function stopChat() {
+    abortRef.current?.abort();
+  }
+
+  async function sendChat(retry = false) {
+    const lastUser = [...conversation].reverse().find(t => t.role === 'user');
+    const text = retry ? lastUser?.content ?? '' : question.trim();
+    if (busy || ollamaDown || text.length < 2) {
+      if (!retry && !busy && !ollamaDown) setError('Vui lòng nhập câu hỏi có ít nhất 2 ký tự.');
       return;
     }
-    const history = conversation.filter(turn => !turn.isError).slice(-10)
+    // Thử lại: bỏ bong bóng lỗi cuối, giữ lượt hỏi; lịch sử gửi đi không gồm chính lượt hỏi đó.
+    const base = retry && conversation[conversation.length - 1]?.error !== undefined ? conversation.slice(0, -1) : conversation;
+    const prior = retry ? base.slice(0, -1) : base;
+    const history = prior.filter(turn => !turn.error && turn.content).slice(-10)
       .map(turn => ({ role: turn.role, content: turn.content.slice(0, 1500) }));
-    setConversation(current => [...current, { role: 'user', content: text }]);
-    setQuestion('');
+    setConversation(retry ? base : [...base, { role: 'user', content: text }]);
+    if (retry) { if (question.trim() === text) setQuestion(''); } else setQuestion('');
     setError('');
     setBusy(true);
+    setChatStatus(MSG_WAITING);
+    nearBottom.current = true;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    let created = false;
+    let started = false;
+    const updateAssistant = (append: string | undefined, change: Partial<ChatTurn>) => {
+      const exists = created;
+      created = true;
+      setConversation(current => {
+        const last = current[current.length - 1];
+        if (exists && last?.role === 'assistant') {
+          return [...current.slice(0, -1), { ...last, ...change, content: last.content + (append ?? '') }];
+        }
+        return [...current, { role: 'assistant', content: append ?? '', ...change }];
+      });
+    };
     try {
       const response = await fetch('/api/chat/stream', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text, history })
+        body: JSON.stringify({ question: text, history }),
+        signal: controller.signal
       });
-      if (!response.ok || !response.body) throw Error('Không thể kết nối tới dịch vụ hỏi đáp.');
-      setConversation(current => [...current, { role: 'assistant', content: '' }]);
+      if (!response.ok || !response.body) throw new HttpError(response.status, await readDetail(response));
+      started = true;
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
       let done = false;
-      const updateLast = (change: Partial<ChatTurn>) => setConversation(current => {
-        const copy = [...current];
-        const last = copy[copy.length - 1];
-        if (last?.role === 'assistant') copy[copy.length - 1] = { ...last, ...change, content: change.content === undefined ? last.content : last.content + change.content };
-        return copy;
-      });
       while (true) {
         const chunk = await reader.read();
         buffer += decoder.decode(chunk.value, { stream: !chunk.done });
@@ -197,22 +243,36 @@ function App() {
         for (const line of lines) {
           if (!line) continue;
           const event = JSON.parse(line);
-          if (event.type === 'delta') updateLast({ content: event.text });
-          if (event.type === 'done') { updateLast({ sources: event.sources, trace: event.trace }); done = true; }
-          if (event.type === 'error') throw Error(event.message);
+          if (event.type === 'delta') {
+            if (!created) setChatStatus(MSG_WRITING);
+            updateAssistant(event.text, {});
+          }
+          if (event.type === 'done') {
+            updateAssistant(undefined, { sources: event.sources, trace: event.trace, done: true });
+            const n = Array.isArray(event.sources) ? event.sources.length : 0;
+            setChatStatus(n ? `Đã trả lời xong, ${n} nguồn.` : 'Đã trả lời xong.');
+            done = true;
+          }
+          if (event.type === 'error') throw new StreamFailed();
         }
         if (chunk.done) break;
       }
-      if (!done) throw Error('Kết nối bị gián đoạn. Vui lòng thử lại.');
+      if (!done) throw new StreamInterrupted();
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Có lỗi xảy ra.';
-      setConversation(current => {
-        const last = current[current.length - 1];
-        if (last?.role === 'assistant') return [...current.slice(0, -1), { ...last, content: last.content ? last.content + '\n\n' + message : message, isError: true }];
-        return [...current, { role: 'assistant', content: message, isError: true }];
-      });
-      setQuestion(text);
+      if (controller.signal.aborted) {
+        if (created) updateAssistant(undefined, { stopped: true });
+        else setConversation(current => [...current, { role: 'assistant', content: '', stopped: true }]);
+        setChatStatus('');
+        document.getElementById('chat-question')?.focus();
+      } else {
+        const message = chatErrorMessage(e, started, created);
+        if (created) updateAssistant(undefined, { error: message });
+        else setConversation(current => [...current, { role: 'assistant', content: '', error: message }]);
+        setChatStatus('');
+        if (!retry) setQuestion(text);
+      }
     } finally {
+      abortRef.current = null;
       setBusy(false);
     }
   }
@@ -223,7 +283,7 @@ function App() {
       value={values[name] || ''}
       onChange={e => setValues({ ...values, [name]: e.target.value })}
     >
-      <option value="">-- Chọn câu trả lời --</option>
+      <option value="" disabled>Chọn…</option>
       {choices.map(([v, l]) => (
         <option key={v} value={v}>
           {l}
@@ -232,20 +292,38 @@ function App() {
     </select>
   );
 
+  const numberField = (x: NumberField) => (
+    <label key={x.key}>
+      {x.label}
+      <small className="field-hint">{fieldHint(x)}</small>
+      <input type="number" min={x.min} max={x.max} step={x.step} required value={values[x.key] || ''} onChange={e => setValues({ ...values, [x.key]: e.target.value })} />
+    </label>
+  );
+
+  let lastAssistant = -1;
+  conversation.forEach((t, i) => { if (t.role === 'assistant') lastAssistant = i; });
+  const lastTurn = conversation[conversation.length - 1];
+  const waiting = busy && (lastTurn?.role !== 'assistant' || (lastTurn.content === '' && !lastTurn.stopped));
+  const resultStatus = answer ? (view === 'rl' ? 'Đã có đề xuất chủ đề.' : 'Đã có kết quả.') : '';
+  const completed = answer?.status === 'completed';
+  const thresholdText = (answer?.threshold ?? 0.5).toLocaleString('vi-VN');
+
   return (
     <div className="shell">
+      <a className="skip-link" href="#main">Bỏ qua điều hướng, đến nội dung chính</a>
       <header>
         <button className="brand" onClick={() => reset('home')}>
-          <span className="logo">✳</span>
+          <span className="logo" aria-hidden="true">✳</span>
           <span>
             đường an<small>THÔNG TIN VỀ ĐÁI THÁO ĐƯỜNG</small>
           </span>
         </button>
-        <nav>
+        <nav aria-label="Điều hướng chính">
           {views.map(([v, l]) => (
             <button
               key={v}
               className={view === v ? 'active' : ''}
+              aria-current={view === v ? 'page' : undefined}
               onClick={() => reset(v)}
             >
               {l}
@@ -253,20 +331,18 @@ function App() {
           ))}
         </nav>
         <div className="header-status">
-          <span className={`status-dot ${servicesReady ? 'online' : 'offline'}`} />
-          <span className="status-text">
-            {servicesReady ? 'Dịch vụ: Trực tuyến' : health ? 'Một số dịch vụ chưa sẵn sàng' : 'Không kết nối được API'}
-          </span>
+          <span className={`status-dot ${hl.state === 'online' ? 'online' : hl.state === 'loading' ? 'checking' : 'offline'}`} aria-hidden="true" />
+          <span className="status-text" role="status">{hl.text}</span>
         </div>
       </header>
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {view === 'home' ? (
           <>
             <section className="hero">
               <div>
                 <div className="eyebrow">
-                  <span /> KIẾN THỨC Y TẾ DỰA TRÊN DỮ LIỆU & NGUỒN CHÍNH THỨC
+                  <span /> KIẾN THỨC THAM KHẢO TỪ NGUỒN UY TÍN, DÀNH CHO HỌC TẬP
                 </div>
                 <h1>
                   Hiểu cơ thể hơn,
@@ -287,10 +363,10 @@ function App() {
               </div>
               <div className="heroart">
                 <div className="art-circle">
-                  <span>✳</span>
+                  <span aria-hidden="true">✳</span>
                 </div>
                 <div className="art-card">
-                  <div className="pulse">✦</div>
+                  <div className="pulse" aria-hidden="true">✦</div>
                   <div>
                     <strong>Kiến thức có nguồn tham khảo.</strong>
                     <small>WHO · CDC · Bộ Y tế VN · ADA</small>
@@ -310,19 +386,20 @@ function App() {
                 </h2>
               </div>
               <p>
-                Hệ thống gồm Prediction Agent, Knowledge Agent, Rule Agent, Learning Agent và Response Agent được điều phối bởi Coordinator.
+                Hệ thống gồm các tác tử: Prediction, Knowledge, Knowledge Graph, Rule, Learning và Response, do Coordinator điều phối.
               </p>
             </section>
 
             <section className="cards">
               {[
                 ['01', 'Đánh giá mô hình', 'Thử nghiệm phân loại trên dữ liệu UCI, BRFSS và NHANES.', 'risk'],
-                ['02', 'Hỏi đáp có nguồn', 'Đặt câu hỏi và xem các nguồn tham khảo đi kèm.', 'chat'],
-                ['03', 'Mô phỏng RL', 'Tác tử học tăng cường DQN tự động đề xuất lộ trình chủ đề giáo dục phù hợp.', 'rl']
+                ['02', 'Hỏi đáp có nguồn', 'Đặt câu hỏi, xem nguồn đi kèm và các bước hệ thống đã xử lý.', 'chat'],
+                ['03', 'Mô phỏng RL', 'Tác tử học tăng cường DQN tự động đề xuất lộ trình chủ đề giáo dục phù hợp.', 'rl'],
+                ['04', 'Kiến trúc hệ thống', 'Xem các tác tử và dữ liệu nối với nhau như thế nào.', 'arch']
               ].map(([n, t, d, v]) => (
-                <button className="feature" key={n} onClick={() => reset(v as any)}>
+                <button className="feature" key={n} onClick={() => reset(v as View)}>
                   <span className="feature-no">
-                    {n} <i>↗</i>
+                    {n} <i aria-hidden="true">↗</i>
                   </span>
                   <h3>{t}</h3>
                   <p>{d}</p>
@@ -334,13 +411,15 @@ function App() {
           <>
             <div className="pagehead">
               <div className="eyebrow">
-                ĐƯỜNG AN / {view === 'risk' ? 'ĐÁNH GIÁ MÔ HÌNH' : view === 'chat' ? 'HỎI ĐÁP ĐA AGENT' : 'MÔ PHỎNG RL'}
+                ĐƯỜNG AN / {view === 'risk' ? 'ĐÁNH GIÁ MÔ HÌNH' : view === 'chat' ? 'HỎI ĐÁP ĐA AGENT' : view === 'arch' ? 'KIẾN TRÚC HỆ THỐNG' : 'MÔ PHỎNG RL'}
               </div>
               <h1>
                 {view === 'risk'
                   ? 'Khám phá dữ liệu và mô hình phân loại'
                   : view === 'chat'
                   ? 'Hỏi đáp thông tin y tế có nguồn'
+                  : view === 'arch'
+                  ? 'Kiến trúc hệ đa tác tử'
                   : 'Học tăng cường điều phối lộ trình học tập'}
               </h1>
               <p>
@@ -348,42 +427,25 @@ function App() {
                   ? 'Các thí nghiệm phân loại trên dữ liệu UCI, BRFSS và NHANES. Chỉ nhập số liệu giả lập; kết quả không phải chẩn đoán.'
                   : view === 'chat'
                   ? 'Rule Agent kiểm soát an toàn trước khi Knowledge Agent truy xuất tài liệu từ Neo4j và Response Agent trích dẫn nguồn.'
+                  : view === 'arch'
+                  ? 'Dữ liệu, đồ thị tri thức, RAG, học tăng cường và luật an toàn cùng đi qua Coordinator tới Response Agent.'
                   : 'Mô hình DQN học chính sách tối ưu hóa lựa chọn chủ đề giáo dục sức khỏe dựa trên nhu cầu giả lập.'}
               </p>
             </div>
 
+            {view === 'arch' ? <Architecture /> : (
             <div className={`workgrid ${view === 'chat' ? 'chat-workgrid' : ''}`}>
               <section className="panel">
                 {view === 'risk' ? (
                   <>
-                    <div className="tabs">
-                      <button className={kind === 'nhanes15_research' ? 'selected' : ''} onClick={() => { setKind('nhanes15_research'); setValues({}); setAnswer(null); }}>
-                        NHANES 15 chỉ số
-                      </button>
-                      <button className={kind === 'nhanes_research' ? 'selected' : ''} onClick={() => { setKind('nhanes_research'); setValues({}); setAnswer(null); }}>
-                        Chỉ số xét nghiệm (NHANES thử nghiệm)
-                      </button>
-                      <button
-                        className={kind === 'brfss' ? 'selected' : ''}
-                        onClick={() => {
-                          setKind('brfss');
-                          setValues({});
-                          setAnswer(null);
-                        }}
-                      >
-                        Khảo sát Sức khỏe & Lối sống (BRFSS)
-                      </button>
-                      <button
-                        className={kind === 'symptoms' ? 'selected' : ''}
-                        onClick={() => {
-                          setKind('symptoms');
-                          setValues({});
-                          setAnswer(null);
-                        }}
-                      >
-                        Triệu chứng lâm sàng sớm (UCI)
-                      </button>
+                    <div className="tabs" role="group" aria-label="Chọn bộ dữ liệu">
+                      {datasetTabs.map(([k, label]) => (
+                        <button key={k} className={kind === k ? 'selected' : ''} aria-pressed={kind === k} onClick={() => switchKind(k)}>
+                          {label}
+                        </button>
+                      ))}
                     </div>
+                    <p className="form-notice" role="status">{notice}</p>
 
                     {(kind === 'nhanes_research' || kind === 'nhanes15_research') && <p className="chat-note">Chỉ nhập số liệu giả lập. Mô hình thử nghiệm phân loại câu trả lời khảo sát NHANES Hoa Kỳ về chẩn đoán trước đó; không dự báo bệnh mới, sàng lọc hay chẩn đoán cho cá nhân. BMI của biểu mẫu 15 chỉ số được tính từ cân nặng và chiều cao.</p>}
 
@@ -412,6 +474,22 @@ function App() {
                         }
                       }}
                     >
+                      <p className="form-intro">Điền số từ phiếu xét nghiệm của bạn hoặc số giả lập. Mọi ô đều bắt buộc.</p>
+                      {kind === 'nhanes15_research' ? (
+                        <div className="formgroups">
+                          {nhanes15Groups.map(g => (
+                            <fieldset className="fieldset" key={g.legend}>
+                              <legend>{g.legend}</legend>
+                              <div className="formgrid">
+                                {g.legend === 'Thông tin chung' && (
+                                  <label>Giới tính (theo khảo sát NHANES) {select('RIAGENDR', [['1', 'Nam'], ['2', 'Nữ']])}</label>
+                                )}
+                                {g.fields.map(numberField)}
+                              </div>
+                            </fieldset>
+                          ))}
+                        </div>
+                      ) : (
                       <div className="formgrid">
                         {kind === 'brfss' ? (
                           <>
@@ -449,40 +527,8 @@ function App() {
                               </label>
                             ))}
                           </>
-                        ) : kind === 'nhanes15_research' ? (
-                          <>
-                            <label>Giới tính theo mã khảo sát NHANES {select('RIAGENDR', [['1', 'Nam'], ['2', 'Nữ']])}</label>
-                            {([
-                              ['RIDAGEYR', 'Tuổi (năm)', 18, 80, '1'],
-                              ['BMXWT', 'Cân nặng (kg)', 20, 350, '0.1'],
-                              ['BMXHT', 'Chiều cao (cm)', 100, 250, '0.1'],
-                              ['BMXWAIST', 'Vòng eo (cm)', 30, 250, '0.1'],
-                              ['BPXSY1', 'Huyết áp tâm thu (mmHg)', 50, 300, '1'],
-                              ['BPXDI1', 'Huyết áp tâm trương (mmHg)', 20, 200, '1'],
-                              ['LBXGLU', 'Glucose huyết tương lúc đói (mg/dL)', 40, 500, '0.1'],
-                              ['LBXGH', 'HbA1c (%)', 3, 20, '0.1'],
-                              ['LBXTC', 'Cholesterol toàn phần (mg/dL)', 50, 800, '0.1'],
-                              ['LBDHDD', 'HDL cholesterol (mg/dL)', 5, 200, '0.1'],
-                              ['LBXTR', 'Triglyceride (mg/dL)', 10, 3000, '0.1'],
-                              ['LBXSATSI', 'ALT (U/L)', 1, 1000, '0.1'],
-                              ['LBXSCR', 'Creatinine huyết thanh (mg/dL)', 0.1, 15, '0.01']
-                            ] as const).map(([key, label, min, max, step]) => (
-                              <label key={key}>{label}<input type="number" min={min} max={max} step={step} required value={values[key] || ''} onChange={e => setValues({ ...values, [key]: e.target.value })} /></label>
-                            ))}
-                          </>
                         ) : kind === 'nhanes_research' ? (
-                          <>
-                            {([
-                              ['RIDAGEYR', 'Tuổi (năm)', 18, 80, '1'],
-                              ['BMXBMI', 'BMI (kg/m²)', 10, 100, '0.1'],
-                              ['LBXGLU', 'Glucose huyết tương lúc đói (mg/dL)', 40, 500, '0.1'],
-                              ['LBXGH', 'HbA1c (%)', 3, 20, '0.1']
-                            ] as const).map(([key, label, min, max, step]) => (
-                              <label key={key}>{label}
-                                <input type="number" min={min} max={max} step={step} required value={values[key] || ''} onChange={e => setValues({ ...values, [key]: e.target.value })} />
-                              </label>
-                            ))}
-                          </>
+                          <>{nhanesBasicFields.map(numberField)}</>
                         ) : (
                           <>
                             <label>
@@ -517,32 +563,61 @@ function App() {
                           </>
                         )}
                       </div>
-                      <button disabled={busy} className="primary" type="submit">
-                        {busy ? 'Đang phân tích dữ liệu…' : 'Chạy phân loại mô hình'} <span>↗</span>
+                      )}
+                      <button disabled={busy} className="primary" type="submit" aria-describedby={error ? 'form-error' : undefined}>
+                        {busy ? 'Đang phân tích dữ liệu…' : 'Chạy phân loại mô hình'} <span aria-hidden="true">↗</span>
                       </button>
                     </form>
                   </>
                 ) : view === 'chat' ? (
                   <div className="chat-shell">
-                    <div className="chat-topbar"><div><strong>Trợ lý Đường An</strong><small>Câu trả lời có nguồn tham khảo</small></div><button type="button" className="chat-clear" disabled={busy || !conversation.length} onClick={() => { setConversation([]); setQuestion(''); setError(''); }}>Cuộc trò chuyện mới</button></div>
-                    <div className="chat-messages" aria-live="polite" aria-label="Nội dung cuộc trò chuyện">
-                      {!conversation.length && <div className="chat-welcome"><span className="chat-welcome-icon">✳</span><h2>Hôm nay bạn muốn tìm hiểu điều gì?</h2><p>Đặt câu hỏi về bệnh tiểu đường và tiếp tục trao đổi theo ngữ cảnh.</p><div className="chat-suggestions">{starterQuestions.map(q => <button className="pill" type="button" key={q} onClick={() => setQuestion(q)}>{q}</button>)}</div></div>}
-                      {conversation.map((turn, index) => <div key={index} className={`chat-row ${turn.role}`}>
-                        {turn.role === 'assistant' && <span className="chat-avatar">✳</span>}
-                        <div className={`chat-bubble ${turn.isError ? 'chat-error' : ''}`}><div className="chat-text">{turn.content}</div>
-                          {!!turn.sources?.length && <div className="chat-sources"><strong>Nguồn tham khảo</strong>{turn.sources.map((source, i) => <a key={i} href={source.url} target="_blank" rel="noreferrer">[{i + 1}] {source.title} ↗{source.review_status === 'unreviewed_web' && <small> Tự động thu thập, chưa kiểm duyệt chuyên môn</small>}</a>)}</div>}
-                          {!!turn.trace?.length && <details className="chat-trace"><summary>Quá trình xử lý</summary><span>{turn.trace.join(' → ')}</span></details>}
-                        </div>
-                      </div>)}
-                      {busy && conversation[conversation.length - 1]?.role !== 'assistant' && <div className="chat-row assistant"><span className="chat-avatar">✳</span><div className="chat-bubble chat-thinking">Đang tìm trong kho tri thức…</div></div>}
+                    <div className="chat-topbar"><div><strong>Trợ lý Đường An</strong><small>Câu trả lời có nguồn tham khảo</small></div><button type="button" className="chat-clear" disabled={busy || !conversation.length} onClick={() => { setConversation([]); setQuestion(''); setError(''); setChatStatus(''); }}>Cuộc trò chuyện mới</button></div>
+                    <div
+                      className="chat-messages" role="log" aria-live="polite" aria-busy={busy} aria-label="Nội dung cuộc trò chuyện" tabIndex={0}
+                      onScroll={e => { const t = e.currentTarget; nearBottom.current = t.scrollHeight - t.scrollTop - t.clientHeight < 80; }}
+                    >
+                      {!conversation.length && <div className="chat-welcome"><span className="chat-welcome-icon" aria-hidden="true">✳</span><h2>Hôm nay bạn muốn tìm hiểu điều gì?</h2><p>Đặt câu hỏi về bệnh tiểu đường và tiếp tục trao đổi theo ngữ cảnh.</p><div className="chat-suggestions">{starterQuestions.map(q => <button className="pill" type="button" key={q} onClick={() => { setQuestion(q); document.getElementById('chat-question')?.focus(); }}>{q}</button>)}</div></div>}
+                      {conversation.map((turn, index) => {
+                        const blocked = turn.role === 'assistant' && isBlockedTrace(turn.trace);
+                        const isLast = index === conversation.length - 1;
+                        const ok = turn.role === 'assistant' && turn.done && !turn.error && !blocked;
+                        return (
+                          <div key={index} className={`chat-row ${turn.role}`}>
+                            {turn.role === 'assistant' && <span className="chat-avatar" aria-hidden="true">✳</span>}
+                            <div className={`chat-bubble ${turn.error ? 'chat-error' : ''} ${blocked ? 'chat-safety' : ''}`}>
+                              {blocked && <strong className="chat-safety-title">Cảnh báo an toàn</strong>}
+                              {turn.content && <div className="chat-text">{turn.content}</div>}
+                              {turn.stopped && <small className="chat-stopped">Đã dừng trả lời.</small>}
+                              {turn.error && (
+                                <div className="chat-error-msg">
+                                  <span>{turn.error}</span>
+                                  {isLast && !busy && <button type="button" className="chat-retry" onClick={() => sendChat(true)}>Thử lại</button>}
+                                </div>
+                              )}
+                              {blocked && <a className="chat-call" href="tel:115">Gọi 115</a>}
+                              {!!turn.sources?.length && <SourceList compact sources={turn.sources} />}
+                              {!!turn.trace?.length && <details className="chat-trace" open={index === lastAssistant}><summary>Các bước xử lý ({formatTrace(turn.trace).length})</summary><TracePipeline trace={turn.trace} hideTitle /></details>}
+                              {blocked && <small className="chat-safety-note">Hệ thống dừng tại Rule Agent, không tìm tài liệu.</small>}
+                              {ok && <small className="chat-disclaimer">Thông tin tham khảo, không thay thế tư vấn của bác sĩ.</small>}
+                              {busy && isLast && turn.role === 'assistant' && !turn.done && turn.content !== '' && <small className="chat-writing" aria-hidden="true">{MSG_WRITING}</small>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {waiting && <div className="chat-row assistant"><span className="chat-avatar" aria-hidden="true">✳</span><div className="chat-bubble chat-thinking" aria-hidden="true">{MSG_WAITING}</div></div>}
                       <div ref={chatEnd} />
                     </div>
+                    <p className="sr-only" role="status">{chatStatus}</p>
                     <form className="chat-composer" onSubmit={e => { e.preventDefault(); sendChat(); }}>
                       <label className="sr-only" htmlFor="chat-question">Nhập câu hỏi</label>
-                      <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" />
-                      <button type="submit" disabled={busy || question.trim().length < 3} aria-label="Gửi câu hỏi">↑</button>
+                      <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" aria-describedby={ollamaDown ? 'chat-hint chat-hint-off' : 'chat-hint'} />
+                      {busy
+                        ? <button type="button" className="chat-stop" aria-label="Dừng câu trả lời" onClick={stopChat}>Dừng</button>
+                        : <button type="submit" disabled={ollamaDown || question.trim().length < 2} aria-label="Gửi câu hỏi">↑</button>}
                     </form>
-                    <p className="chat-note">Hội thoại chỉ lưu trong phiên này. Không nhập thông tin cá nhân hoặc bệnh án thật. Nội dung chỉ để tham khảo.</p>
+                    {question.length >= 1300 && <small className="chat-counter" aria-live="off">{question.length}/1500 ký tự</small>}
+                    {ollamaDown && <p className="chat-note chat-note-warn" id="chat-hint-off">{MSG_OLLAMA_DOWN}</p>}
+                    <p className="chat-note" id="chat-hint">Enter để gửi, Shift+Enter xuống dòng. Hội thoại chỉ lưu trong phiên này. Không nhập thông tin cá nhân hoặc bệnh án thật. Nội dung chỉ để tham khảo.</p>
                   </div>
                 ) : (
                   <>
@@ -572,41 +647,49 @@ function App() {
                       disabled={busy}
                       onClick={() => run('learning', { needs })}
                     >
-                      {busy ? 'Đang suy luận chính sách…' : 'Chạy đề xuất DQN'} <span>↗</span>
+                      {busy ? 'Đang suy luận chính sách…' : 'Chạy đề xuất DQN'} <span aria-hidden="true">↗</span>
                     </button>
+                    <p className="rl-explain">DQN là mô hình học tăng cường: nó chọn chủ đề giúp người học giả lập tiến bộ nhiều nhất.</p>
                   </>
                 )}
                 {error && (
-                  <div className="error" role="alert">
+                  <div className="error" id="form-error" role="alert" tabIndex={-1} ref={errorRef}>
                     {error}
                   </div>
                 )}
               </section>
 
               {view !== 'chat' && <aside className="result">
+                <p className="sr-only" role="status">{resultStatus}</p>
                 <div className="eyebrow">KẾT QUẢ ĐIỀU PHỐI</div>
                 {answer ? (
                   <>
-                    <h2>
-                      {answer.topic ||
-                        (answer.score !== undefined
-                          ? 'Điểm phân loại của mô hình'
-                          : 'Thông tin tri thức')}
+                    <h2 tabIndex={-1} ref={resultHead}>
+                      {completed
+                        ? 'Tất cả các chủ đề đã hoàn thành'
+                        : answer.topic
+                        ? (view === 'rl' ? `Chủ đề nên học tiếp: ${answer.topic}` : answer.topic)
+                        : answer.score !== undefined
+                        ? 'Điểm phân loại của mô hình'
+                        : 'Thông tin tri thức'}
                     </h2>
+
+                    {answer.policy_overridden && <p className="rl-note">Luật an toàn đã điều chỉnh đề xuất của mô hình DQN.</p>}
 
                     {answer.score !== undefined && (
                       <div className="score-card">
+                        <p className="score-banner">Kết quả thử nghiệm trên dữ liệu khảo sát, không phải chẩn đoán.</p>
+                        <div className="score-label">Điểm của mô hình (0 đến 1)</div>
                         <div className="score">
-                          {answer.score.toFixed(3)}
-                          <small> / 1</small>
+                          {answer.score.toLocaleString('vi-VN', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}
                         </div>
                         <div className="classification-badge">
-                          Lớp dự đoán tại ngưỡng {answer.threshold ?? 0.5}:{' '}
-                          <strong>
-                            {answer.classification ? 'Lớp 1' : 'Lớp 0'}
-                          </strong>
+                          {answer.classification
+                            ? `Mô hình xếp vào nhóm giống người từng được chẩn đoán đái tháo đường (ngưỡng ${thresholdText})`
+                            : `Mô hình xếp vào nhóm ít giống người từng được chẩn đoán đái tháo đường (ngưỡng ${thresholdText})`}
                         </div>
                         <p className="meaning-text">{answer.meaning}</p>
+                        <p className="score-note">Điểm này không phải xác suất bạn mắc bệnh. Hãy hỏi bác sĩ nếu bạn lo lắng.</p>
                       </div>
                     )}
 
@@ -614,63 +697,31 @@ function App() {
 
                     {answer.answer && <div className="response">{answer.answer}</div>}
 
-                    {answer.sources && answer.sources.length > 0 && (
-                      <div className="sources-container">
-                        <h3>Nguồn tham khảo</h3>
-                        {answer.sources.map((s, idx) => (
-                          <a
-                            className="source-card"
-                            key={idx}
-                            href={s.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <span className="source-index">[{idx + 1}]</span>
-                            <div>
-                              <strong>{s.title}</strong>
-                              <small>{s.url}</small>
-                              {s.review_status === 'unreviewed_web' && <small>Nội dung tự động thu thập, chưa được kiểm duyệt chuyên môn{s.fetched_at ? ` · ${new Date(s.fetched_at).toLocaleDateString('vi-VN')}` : ''}</small>}
-                            </div>
-                            <span className="source-arrow">↗</span>
-                          </a>
-                        ))}
-                      </div>
-                    )}
+                    {answer.sources && answer.sources.length > 0 && <SourceList sources={answer.sources} />}
 
-                    {answer.trace && (
-                      <div className="trace-box">
-                        <div className="trace-title">Tiến trình thực thi của hệ đa Agent (Execution Trace):</div>
-                        <div className="trace-steps">
-                          {answer.trace.map((step, idx) => (
-                            <span key={idx} className="trace-badge">
-                              {step}
-                              {idx < answer.trace!.length - 1 && <span className="trace-arrow"> → </span>}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {answer.trace && answer.trace.length > 0 && <TracePipeline trace={answer.trace} />}
 
                     <div className="disclaimer-box">
-                      <small>{answer.disclaimer}</small>
+                      <small>{view === 'rl' ? RL_DISCLAIMER : answer.disclaimer || 'Chỉ nhằm mục đích học tập, không phải chẩn đoán hay tư vấn y tế.'}</small>
                     </div>
                   </>
                 ) : (
                   <div className="empty-state">
-                    <div className="emptyicon">✳</div>
+                    <div className="emptyicon" aria-hidden="true">✳</div>
                     <h2>Sẵn sàng hỗ trợ bạn.</h2>
                     <p>Hãy hoàn tất biểu mẫu hoặc gửi câu hỏi để quan sát hệ đa Agent phối hợp xử lý.</p>
                   </div>
                 )}
               </aside>}
             </div>
+            )}
           </>
         )}
       </main>
 
       <footer>
         <div>
-          <strong>✳ đường an</strong> — Hệ đa tác tử học thuật nghiên cứu bệnh đái tháo đường.
+          <strong><span aria-hidden="true">✳</span> đường an</strong> — Hệ đa tác tử học thuật nghiên cứu bệnh đái tháo đường.
         </div>
         <div>Kiến thức tham khảo cho mục đích học tập</div>
         <span>PHI LÂM SÀNG · DỰ ÁN HỌC THUẬT</span>
