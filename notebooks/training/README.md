@@ -12,6 +12,12 @@ Kết quả notebook nâng cấp được tổng hợp trong [KET_QUA_NANG_CAP.m
 | [04_NHANES_15_Chi_So.ipynb](04_NHANES_15_Chi_So.ipynb) | NHANES Hoa Kỳ: nhãn tự khai, 15 biến | CNN 1D và Logistic Regression |
 | [05_Assignment02_HbA1c_Gia_Lap.ipynb](05_Assignment02_HbA1c_Gia_Lap.ipynb) | Assignment 02: nhãn tạo từ `glyhb > 6.5`; không cho `glyhb` vào đầu vào | CNN 1D và Logistic Regression |
 | [06_DQN_Giao_Duc.ipynb](06_DQN_Giao_Duc.ipynb) | Môi trường giả lập chọn chủ đề giáo dục | DQN, greedy và random |
+| [07_BRFSS_20_Bien.ipynb](07_BRFSS_20_Bien.ipynb) | *Mới 12/11:* BRFSS 2021–23, 20 biến có ở cả ba năm, cùng phép chia với 02 | MLP, LR, HGB, Dummy |
+| [08_BRFSS_22_Bien_Huyet_Ap.ipynb](08_BRFSS_22_Bien_Huyet_Ap.ipynb) | *Mới 12/11:* BRFSS năm lẻ, thêm tăng huyết áp và cholesterol (train 2021, test 2023) | MLP, LR, HGB, Dummy |
+| [09_NHANES15_Nhieu_Chu_Ky.ipynb](09_NHANES15_Nhieu_Chu_Ky.ipynb) | *Mới 12/11:* NHANES 15 chỉ số, train 2011–16, test 2017–18 (như 04), test ngoài 2021–23 | CNN 1D, LR, HGB, Dummy |
+| [10_NAGALA_Du_Bao_Mac_Moi.ipynb](10_NAGALA_Du_Bao_Mac_Moi.ipynb) | *Mới 12/11:* NAGALA (Nhật Bản, CC0): **dự báo mắc mới** từ chỉ số baseline, có/không glucose đói + HbA1c; PR-AUC, Brier, reliability | MLP, LR, HGB, Dummy |
+
+Notebook 07–09 được sinh từ 02/04 bằng [_tao_notebook_v2.py](_tao_notebook_v2.py) (giữ nguyên quy trình, thay phần dữ liệu, thêm permutation importance). Kết quả: [KET_QUA_V2.md](KET_QUA_V2.md).
 
 Các bài toán phân loại so sánh Dummy, Logistic Regression, HistGradientBoosting và mạng nơ-ron chạy ba seed. Mạng chạy tối đa 200 epoch, tối thiểu 40 epoch và dừng sớm sau 25 epoch không cải thiện validation loss; biểu đồ ghi rõ loss train/validation, epoch tốt nhất và số lần cập nhật. Batch lớn hơn ở BRFSS nên số epoch giữa bài toán không tương đương số lần cập nhật. Ba seed chỉ đo nhạy cảm khởi tạo, không chứng minh độ ổn định theo các tập chia khác nhau.
 
