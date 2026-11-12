@@ -26,5 +26,42 @@ B: không glucose/HbA1c (16 biến) & Logistic Regression & 0,808 & (0,763--0,85
 \end{tabularx}\caption{NAGALA, trích từ \texttt{KET\_QUA\_V2.md}; PR-AUC ngẫu nhiên là 0,024, Brier chỉ dùng tỷ lệ nền là 0,0234}\end{table}
 Tại ngưỡng của phiên bản A, mô hình phát hiện 39/74 ca mắc mới nhưng kèm 138 báo động sai (precision 22\%). Chỉ 74 ca dương ở test nên khoảng tin cậy rộng; dân số là người Nhật đi khám định kỳ ở một bệnh viện; không phân tích sống còn và không có validation ngoài. Mô hình NAGALA chưa được đưa vào website.
 
-\subsubsection{Hướng mở rộng (chưa thực hiện): BRFSS 2015--2023}
-Bước tiếp theo dự kiến là ghép BRFSS của 9 năm 2015--2023, ước tính khoảng 3,5--4 triệu dòng. Phép chia dự kiến theo năm: train 2015--2021, validation 2022 và test 2023 (cùng tập test với notebook 07), để kết quả so được trực tiếp với các notebook đã có. Trước khi ghép cần hài hòa biến giữa các năm, vì tên và mã câu hỏi thay đổi theo bộ câu hỏi; ví dụ biến nhãn đổi từ \texttt{DIABETE3} sang \texttt{DIABETE4} từ năm 2019. \textbf{Trạng thái:} chưa có dữ liệu các năm 2015--2020 và chưa có kết quả; báo cáo không dùng số liệu nào của hướng này.
+\subsubsection{BRFSS 2015--2023: bộ dữ liệu lớn (notebook 11)}
+Notebook 11 mở rộng notebook 07 từ 3 lên \textbf{9 năm BRFSS (2015--2023)}, tổng 3.830.441 dòng sau lọc nhãn, vẫn dùng 20 biến của notebook 07. Phép chia theo thời gian: train 2015--2021 (2.982.069 dòng), validation 2022 (429.880), test 2023 (418.492, đúng các dòng test của notebook 07). Tiền xử lý chỉ fit trên train; MLP ba seed học trên toàn bộ train, không lấy mẫu con; chọn mô hình theo ROC-AUC validation, ngưỡng theo F1 validation. Chạy toàn notebook mất khoảng 10,5 phút trên CPU. Nguồn: \texttt{KET\_QUA\_V2.md}, \texttt{docs/DATA.md} và \texttt{artifacts/notebook\_runs/brfss\_2015\_2023/20261112T132422\_619456Z/report.json}.
+
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X}\toprule
+& \textbf{07: 2021--22 $\rightarrow$ 2023} & \textbf{11: 2015--21 $\rightarrow$ 2023}\\\midrule
+Train / validation / test & 683.070 / 170.768 / 418.492 & 2.982.069 / 429.880 / 418.492\\
+Cách chia validation & ngẫu nhiên 20\% của 2021--22 (cùng năm với train) & cả năm 2022 (năm sau train)\\
+Mô hình chọn, ngưỡng & MLP seed 42; 0,65 & MLP seed 42; 0,65\\
+ROC-AUC test (bootstrap 95\%) & 0,8217 (0,8198--0,8232) & \textbf{0,8214} (0,8195--0,8228)\\
+PR-AUC & 0,425 & 0,425\\
+Precision / Recall / F1 & 0,365 / 0,632 / 0,463 & 0,369 / 0,619 / 0,462\\\bottomrule
+\end{tabularx}\caption{Notebook 07 và 11 trên cùng tập test BRFSS 2023}\label{tab:nb11}\end{table}
+
+\begin{table}[H]\centering\small
+\begin{tabular}{lrr}\toprule
+Cửa sổ năm train (HistGradientBoosting) & ROC-AUC validation 2022 & ROC-AUC test 2023\\\midrule
+2021 (khoảng 424 nghìn dòng) & 0,8229 & 0,8202\\
+2020--2021 & 0,8231 & 0,8203\\
+2018--2021 & 0,8234 & 0,8204\\
+2015--2021 (2,98 triệu dòng) & 0,8233 & 0,8202\\\bottomrule
+\end{tabular}\caption{Kiểm tra bổ sung: cùng mô hình, chỉ đổi số năm train; dùng để chẩn đoán, không để chọn mô hình}\end{table}
+
+\textbf{Kết luận.} Dữ liệu train tăng 4,4 lần nhưng ROC-AUC test \textbf{không tăng}: chênh $-0{,}0003$, khoảng tin cậy chồng lên nhau gần như hoàn toàn. Bảng cửa sổ train cho thấy đường học đã \textbf{phẳng từ khoảng 400 nghìn dòng}, tức với 20 biến này, thêm năm không mang thêm thông tin. Lợi ích thật của bộ lớn là ước lượng ổn định hơn: ba seed cho ROC-AUC validation gần như trùng nhau (0,8245 / 0,8245 / 0,8244). Muốn mô hình tốt hơn thì phải thêm \emph{thông tin} chứ không phải thêm \emph{năm}: notebook 08 thêm tăng huyết áp và cholesterol đạt 0,8349 (bảng \ref{tab:v2}). Biến quan trọng nhất vẫn là nhóm tuổi (0,079), sức khỏe tự đánh giá (0,053), BMI (0,036) và lần khám gần nhất (0,018), theo permutation importance trên validation.
+
+\textbf{Hài hòa biến qua 9 năm.} Tên cột thay đổi theo năm nên phải ánh xạ về một tên chung, đối chiếu codebook CDC của từng năm. Bảng đầy đủ nằm trong notebook 11 và khóa \texttt{column\_map} của \texttt{report.json}; một số ví dụ:
+\begin{table}[H]\centering\small
+\begin{tabular}{ll}\toprule
+Biến & Cột nguồn theo năm\\\midrule
+Nhãn đái tháo đường & \texttt{DIABETE3} (2015--2018) $\rightarrow$ \texttt{DIABETE4} (2019+)\\
+Giới & \texttt{SEX} (2015--2017) / \texttt{SEX1} (2018) / \texttt{SEXVAR} (2019+)\\
+Bệnh thận & \texttt{CHCKIDNY} / \texttt{CHCKDNY1} (2018) / \texttt{CHCKDNY2}\\
+Trầm cảm & \texttt{ADDEPEV2} $\rightarrow$ \texttt{ADDEPEV3}\\
+Bảo hiểm y tế & \texttt{HLTHPLN1} $\rightarrow$ \texttt{\_HLTHPLN} $\rightarrow$ \texttt{\_HLTHPL1}\\
+Thu nhập & \texttt{\_INCOMG} (5 mức, 2015--2020), \texttt{\_INCOMG1} (7 mức, 2021+), gộp về 5 mức\\\bottomrule
+\end{tabular}\caption{Ví dụ hài hòa biến BRFSS 2015--2023, trích \texttt{KET\_QUA\_V2.md} và \texttt{docs/DATA.md}}\end{table}
+Năm 2015 không có \texttt{\_PHYS14D}/\texttt{\_MENT14D} nên hai biến này được suy ra từ \texttt{PHYSHLTH}/\texttt{MENTHLTH}; công thức khớp 100\% với biến chính thức của CDC ở các năm còn lại.
+
+\textbf{Giới hạn.} Cách chia validation khác notebook 07 (cả năm 2022 so với ngẫu nhiên 20\%), nên chỉ tập test là chung; notebook 11 cũng không train trên năm 2022. Thu nhập gộp về 5 mức nên mất chi tiết so với 07. Hai biến tăng huyết áp và cholesterol bị bỏ vì chỉ có ở năm lẻ, không đủ cả 9 năm. Năm 2020 chịu ảnh hưởng của COVID và thay đổi phương pháp khảo sát; định nghĩa bảo hiểm năm 2023 và câu hỏi chi phí khám từ 2021 cũng đổi. Không dùng survey weight; test 2023 đã được xem nhiều lần; dữ liệu Hoa Kỳ, nhãn tự khai.
