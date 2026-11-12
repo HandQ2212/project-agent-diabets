@@ -1,0 +1,30 @@
+\subsubsection{Nâng cấp dữ liệu huấn luyện ngày 12/11/2026}
+Đợt nâng cấp thêm bốn notebook trong \texttt{notebooks/training}, sinh từ notebook gốc bằng \texttt{\_tao\_notebook\_v2.py} để giữ nguyên quy trình: mô hình và ngưỡng chọn trên validation, test chỉ đánh giá mô hình đã chọn, ba seed cho mạng nơ-ron, khoảng tin cậy bootstrap 95\% cho ROC-AUC. Notebook 07 dùng BRFSS 2021--2022 với 20 biến (thêm sức khỏe tự đánh giá, bệnh kèm, lần khám gần nhất\dots), test năm 2023; notebook 08 dùng BRFSS 2021 với 22 biến (thêm tăng huyết áp, cholesterol), cùng test 2023; notebook 09 dùng NHANES 15 chỉ số qua năm chu kỳ: train/validation 2011--2016, test 2017--2018 và test ngoài 2021--2023. NHANES chia train/validation theo cụm khảo sát (chu kỳ, tầng, PSU) để người cùng cụm không nằm ở hai phía.
+
+Cỡ mẫu: BRFSS 07 train 683.070 / validation 170.768 / test 418.492 (14,3\% dương); BRFSS 08 train 339.166 / validation 84.792 / cùng test; NHANES 09 train 5.265 / validation 1.343 / test 2.038, trong khi bản cũ chỉ train 1.680; test ngoài 2021--2023 có 2.843 người, 382 dương.
+
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{1.9cm}rlrrr}\toprule
+Notebook & Train $\rightarrow$ test & Mô hình chọn & ROC-AUC & (bootstrap 95\%) & PR-AUC & F1 & Ngưỡng\\\midrule
+02 BRFSS 5 biến (cũ) & 2021--22 $\rightarrow$ 2023 & HistGB & 0,7648 & (0,7630--0,7663) & 0,330 & 0,398 & --\\
+07 BRFSS 20 biến & 2021--22 $\rightarrow$ 2023 & MLP seed 42 & \textbf{0,8217} & (0,8198--0,8232) & 0,425 & 0,463 & 0,65\\
+08 BRFSS 22 biến & 2021 $\rightarrow$ 2023 & MLP seed 43 & \textbf{0,8349} & (0,8332--0,8363) & 0,450 & 0,480 & 0,65\\
+04 NHANES 15 (cũ) & 2015--16 $\rightarrow$ 2017--18 & CNN seed 42 & 0,9314 & (0,9130--0,9487) & 0,795 & 0,755 & 0,8\\
+09 NHANES 5 chu kỳ & 2011--16 $\rightarrow$ 2017--18 & HistGB & \textbf{0,9468} & (0,9335--0,9583) & 0,822 & 0,781 & 0,7\\
+09 test ngoài & $\rightarrow$ 2021--23 & cùng mô hình và ngưỡng & 0,9527 & & 0,833 & 0,767 & 0,7\\\bottomrule
+\end{tabularx}\caption{Kết quả nâng cấp dữ liệu, trích từ \texttt{notebooks/training/KET\_QUA\_V2.md} (HistGB = HistGradientBoosting)}\label{tab:v2}\end{table}
+
+So sánh 02$\rightarrow$07 và 04$\rightarrow$09 dùng \textbf{cùng tập test} nên chênh lệch phản ánh tác động của dữ liệu thêm; 07$\rightarrow$08 có tập train khác (chỉ năm 2021) nên chỉ tham khảo. Permutation importance trên validation cho thấy BRFSS 07 dựa nhiều nhất vào nhóm tuổi (0,074), sức khỏe tự đánh giá (0,043), BMI (0,037) và lần khám gần nhất (0,022); NHANES 09 bị chi phối bởi HbA1c (0,130), sau đó là glucose lúc đói (0,020). Vì HbA1c chính là tiêu chuẩn chẩn đoán, điểm NHANES cao không có nghĩa là mô hình phát hiện được bệnh “ẩn”. Việc “lần khám gần nhất” quan trọng ở BRFSS gợi ý nhãn tự khai phụ thuộc việc người đó có đi khám hay không. Ở NHANES, mô hình được chọn là HistGradientBoosting chứ không phải CNN, vì quy trình chọn khách quan theo validation; CNN vẫn được huấn luyện và so sánh. Test 2023 và 2017--2018 đã được xem trong các lần chạy trước; không dùng survey weight.
+
+\subsubsection{NAGALA: dự báo mắc mới (notebook 10)}
+Khác các notebook 02--09 (phân loại tình trạng hiện tại), NAGALA là bài toán \textbf{dự báo mắc đái tháo đường mới} sau thời gian theo dõi trung vị khoảng 5 năm, trên 15.464 người khám sức khỏe tại Nhật Bản, 373 ca dương (2,4\%). Chia phân tầng 60/20/20: train 9.278 / validation 3.093 / test 3.093, test có 74 ca dương.
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.2cm}rlrlrr}\toprule
+Phiên bản & Mô hình chọn & ROC-AUC & (95\%) & PR-AUC & (95\%) & F1 & Brier\\\midrule
+A: có glucose đói + HbA1c (18 biến) & MLP seed 42 & 0,864 & (0,813--0,907) & 0,236 & (0,171--0,334) & 0,311 & 0,0205\\
+B: không glucose/HbA1c (16 biến) & Logistic Regression & 0,808 & (0,763--0,854) & 0,085 & (0,067--0,121) & 0,134 & 0,0228\\\bottomrule
+\end{tabularx}\caption{NAGALA, trích từ \texttt{KET\_QUA\_V2.md}; PR-AUC ngẫu nhiên là 0,024, Brier chỉ dùng tỷ lệ nền là 0,0234}\end{table}
+Tại ngưỡng của phiên bản A, mô hình phát hiện 39/74 ca mắc mới nhưng kèm 138 báo động sai (precision 22\%). Chỉ 74 ca dương ở test nên khoảng tin cậy rộng; dân số là người Nhật đi khám định kỳ ở một bệnh viện; không phân tích sống còn và không có validation ngoài. Mô hình NAGALA chưa được đưa vào website.
+
+\subsubsection{Hướng mở rộng (chưa thực hiện): BRFSS 2015--2023}
+Bước tiếp theo dự kiến là ghép BRFSS của 9 năm 2015--2023, ước tính khoảng 3,5--4 triệu dòng. Phép chia dự kiến theo năm: train 2015--2021, validation 2022 và test 2023 (cùng tập test với notebook 07), để kết quả so được trực tiếp với các notebook đã có. Trước khi ghép cần hài hòa biến giữa các năm, vì tên và mã câu hỏi thay đổi theo bộ câu hỏi; ví dụ biến nhãn đổi từ \texttt{DIABETE3} sang \texttt{DIABETE4} từ năm 2019. \textbf{Trạng thái:} chưa có dữ liệu các năm 2015--2020 và chưa có kết quả; báo cáo không dùng số liệu nào của hướng này.

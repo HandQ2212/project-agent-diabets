@@ -1,0 +1,44 @@
+\subsubsection{Ba lớp của kho tri thức (cập nhật 12/11/2026)}
+\begin{longtable}{p{2.6cm}p{5.4cm}p{2.4cm}p{3.6cm}}\toprule
+\textbf{Lớp} & \textbf{Nguồn} & \textbf{Nạp bằng} & \textbf{Trong Neo4j}\\\midrule\endhead
+Đoạn thủ công đã tóm tắt & WHO, ADA Standards of Care 2026, CDC, NIDDK, Bộ Y tế (QĐ 5481/QĐ-BYT): \texttt{knowledge/sources.json} (18 đoạn) và \texttt{knowledge/sources\_v2.json} (40 đoạn mới) & \texttt{ml.seed\_knowledge} & \texttt{Document} có \texttt{text}, \texttt{url}, \texttt{embedding}, \texttt{embedding\_model}; cạnh \texttt{ABOUT} tới \texttt{Topic}\\
+Trang web tự thu thập & 25 URL CDC/NIDDK trong \texttt{knowledge/web\_sources.json} & \texttt{ml.refresh\_web} & \texttt{Document} nhãn \texttt{unreviewed\_web}; chỉ hiện liên kết, không dùng để sinh\\
+Đồ thị thực thể (mới) & \texttt{knowledge/graph\_entities.json}: 48 thực thể, 53 quan hệ; mỗi quan hệ trỏ về đoạn tài liệu làm nguồn & \texttt{ml.seed\_graph} & \texttt{Entity} (Disease, Test\dots), quan hệ có thuộc tính ngưỡng, cạnh \texttt{DESCRIBED\_IN} tới \texttt{Document}\\\bottomrule
+\end{longtable}
+Các loại quan hệ: \texttt{HAS\_SYMPTOM}, \texttt{INCREASES\_RISK\_OF}, \texttt{CAUSES}, \texttt{DIAGNOSES} (kèm ngưỡng), \texttt{CAN\_CAUSE}, \texttt{MONITORED\_BY}, \texttt{REDUCES\_RISK\_OF}, \texttt{TREATS}, \texttt{IS\_A}, \texttt{PROGRESSES\_TO}. Ví dụ: thực thể xét nghiệm HbA1c nối tới thực thể bệnh đái tháo đường bằng quan hệ \texttt{DIAGNOSES} với thuộc tính ngưỡng $\geq 6{,}5\%$.
+
+\textbf{Đối chiếu nguồn gốc.} Các đoạn thủ công đã được đối chiếu với toàn văn ADA Standards of Care 2026 (bản trên PMC) và PDF 77 trang của QĐ 5481/QĐ-BYT (\texttt{docs/KB\_DOI\_CHIEU\_NGUON\_GOC.md}). Đã bỏ các con số không có trong nguồn, thay các liên kết hỏng. Khi khuyến cáo của ADA và của Bộ Y tế Việt Nam khác nhau (ví dụ mục tiêu huyết áp $<140/90$ theo QĐ 5481 so với $<130/80$ theo ADA), KB \textbf{tách thành hai đoạn}, mỗi đoạn trích đúng URL của nguồn mình, để câu trả lời không trộn khuyến cáo của hai bên. Việc đối chiếu do nhóm thực hiện, \textbf{chưa được chuyên gia y tế thẩm định}.
+
+\subsubsection{Knowledge Graph Agent (GraphRAG đơn giản)}
+Tìm kiếm vector chỉ so độ gần nghĩa và có thể lấy sai đoạn với câu tiếng Việt ngắn. Đồ thị cho quan hệ chính xác, có ngưỡng số, và chỉ đường tới đúng tài liệu gốc. Hàm \texttt{knowledge\_graph.lookup}: (1) đọc danh sách thực thể và bí danh từ Neo4j, so khớp với câu hỏi đã chuẩn hóa; (2) truy vấn Cypher lấy các quan hệ của thực thể khớp, xếp hạng, giữ tối đa 10 quan hệ; (3) theo cạnh \texttt{DESCRIBED\_IN} kéo tối đa 2 đoạn tài liệu gốc; (4) \texttt{merge\_sources} thêm các đoạn này (nếu RAG chưa có) và một nguồn “bộ ba quan hệ” vào cuối danh sách. Lỗi Neo4j ở bước này không chặn luồng chat: hệ thống ghi cảnh báo và tiếp tục chỉ với kết quả vector.
+
+Bước (3) xuất phát từ một lỗi gặp khi kiểm thử: ban đầu đồ thị chỉ đưa câu tóm tắt “Quy tắc 15--15 dùng để xử trí hạ đường huyết” và LLM tự thêm một liều lượng không có trong nguồn. Khi đưa kèm đoạn gốc, câu trả lời dùng đúng các số của tài liệu. Agent chỉ chạy khi RAG có ít nhất một nguồn (xem mục 3), vì khớp tên thực thể không chứng tỏ câu hỏi thuộc miền.
+
+\subsubsection{Chọn mô hình embedding và ngưỡng}
+Đánh giá offline (\texttt{ml/eval\_embeddings.py}, \texttt{docs/EMBEDDING\_EVAL.md}) trên 43 đoạn KB tại thời điểm đo, 41 câu trong miền (ngắn/dài, có/không dấu) và 10 câu ngoài miền:
+\begin{table}[H]\centering\small
+\begin{tabular}{lrrrrp{3.6cm}}\toprule
+Mô hình & Chiều & hit@1 & hit@3 & MRR & Ngưỡng loại hết 10 câu ngoài miền / giữ hit@3\\\midrule
+\texttt{nomic-embed-text} (cũ) & 768 & 0,46 & 0,59 & 0,567 & 0,804 / 56\%\\
+\texttt{bge-m3} (đang dùng) & 1024 & 0,93 & 0,95 & 0,941 & 0,439 / 95\%\\
+\texttt{snowflake-arctic-embed2} & 1024 & 0,93 & 0,95 & 0,943 & 0,309 / 95\%\\
+\texttt{qwen3-embedding:0.6b} & 1024 & 0,85 & 0,95 & 0,906 & 0,419 / 95\%\\
+\texttt{granite-embedding:278m} & 768 & 0,71 & 0,80 & 0,778 & 0,684 / 80\%\\\bottomrule
+\end{tabular}\caption{So sánh embedding cho câu hỏi tiếng Việt, trích \texttt{docs/EMBEDDING\_EVAL.md} mục 2}\end{table}
+Hệ thống chuyển sang \texttt{bge-m3} (hit@3 từ 0,59 lên 0,95, không cần prefix). Với nomic, ngưỡng cũ 0,875 giữ gần như không câu đúng nào vì điểm trong và ngoài miền chồng nhau.
+
+\textbf{Phát hiện về thang điểm.} Hàm \texttt{vector.similarity.cosine} của Neo4j trả về $(1+\cos)/2$, không phải cosine thuần; vì vậy ngưỡng 0,875 cũ thực chất tương đương cosine 0,75. Truy vấn hiện quy đổi $\cos = 2\cdot\text{score}-1$ trước khi so ngưỡng. Hệ thống cũng chỉ so với Document có \texttt{embedding\_model} trùng mô hình hiện tại và cùng số chiều, để không trộn vector 768 và 1024 chiều.
+
+\textbf{Ngưỡng 0,53} (\texttt{docs/EMBEDDING\_EVAL.md} mục 6). Sau khi KB tách thêm đoạn, câu ngoài miền “Giá vé xem phim tăng huyết áp không?” đạt 0,501, vượt ngưỡng 0,50 đề xuất ban đầu. Đo lại trên Neo4j với corpus 56 đoạn thủ công tại thời điểm đo: câu trong miền thấp nhất đạt 0,567 (44/44 câu được giữ); câu ngoài miền thường cao nhất 0,431; câu ngoài miền chứa tên thực thể “Bóng đá Việt Nam và bệnh tim mạch” đạt 0,522 (bị loại). Ngưỡng 0,53 có biên 0,008 về phía ngoài miền và 0,037 về phía trong miền. Câu “Giá xe máy Honda có làm tăng đường huyết không?” đạt 0,561 và \textbf{vẫn lọt}; không ngưỡng nào tách sạch được loại câu này.
+
+\textbf{Khôi phục dấu.} Câu gõ không dấu cho điểm thấp hơn hẳn (ví dụ “huyet ap muc tieu cho nguoi tieu duong la bao nhieu” đạt 0,406, sau khi khôi phục dấu đạt 0,751). \texttt{diacritics.py} khôi phục dấu bằng từ điển n-gram (1--3 âm tiết) rút từ chính KB, cộng một danh sách từ vựng đời thường soạn tay; cách làm tất định, không gọi LLM. Bản đã khôi phục chỉ dùng để truy xuất.
+
+\subsubsection{Hậu kiểm số: chống bịa con số}
+LLM nhỏ hay “nhớ” các ngưỡng y khoa từ dữ liệu huấn luyện dù nguồn không có. \texttt{number\_guard.py} là bước hậu kiểm tất định, không gọi LLM:
+\begin{enumerate}
+\item Trích mọi con số trong câu trả lời, bỏ ký hiệu trích dẫn \texttt{[n]} và số thứ tự đầu dòng; chuẩn hóa “5,6”/“5.6”, “1.000” (hàng nghìn), khoảng “70--99” thành hai số. Số dính chữ như \texttt{HbA1c} không bị tính.
+\item So với tập số có trong câu hỏi và trong tiêu đề, URL, nội dung của các nguồn thủ công/đồ thị. Các số 0, 1, 2 được miễn vì xuất hiện tự nhiên trong lời văn.
+\item Nếu có số không được nguồn hỗ trợ: \textbf{sinh lại một lần}, kèm danh sách số bị cấm. Nếu bản sinh lại vẫn vi phạm, trả \textbf{câu an toàn} cố định, chỉ người dùng tới các nguồn liên quan và khuyên hỏi bác sĩ.
+\item Trace ghi \texttt{Number check: passed}, \texttt{regenerated} hoặc \texttt{blocked} kèm các số vi phạm. Khi chỉ có nguồn web chưa duyệt (câu trả lời chỉ là liên kết) thì bỏ qua bước này.
+\end{enumerate}
+Cơ chế này chỉ kiểm \emph{con số}; nó không kiểm chứng ý nghĩa của từng mệnh đề, và một số có trong nguồn vẫn có thể bị đặt sai ngữ cảnh.

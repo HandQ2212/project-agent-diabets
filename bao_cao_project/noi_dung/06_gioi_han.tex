@@ -1,0 +1,9 @@
+\section{Giới hạn}\label{sec:gioihan}
+Mục này nêu các giới hạn còn lại sau đợt nâng cấp 12/11/2026. Chúng cần được nói rõ khi trình bày và khi đọc các con số ở trên.
+\begin{itemize}
+\item \textbf{KB chưa được chuyên gia y tế thẩm định.} Các đoạn tri thức đã được nhóm đối chiếu với ADA Standards of Care 2026 và QĐ 5481/QĐ-BYT, nhưng chưa có bác sĩ hoặc chuyên gia y tế nào duyệt. Một số trang nguồn không đọc được toàn văn, và có ý trong KB chỉ dựa vào nguồn thứ cấp (\texttt{docs/KB\_DOI\_CHIEU\_NGUON\_GOC.md}).
+\item \textbf{Mô hình không huấn luyện trên dữ liệu người Việt.} BRFSS và NHANES là dữ liệu Hoa Kỳ, UCI từ Bangladesh, NAGALA từ Nhật Bản. Chưa có kiểm định ngoài nào trên người Việt; WHO STEPS Việt Nam 2021 chưa được tải và chưa dùng. Nhãn BRFSS/NHANES là tự khai “từng được báo mắc”, nên các mô hình này phân loại tình trạng hiện tại, không dự báo mắc mới.
+\item \textbf{Ngưỡng 0,53 được chọn trên chính bộ câu dùng để đo.} Ngưỡng có thể khớp quá với bộ câu này. Biên phía ngoài miền chỉ 0,008, và câu “Giá xe máy Honda có làm tăng đường huyết không?” (0,561) vẫn lọt ngưỡng. Cần kiểm lại trên bộ câu độc lập hoặc log hỏi đáp thật, đo lại mỗi khi KB thay đổi, và cân nhắc một bộ phân loại miền trước RAG.
+\item \textbf{Stream hiện chữ chậm hơn.} Để hậu kiểm số, endpoint stream phải chờ LLM sinh xong toàn bộ câu trả lời rồi mới phát; nếu phải sinh lại thì người dùng chờ hai lần sinh. Hậu kiểm chỉ kiểm con số, không kiểm nghĩa của mệnh đề.
+\item \textbf{Giao diện chưa được kiểm bằng mắt trên Chrome sau đợt nâng cấp.} Các thay đổi giao diện của đợt này (commit sửa theo rà soát UX) chưa được người kiểm xem trực tiếp trên trình duyệt Chrome; ảnh giao diện trong báo cáo là ảnh ngày 04/11/2026.
+\end{itemize}
