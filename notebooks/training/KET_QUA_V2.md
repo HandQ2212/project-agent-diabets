@@ -20,6 +20,29 @@ Cỡ mẫu: BRFSS 07 train 683.070 / validation 170.768 / test 418.492 (14,3% d�
 
 **Diễn giải và giới hạn.** So sánh 02→07 và 04→09 là trên **cùng tập test** nên chênh lệch phản ánh tác động của dữ liệu thêm. 07→08 có tập train khác (chỉ 2021) nên chỉ tham khảo. NHANES bị chi phối bởi HbA1c — chính tiêu chuẩn chẩn đoán — nên điểm cao không đồng nghĩa phát hiện bệnh "ẩn". "Lần khám gần nhất" quan trọng ở BRFSS gợi ý nhãn tự khai phụ thuộc việc có đi khám (người không khám thì không được "thông báo mắc"). Test 2023 và 2017–18 đã được xem trong các lần chạy trước. Không dùng survey weight; dữ liệu Hoa Kỳ; không phải chẩn đoán.
 
+## BRFSS 2015–2023 (notebook 11) — bộ dữ liệu lớn
+
+Mở rộng notebook 07 từ 3 năm lên **9 năm BRFSS (2015–2023)**, 3.830.441 dòng sau lọc nhãn. Chia **theo thời gian**: train 2015–2021 (2.982.069), validation 2022 (429.880), test 2023 (418.492, cùng các dòng với notebook 07). Tiền xử lý fit chỉ trên train; MLP 3 seed học trên toàn bộ train (không phải lấy mẫu con); chọn mô hình theo ROC-AUC validation, ngưỡng theo F1 validation. Run [`brfss_2015_2023/20261112T132422_619456Z`](../../artifacts/notebook_runs/brfss_2015_2023/20261112T132422_619456Z/report.json). Thời gian chạy toàn notebook khoảng 10 phút 28 giây trên CPU (train: LR 3 giây, HGB 32 giây, MLP 124–146 giây mỗi seed).
+
+| | 07 (2021–22 → 2023) | 11 (2015–21 → 2023) |
+| --- | --- | --- |
+| Train / validation / test | 683.070 / 170.768 / 418.492 | 2.982.069 / 429.880 / 418.492 |
+| Cách chia validation | ngẫu nhiên 20% của 2021–22 (cùng năm với train) | cả năm 2022 (năm sau train) |
+| Mô hình chọn, ngưỡng | MLP seed 42, 0,65 | MLP seed 42, 0,65 |
+| ROC-AUC test (bootstrap 95%) | 0,8217 (0,8198–0,8232) | **0,8214** (0,8195–0,8228) |
+| PR-AUC | 0,425 | 0,425 |
+| Precision / Recall / F1 | 0,365 / 0,632 / 0,463 | 0,369 / 0,619 / 0,462 |
+
+**Kết luận trung thực: thêm 6 năm dữ liệu cũ (gấp 4,4 lần dữ liệu train) không cải thiện mô hình.** ROC-AUC test chênh −0,0003, khoảng tin cậy chồng lên nhau gần như hoàn toàn. Hai kiểm tra bổ sung ủng hộ điều này. (a) Cùng HistGradientBoosting, cùng test 2023, chỉ đổi cửa sổ năm train: 2021 (424 nghìn dòng) 0,8202 · 2020–21 0,8203 · 2018–21 0,8204 · 2015–21 (2,98 triệu dòng) 0,8202. Trên validation 2022: 0,8229 · 0,8231 · 0,8234 · 0,8233. Đường học đã **phẳng từ khoảng 400 nghìn dòng**; 20 biến này không chứa thêm thông tin mà dữ liệu nhiều hơn khai thác được. (b) ROC-AUC của mô hình đã chọn theo năm: 0,830–0,833 ở các năm train (trong mẫu), 0,8245 ở validation 2022, 0,8214 ở test 2023, tức giảm nhẹ khi đi xa khỏi giai đoạn train. Độ chênh nhỏ và chưa tách được dịch chuyển phân phối khỏi nhiễu. Tỷ lệ dương gần ổn định (13,3–14,3% mỗi năm).
+
+Lợi ích thực tế của bộ lớn là độ chắc của ước lượng (khoảng bootstrap và validation ổn định hơn, ba seed gần như trùng: val AUC 0,8245/0,8245/0,8244), không phải điểm số cao hơn. Muốn tăng chất lượng phải thêm thông tin (biến mới, ví dụ huyết áp/cholesterol như notebook 08) chứ không phải thêm năm. HGB đạt 0,8233 trên validation, sát MLP (0,8245). LR 0,8188.
+
+Biến quan trọng nhất (permutation importance, validation): nhóm tuổi 0,079 · sức khỏe tự đánh giá 0,053 · BMI 0,036 · lần khám gần nhất 0,018 · mạch vành 0,005 · bệnh thận 0,004.
+
+**Hài hoà biến (chi tiết trong notebook và `docs/DATA.md`).** 20 biến của notebook 07 được giữ, nhưng cột nguồn đổi theo năm (đối chiếu codebook CDC và nhãn biến trong file XPT): giới `SEX` (2015–17) / `SEX1` (2018) / `SEXVAR` (2019+); thận `CHCKIDNY` / `CHCKDNY1` (2018) / `CHCKDNY2`; COPD `CHCCOPD1` / `CHCCOPD2` / `CHCCOPD3`; trầm cảm `ADDEPEV2` → `ADDEPEV3`; rượu nhiều `_RFDRHV5/6/7/8`; bảo hiểm `HLTHPLN1` → `_HLTHPLN` → `_HLTHPL1`; chi phí khám `MEDCOST` → `MEDCOST1`; nhãn `DIABETE3` (2015–18) → `DIABETE4` (2019+). `_PHYS14D`/`_MENT14D` không có trong file 2015 nên suy ra từ `PHYSHLTH`/`MENTHLTH` (công thức khớp 100% biến chính thức của CDC ở cả 8 năm còn lại). Thu nhập `_INCOMG` (5 mức, 2015–20) và `_INCOMG1` (7 mức, 2021+) gộp về 5 mức. **Bị bỏ:** tăng huyết áp (`_RFHYPE5/6`) và cholesterol cao (`_RFCHOL1/2/3`) vì chỉ có ở năm lẻ. Nhãn giống 07: `DIABETE3/4` = 1 thành 1, = 3 thành 0; loại 2 (chỉ khi mang thai), 4 (tiền đái tháo đường), 7/9 và trống.
+
+**Giới hạn.** Một số biến đổi định nghĩa giữa các năm mà không thể hài hoà hoàn toàn: bảo hiểm 2023 (`_HLTHPL1`) dựa trên câu hỏi loại bảo hiểm chính (PRIMINS1) nên tỷ lệ "không có" khác; câu `MEDCOST` đổi chữ từ 2021; BRFSS có thay đổi phương pháp và dịch chuyển COVID ở 2020. Thu nhập gộp 5 mức mất chi tiết so với 07 (7 mức) nên hai notebook không hoàn toàn cùng đặc trưng. Validation khác nhau (2022 so với ngẫu nhiên 20% của 2021–22) nên việc chọn ngưỡng và seed không tương đương; chỉ test là cùng một. Mô hình 11 không được train trên 2022 (07 có), nên so sánh chưa thật sự công bằng về năm gần nhất. Test 2023 đã được xem nhiều lần. Phân tích cửa sổ train dùng test nhưng chỉ để chẩn đoán, không chọn mô hình. Không dùng survey weight; dữ liệu Hoa Kỳ; nhãn tự khai; nhân quả ngược với bệnh kèm; không dùng chẩn đoán/sàng lọc.
+
 ## NAGALA (Nhật Bản) — dự báo mắc mới, notebook 10
 
 Khác 02–09 (tình trạng hiện tại), đây là bài toán **dự báo mắc đái tháo đường mới** (theo dõi trung vị khoảng 5 năm). 15.464 người khám sức khoẻ, 373 ca dương (2,4%); chia stratified 60/20/20 (train 9.278 / validation 3.093 / test 3.093, test có 74 ca dương). Mô hình chọn theo ROC-AUC validation, ngưỡng theo F1 validation, test dùng một lần mỗi phiên bản. Brier là sau hiệu chỉnh Platt fit trên validation (Brier chỉ dùng tỷ lệ nền: 0,0234). Báo cáo: [report](../../artifacts/notebook_runs/nagala/20261112T081722_701428Z/report.json).

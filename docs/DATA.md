@@ -8,6 +8,14 @@ Pipeline chọn `_AGEG5YR`, `_BMI5` (chia 100), `SEXVAR`, `_SMOKER3`, `_TOTINDA`
 
 Dữ liệu và artifact được `.gitignore` loại trừ. Kiểm tra điều kiện sử dụng nguồn trước khi phân phối.
 
+## BRFSS 2015–2023 (bộ lớn, notebook 11)
+
+Nguồn: CDC, *Behavioral Risk Factor Surveillance System*, dữ liệu hằng năm https://www.cdc.gov/brfss/annual_data/annual_data.htm. Tải `https://www.cdc.gov/brfss/annual_data/<năm>/files/LLCP<năm>XPT.zip` cho 2015–2020 (khoảng 531 MB nén), giải nén thành `data/raw/LLCP<năm>.XPT` (tên trong zip có dấu cách thừa ở cuối, phải đổi tên; mỗi tệp 0,9–1,3 GB, tổng 9 năm khoảng 9,9 GB). Dữ liệu thô bị `.gitignore` loại. Giấy phép: nội dung CDC phần lớn là phạm vi công cộng, dùng tự do không cần xin phép (https://www.cdc.gov/other/agencymaterials.html; một số tài nguyên có ngoại lệ, chưa xác minh riêng cho từng tệp BRFSS). Dữ liệu là khảo sát qua điện thoại của Hoa Kỳ.
+
+Cỡ mẫu sau lọc nhãn (`DIABETE3/4` ∈ {1, 3}): 2015: 429.360 · 2016: 472.937 · 2017: 437.704 · 2018: 424.460 · 2019: 404.492 · 2020: 389.158 · 2021: 423.958 · 2022: 429.880 · 2023: 418.492; tổng 3.830.441. Tỷ lệ dương mỗi năm 13,3–14,3%. Chia theo thời gian: train 2015–2021, validation 2022, test 2023.
+
+Hài hoà biến qua 9 năm (bảng đầy đủ biến × năm in ra trong notebook 11, mục 2, và lưu trong `report.json` khóa `column_map`). Codebook đã dùng: 2015 `.../2015/pdf/codebook15_llcp.pdf`; 2016 `.../2016/pdf/codebook16_llcp.pdf`; 2017 `.../2017/pdf/codebook17_llcp-v2-508.pdf`; 2018 `.../2018/pdf/codebook18_llcp-v2-508.pdf`; 2019 `.../2019/pdf/codebook19_llcp-v2-508.HTML`; 2020 `.../2020/pdf/codebook20_llcp-v2-508.pdf`; 2021 `.../2021/pdf/codebook21_llcp-v2-508.pdf`; 2022 `.../2022/zip/codebook22_llcp-v2-508.zip`; 2023 `.../2023/zip/codebook23_llcp-v2-508.zip` (tiền tố https://www.cdc.gov/brfss/annual_data). Quy tắc: giữ 20 biến của notebook 07; biến đổi tên được ánh xạ về một tên chung (giới, thận, COPD, trầm cảm, rượu nhiều, bảo hiểm, chi phí khám, thu nhập, nhãn; xem `KET_QUA_V2.md`); `_PHYS14D`/`_MENT14D` 2015 suy ra từ `PHYSHLTH`/`MENTHLTH` và công thức được kiểm khớp 100% với biến chính thức ở 2016–2023; thu nhập gộp 5 mức; bỏ tăng huyết áp và cholesterol vì chỉ có năm lẻ. Mã 7/9 và trống thành thiếu, impute trên train. Lưu ý: định nghĩa bảo hiểm 2023 và câu hỏi chi phí khám từ 2021 khác các năm trước; cần cân nhắc khi diễn giải thay đổi theo thời gian.
+
 ## UCI Early Stage
 
 Tải CSV từ [UCI Early Stage Diabetes Risk Prediction](https://archive.ics.uci.edu/dataset/529/early%2Bstage%2Bdiabetes%2Brisk%2B), đặt tên `data/raw/diabetes_data_upload.csv`. Pipeline giữ 16 biến đầu vào và nhãn `class`, loại hồ sơ trùng trước khi chia tập (và loại hồ sơ có nhãn xung đột), chia train/validation/test phân tầng, không gộp với BRFSS. Bản CSV đã tải có 520 dòng nhưng chỉ có 251 hồ sơ duy nhất (269 dòng trùng); dữ liệu sau loại trùng rất nhỏ và lấy từ một bệnh viện; không suy rộng kết quả cho lâm sàng hoặc dân số Việt Nam.

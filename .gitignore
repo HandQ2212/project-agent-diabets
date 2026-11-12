@@ -27,11 +27,13 @@ artifacts/notebook_runs/*
 !artifacts/notebook_runs/brfss22/
 !artifacts/notebook_runs/nhanes15_multi/
 !artifacts/notebook_runs/nagala/
+!artifacts/notebook_runs/brfss_2015_2023/
 artifacts/notebook_runs/*/*
 !artifacts/notebook_runs/brfss20/20261112T073448_850428Z/
 !artifacts/notebook_runs/brfss22/20261112T075023_620271Z/
 !artifacts/notebook_runs/nhanes15_multi/20261112T073408_304203Z/
 !artifacts/notebook_runs/nagala/20261112T081722_701428Z/
+!artifacts/notebook_runs/brfss_2015_2023/20261112T132422_619456Z/
 !artifacts/notebook_runs/symptoms/20261105T081909_132631Z/
 !artifacts/notebook_runs/brfss/20261105T082221_854019Z/
 !artifacts/notebook_runs/nhanes4/20261105T081915_164118Z/

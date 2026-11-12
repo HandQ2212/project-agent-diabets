@@ -16,8 +16,9 @@ Kết quả notebook nâng cấp được tổng hợp trong [KET_QUA_NANG_CAP.m
 | [08_BRFSS_22_Bien_Huyet_Ap.ipynb](08_BRFSS_22_Bien_Huyet_Ap.ipynb) | *Mới 12/11:* BRFSS năm lẻ, thêm tăng huyết áp và cholesterol (train 2021, test 2023) | MLP, LR, HGB, Dummy |
 | [09_NHANES15_Nhieu_Chu_Ky.ipynb](09_NHANES15_Nhieu_Chu_Ky.ipynb) | *Mới 12/11:* NHANES 15 chỉ số, train 2011–16, test 2017–18 (như 04), test ngoài 2021–23 | CNN 1D, LR, HGB, Dummy |
 | [10_NAGALA_Du_Bao_Mac_Moi.ipynb](10_NAGALA_Du_Bao_Mac_Moi.ipynb) | *Mới 12/11:* NAGALA (Nhật Bản, CC0): **dự báo mắc mới** từ chỉ số baseline, có/không glucose đói + HbA1c; PR-AUC, Brier, reliability | MLP, LR, HGB, Dummy |
+| [11_BRFSS_2015_2023_Lon.ipynb](11_BRFSS_2015_2023_Lon.ipynb) | *Mới 12/11:* BRFSS **2015–2023** (3,83 triệu dòng), 20 biến hài hoà qua 9 năm; train 2015–21, validation 2022, test 2023 (cùng test với 07) | MLP, LR, HGB, Dummy |
 
-Notebook 07–09 được sinh từ 02/04 bằng [_tao_notebook_v2.py](_tao_notebook_v2.py) (giữ nguyên quy trình, thay phần dữ liệu, thêm permutation importance). Kết quả: [KET_QUA_V2.md](KET_QUA_V2.md).
+Notebook 07–09 được sinh từ 02/04 bằng [_tao_notebook_v2.py](_tao_notebook_v2.py) (giữ nguyên quy trình, thay phần dữ liệu, thêm permutation importance). Kết quả: [KET_QUA_V2.md](KET_QUA_V2.md). Notebook 11 được sinh bằng [_tao_notebook_11.py](_tao_notebook_11.py) (dùng lại helper của `_tao_notebook_v2.py`); cần 9 file `data/raw/LLCP2015.XPT … LLCP2023.XPT` (khoảng 9,9 GB), chạy khoảng 10 phút trên CPU macOS.
 
 Các bài toán phân loại so sánh Dummy, Logistic Regression, HistGradientBoosting và mạng nơ-ron chạy ba seed. Mạng chạy tối đa 200 epoch, tối thiểu 40 epoch và dừng sớm sau 25 epoch không cải thiện validation loss; biểu đồ ghi rõ loss train/validation, epoch tốt nhất và số lần cập nhật. Batch lớn hơn ở BRFSS nên số epoch giữa bài toán không tương đương số lần cập nhật. Ba seed chỉ đo nhạy cảm khởi tạo, không chứng minh độ ổn định theo các tập chia khác nhau.
 
