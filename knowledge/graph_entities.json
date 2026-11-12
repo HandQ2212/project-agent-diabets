@@ -1,0 +1,834 @@
+{
+  "_note": "Đồ thị tri thức thủ công cho Neo4j. Mỗi quan hệ ghi 'source' là id đoạn trong knowledge/sources.json hoặc knowledge/sources_v2.json để truy vết trích dẫn. Chưa được chuyên gia y tế thẩm định độc lập.",
+  "entities": [
+    {
+      "id": "dtd",
+      "label": "Disease",
+      "name": "Đái tháo đường",
+      "aliases": [
+        "tiểu đường",
+        "đái tháo đường",
+        "đường huyết cao",
+        "diabetes"
+      ]
+    },
+    {
+      "id": "dtd-typ1",
+      "label": "Disease",
+      "name": "Đái tháo đường típ 1",
+      "aliases": [
+        "típ 1",
+        "tip 1",
+        "type 1",
+        "tuýp 1"
+      ]
+    },
+    {
+      "id": "dtd-typ2",
+      "label": "Disease",
+      "name": "Đái tháo đường típ 2",
+      "aliases": [
+        "típ 2",
+        "tip 2",
+        "type 2",
+        "tuýp 2"
+      ]
+    },
+    {
+      "id": "dtd-thai-ky",
+      "label": "Disease",
+      "name": "Đái tháo đường thai kỳ",
+      "aliases": [
+        "thai kỳ",
+        "mang thai",
+        "bầu",
+        "gestational"
+      ]
+    },
+    {
+      "id": "tien-dtd",
+      "label": "Disease",
+      "name": "Tiền đái tháo đường",
+      "aliases": [
+        "tiền tiểu đường",
+        "tiền đái tháo đường",
+        "prediabetes"
+      ]
+    },
+    {
+      "id": "tieu-nhieu",
+      "label": "Symptom",
+      "name": "Tiểu nhiều",
+      "aliases": [
+        "tiểu nhiều",
+        "đi tiểu nhiều",
+        "tiểu đêm"
+      ]
+    },
+    {
+      "id": "khat-nhieu",
+      "label": "Symptom",
+      "name": "Khát nhiều",
+      "aliases": [
+        "khát nhiều",
+        "khát nước",
+        "uống nhiều nước"
+      ]
+    },
+    {
+      "id": "sut-can",
+      "label": "Symptom",
+      "name": "Sụt cân không rõ nguyên nhân",
+      "aliases": [
+        "sụt cân",
+        "giảm cân nhanh",
+        "gầy sút"
+      ]
+    },
+    {
+      "id": "an-nhieu",
+      "label": "Symptom",
+      "name": "Ăn nhiều, nhanh đói",
+      "aliases": [
+        "ăn nhiều",
+        "nhanh đói",
+        "hay đói"
+      ]
+    },
+    {
+      "id": "nhin-mo",
+      "label": "Symptom",
+      "name": "Nhìn mờ",
+      "aliases": [
+        "nhìn mờ",
+        "mờ mắt"
+      ]
+    },
+    {
+      "id": "met-moi",
+      "label": "Symptom",
+      "name": "Mệt mỏi",
+      "aliases": [
+        "mệt mỏi",
+        "uể oải"
+      ]
+    },
+    {
+      "id": "vet-thuong-lau-lanh",
+      "label": "Symptom",
+      "name": "Vết thương lâu lành",
+      "aliases": [
+        "lâu lành",
+        "vết thương lâu lành",
+        "chậm lành"
+      ]
+    },
+    {
+      "id": "te-bi",
+      "label": "Symptom",
+      "name": "Tê bì, châm chích tay chân",
+      "aliases": [
+        "tê bì",
+        "tê chân",
+        "châm chích",
+        "kiến bò"
+      ]
+    },
+    {
+      "id": "thua-can",
+      "label": "RiskFactor",
+      "name": "Thừa cân, béo phì",
+      "aliases": [
+        "thừa cân",
+        "béo phì",
+        "béo",
+        "bmi"
+      ]
+    },
+    {
+      "id": "beo-bung",
+      "label": "RiskFactor",
+      "name": "Béo bụng (vòng eo lớn)",
+      "aliases": [
+        "béo bụng",
+        "vòng eo",
+        "mỡ bụng"
+      ]
+    },
+    {
+      "id": "it-van-dong",
+      "label": "RiskFactor",
+      "name": "Ít vận động",
+      "aliases": [
+        "ít vận động",
+        "lười vận động",
+        "ngồi nhiều"
+      ]
+    },
+    {
+      "id": "tien-su-gia-dinh",
+      "label": "RiskFactor",
+      "name": "Tiền sử gia đình",
+      "aliases": [
+        "di truyền",
+        "gia đình",
+        "bố mẹ bị",
+        "cha mẹ"
+      ]
+    },
+    {
+      "id": "tuoi-cao",
+      "label": "RiskFactor",
+      "name": "Tuổi bắt đầu sàng lọc (ADA 2026: từ 35; Bộ Y tế VN: từ 45)",
+      "aliases": [
+        "lớn tuổi",
+        "35 tuổi",
+        "45 tuổi",
+        "tuổi sàng lọc"
+      ]
+    },
+    {
+      "id": "tang-huyet-ap",
+      "label": "RiskFactor",
+      "name": "Tăng huyết áp",
+      "aliases": [
+        "huyết áp",
+        "tăng huyết áp",
+        "cao huyết áp"
+      ]
+    },
+    {
+      "id": "roi-loan-mo-mau",
+      "label": "RiskFactor",
+      "name": "Rối loạn mỡ máu (HDL thấp, triglyceride cao)",
+      "aliases": [
+        "mỡ máu",
+        "triglyceride",
+        "hdl",
+        "cholesterol"
+      ]
+    },
+    {
+      "id": "hut-thuoc",
+      "label": "RiskFactor",
+      "name": "Hút thuốc lá",
+      "aliases": [
+        "hút thuốc",
+        "thuốc lá"
+      ]
+    },
+    {
+      "id": "tien-su-thai-ky",
+      "label": "RiskFactor",
+      "name": "Từng bị đái tháo đường thai kỳ",
+      "aliases": [
+        "từng bị tiểu đường thai kỳ",
+        "sau sinh"
+      ]
+    },
+    {
+      "id": "khang-insulin",
+      "label": "RiskFactor",
+      "name": "Kháng insulin",
+      "aliases": [
+        "kháng insulin",
+        "insulin resistance"
+      ]
+    },
+    {
+      "id": "tu-mien",
+      "label": "RiskFactor",
+      "name": "Tự miễn phá hủy tế bào beta",
+      "aliases": [
+        "tự miễn"
+      ]
+    },
+    {
+      "id": "glucose-doi",
+      "label": "Test",
+      "name": "Glucose huyết tương lúc đói",
+      "aliases": [
+        "đường huyết đói",
+        "glucose lúc đói",
+        "đường huyết lúc đói",
+        "glucose đói",
+        "fpg"
+      ]
+    },
+    {
+      "id": "ogtt",
+      "label": "Test",
+      "name": "Nghiệm pháp dung nạp glucose 75 g (OGTT)",
+      "aliases": [
+        "ogtt",
+        "dung nạp glucose",
+        "nghiệm pháp",
+        "uống 75"
+      ]
+    },
+    {
+      "id": "hba1c",
+      "label": "Test",
+      "name": "HbA1c",
+      "aliases": [
+        "hba1c",
+        "a1c",
+        "hemoglobin a1c"
+      ]
+    },
+    {
+      "id": "glucose-bat-ky",
+      "label": "Test",
+      "name": "Glucose huyết tương bất kỳ",
+      "aliases": [
+        "đường huyết bất kỳ",
+        "glucose bất kỳ",
+        "đường huyết ngẫu nhiên"
+      ]
+    },
+    {
+      "id": "uacr",
+      "label": "Test",
+      "name": "Tỷ số albumin/creatinine niệu (UACR)",
+      "aliases": [
+        "uacr",
+        "albumin niệu",
+        "đạm niệu"
+      ]
+    },
+    {
+      "id": "egfr",
+      "label": "Test",
+      "name": "Mức lọc cầu thận ước tính (eGFR)",
+      "aliases": [
+        "egfr",
+        "creatinine",
+        "mức lọc cầu thận"
+      ]
+    },
+    {
+      "id": "kham-day-mat",
+      "label": "Test",
+      "name": "Khám đáy mắt",
+      "aliases": [
+        "khám mắt",
+        "đáy mắt",
+        "soi đáy mắt"
+      ]
+    },
+    {
+      "id": "monofilament",
+      "label": "Test",
+      "name": "Khám bàn chân bằng monofilament",
+      "aliases": [
+        "monofilament",
+        "khám bàn chân",
+        "khám chân"
+      ]
+    },
+    {
+      "id": "ha-duong-huyet",
+      "label": "Complication",
+      "name": "Hạ đường huyết",
+      "aliases": [
+        "hạ đường huyết",
+        "tụt đường huyết",
+        "đường huyết thấp",
+        "hạ đường"
+      ]
+    },
+    {
+      "id": "dka",
+      "label": "Complication",
+      "name": "Nhiễm toan ceton (DKA)",
+      "aliases": [
+        "nhiễm toan ceton",
+        "toan ceton",
+        "dka",
+        "ceton"
+      ]
+    },
+    {
+      "id": "hhs",
+      "label": "Complication",
+      "name": "Tăng áp lực thẩm thấu (HHS)",
+      "aliases": [
+        "tăng áp lực thẩm thấu",
+        "hhs"
+      ]
+    },
+    {
+      "id": "bien-chung-than",
+      "label": "Complication",
+      "name": "Bệnh thận đái tháo đường",
+      "aliases": [
+        "thận",
+        "suy thận",
+        "bệnh thận"
+      ]
+    },
+    {
+      "id": "bien-chung-mat",
+      "label": "Complication",
+      "name": "Bệnh võng mạc đái tháo đường",
+      "aliases": [
+        "mắt",
+        "võng mạc",
+        "mù"
+      ]
+    },
+    {
+      "id": "bien-chung-than-kinh",
+      "label": "Complication",
+      "name": "Bệnh thần kinh ngoại biên",
+      "aliases": [
+        "thần kinh",
+        "tê bì",
+        "mất cảm giác"
+      ]
+    },
+    {
+      "id": "loet-ban-chan",
+      "label": "Complication",
+      "name": "Loét bàn chân, nguy cơ cắt cụt",
+      "aliases": [
+        "bàn chân",
+        "loét chân",
+        "cắt cụt"
+      ]
+    },
+    {
+      "id": "tim-mach",
+      "label": "Complication",
+      "name": "Bệnh tim mạch và đột quỵ",
+      "aliases": [
+        "tim",
+        "tim mạch",
+        "đột quỵ",
+        "nhồi máu"
+      ]
+    },
+    {
+      "id": "giam-can",
+      "label": "Prevention",
+      "name": "Giảm 5–7% cân nặng",
+      "aliases": [
+        "giảm cân"
+      ]
+    },
+    {
+      "id": "van-dong-150",
+      "label": "Prevention",
+      "name": "Vận động 150 phút mỗi tuần",
+      "aliases": [
+        "vận động",
+        "tập thể dục",
+        "đi bộ",
+        "thể dục"
+      ]
+    },
+    {
+      "id": "dia-an",
+      "label": "Prevention",
+      "name": "Ăn theo phương pháp đĩa ăn",
+      "aliases": [
+        "ăn uống",
+        "chế độ ăn",
+        "đĩa ăn",
+        "dinh dưỡng",
+        "ăn gì"
+      ]
+    },
+    {
+      "id": "bo-thuoc-la",
+      "label": "Prevention",
+      "name": "Bỏ thuốc lá",
+      "aliases": [
+        "bỏ thuốc"
+      ]
+    },
+    {
+      "id": "kiem-soat-abc",
+      "label": "Prevention",
+      "name": "Kiểm soát ABC (HbA1c, huyết áp, cholesterol)",
+      "aliases": [
+        "abc",
+        "kiểm soát đường huyết"
+      ]
+    },
+    {
+      "id": "quy-tac-15-15",
+      "label": "Prevention",
+      "name": "Quy tắc 15–15",
+      "aliases": [
+        "15-15",
+        "15 15",
+        "quy tắc 15"
+      ]
+    },
+    {
+      "id": "cham-soc-chan",
+      "label": "Prevention",
+      "name": "Tự kiểm tra bàn chân mỗi ngày",
+      "aliases": [
+        "chăm sóc bàn chân",
+        "kiểm tra bàn chân"
+      ]
+    },
+    {
+      "id": "thuoc-ha-duong-huyet",
+      "label": "RiskFactor",
+      "name": "Insulin hoặc thuốc kích thích tiết insulin (sulfonylurea)",
+      "aliases": [
+        "insulin",
+        "sulfonylurea"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "dtd-typ1",
+      "type": "IS_A",
+      "to": "dtd",
+      "source": "kb2-typ1-typ2-khac-nhau"
+    },
+    {
+      "from": "dtd-typ2",
+      "type": "IS_A",
+      "to": "dtd",
+      "source": "kb2-typ1-typ2-khac-nhau"
+    },
+    {
+      "from": "dtd-thai-ky",
+      "type": "IS_A",
+      "to": "dtd",
+      "source": "kb2-thai-ky"
+    },
+    {
+      "from": "tien-dtd",
+      "type": "PROGRESSES_TO",
+      "to": "dtd-typ2",
+      "source": "kb2-tien-dai-thao-duong",
+      "note": "Không phải ai cũng tiến triển; có thể cải thiện bằng lối sống"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "tieu-nhieu",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "khat-nhieu",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "sut-can",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "an-nhieu",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "nhin-mo",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "met-moi",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "vet-thuong-lau-lanh",
+      "source": "cdc-classic-symptoms"
+    },
+    {
+      "from": "dtd",
+      "type": "HAS_SYMPTOM",
+      "to": "te-bi",
+      "source": "kb2-than-kinh-ban-chan"
+    },
+    {
+      "from": "thua-can",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-beo-bung-chau-a",
+      "note": "Bộ Y tế VN (QĐ 5481): BMI từ 23 kg/m² là ngưỡng thừa cân để cân nhắc tầm soát"
+    },
+    {
+      "from": "beo-bung",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-vong-eo-giam-can-bytvn",
+      "note": "Bộ Y tế VN (QĐ 5481, mục 5.2.2): vòng eo nên < 90 cm (nam), < 80 cm (nữ)"
+    },
+    {
+      "from": "it-van-dong",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "cdc-risk-factors"
+    },
+    {
+      "from": "tien-su-gia-dinh",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-ai-nen-sang-loc"
+    },
+    {
+      "from": "tuoi-cao",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-ai-nen-sang-loc",
+      "note": "ADA 2026 khuyến cáo bắt đầu sàng lọc từ 35 tuổi; người thừa cân kèm yếu tố nguy cơ sàng lọc ở mọi tuổi"
+    },
+    {
+      "from": "tang-huyet-ap",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-ai-nen-sang-loc",
+      "note": "Là yếu tố nguy cơ để sàng lọc: ADA 2026 tính huyết áp từ 130/80 mmHg hoặc đang điều trị"
+    },
+    {
+      "from": "roi-loan-mo-mau",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-muc-tieu-ha-ldl-ada",
+      "note": "ADA 2026 (khuyến cáo 10.15): triglyceride ≥ 150 mg/dL và/hoặc HDL < 40 mg/dL (nam), < 50 mg/dL (nữ) cần tăng cường lối sống và kiểm soát đường huyết"
+    },
+    {
+      "from": "hut-thuoc",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "ada-smoking-cessation",
+      "note": "ADA 2026 (mục 5): có mối liên quan nhân quả giữa hút thuốc lá và đái tháo đường; nguy cơ giảm dần khi bỏ thuốc càng lâu"
+    },
+    {
+      "from": "tien-su-thai-ky",
+      "type": "INCREASES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-thai-ky"
+    },
+    {
+      "from": "khang-insulin",
+      "type": "CAUSES",
+      "to": "dtd-typ2",
+      "source": "kb2-typ1-typ2-khac-nhau"
+    },
+    {
+      "from": "tu-mien",
+      "type": "CAUSES",
+      "to": "dtd-typ1",
+      "source": "kb2-typ1-typ2-khac-nhau"
+    },
+    {
+      "from": "glucose-doi",
+      "type": "DIAGNOSES",
+      "to": "dtd",
+      "source": "kb2-tieu-chuan-chan-doan-so",
+      "threshold": "≥ 126 mg/dL (7,0 mmol/L), nhịn ăn ≥ 8 giờ"
+    },
+    {
+      "from": "ogtt",
+      "type": "DIAGNOSES",
+      "to": "dtd",
+      "source": "kb2-tieu-chuan-chan-doan-so",
+      "threshold": "Glucose 2 giờ ≥ 200 mg/dL (11,1 mmol/L), uống 75 g glucose, không mang thai"
+    },
+    {
+      "from": "hba1c",
+      "type": "DIAGNOSES",
+      "to": "dtd",
+      "source": "kb2-hba1c-la-gi",
+      "threshold": "≥ 6,5% (48 mmol/mol), phương pháp chuẩn hóa"
+    },
+    {
+      "from": "glucose-bat-ky",
+      "type": "DIAGNOSES",
+      "to": "dtd",
+      "source": "kb2-tieu-chuan-chan-doan-so",
+      "threshold": "≥ 200 mg/dL (11,1 mmol/L) kèm triệu chứng kinh điển"
+    },
+    {
+      "from": "glucose-doi",
+      "type": "DIAGNOSES",
+      "to": "tien-dtd",
+      "source": "kb2-tien-dai-thao-duong",
+      "threshold": "100–125 mg/dL (5,6–6,9 mmol/L) theo ADA 2026",
+      "note": "QĐ 5481 của Bộ Y tế VN không định nghĩa riêng tiền đái tháo đường"
+    },
+    {
+      "from": "ogtt",
+      "type": "DIAGNOSES",
+      "to": "tien-dtd",
+      "source": "kb2-tien-dai-thao-duong",
+      "threshold": "Glucose 2 giờ 140–199 mg/dL (7,8–11,0 mmol/L)"
+    },
+    {
+      "from": "hba1c",
+      "type": "DIAGNOSES",
+      "to": "tien-dtd",
+      "source": "kb2-tien-dai-thao-duong",
+      "threshold": "5,7–6,4%"
+    },
+    {
+      "from": "ogtt",
+      "type": "DIAGNOSES",
+      "to": "dtd-thai-ky",
+      "source": "kb2-thai-ky",
+      "threshold": "75 g: lúc đói ≥ 92, 1 giờ ≥ 180, 2 giờ ≥ 153 mg/dL (chỉ cần một giá trị)",
+      "note": "Thường làm ở tuần 24–28; người nguy cơ cao có thể kiểm tra sớm hơn"
+    },
+    {
+      "from": "thuoc-ha-duong-huyet",
+      "type": "CAN_CAUSE",
+      "to": "ha-duong-huyet",
+      "source": "kb2-ha-duong-huyet-15-15",
+      "note": "Hạ đường huyết chủ yếu do thuốc điều trị; mức 1 < 70 mg/dL, mức 2 < 54 mg/dL"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "dka",
+      "source": "bytvn-hyperglycemia-complications",
+      "note": "Theo QĐ 5481, DKA thường kèm đường huyết ≥ 14,0 mmol/L nhưng có thể chỉ tăng nhẹ; đường huyết không cao không loại trừ DKA"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "hhs",
+      "source": "bytvn-hyperglycemia-complications"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "bien-chung-than",
+      "source": "kb2-bien-chung-than"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "bien-chung-mat",
+      "source": "kb2-bien-chung-mat"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "bien-chung-than-kinh",
+      "source": "kb2-than-kinh-ban-chan"
+    },
+    {
+      "from": "bien-chung-than-kinh",
+      "type": "CAN_CAUSE",
+      "to": "loet-ban-chan",
+      "source": "kb2-than-kinh-ban-chan"
+    },
+    {
+      "from": "dtd",
+      "type": "CAN_CAUSE",
+      "to": "tim-mach",
+      "source": "kb2-tim-mach"
+    },
+    {
+      "from": "bien-chung-than",
+      "type": "MONITORED_BY",
+      "to": "uacr",
+      "source": "kb2-bien-chung-than",
+      "note": "Ít nhất mỗi năm; bình thường < 30 mg/g; bất thường cần xét nghiệm lại để xác nhận"
+    },
+    {
+      "from": "bien-chung-than",
+      "type": "MONITORED_BY",
+      "to": "egfr",
+      "source": "kb2-bien-chung-than",
+      "note": "eGFR < 60 ml/phút/1,73 m² và kéo dài (cần xét nghiệm lặp lại để xác nhận); ít nhất mỗi năm"
+    },
+    {
+      "from": "bien-chung-mat",
+      "type": "MONITORED_BY",
+      "to": "kham-day-mat",
+      "source": "kb2-bien-chung-mat",
+      "note": "Típ 2: ngay khi chẩn đoán; sau đó ADA 2026: mỗi năm, có thể giãn 1–2 năm nếu nhiều lần bình thường và đường huyết đạt mục tiêu"
+    },
+    {
+      "from": "loet-ban-chan",
+      "type": "MONITORED_BY",
+      "to": "monofilament",
+      "source": "kb2-than-kinh-ban-chan-ada",
+      "note": "ADA 2026: khám bàn chân và thử monofilament 10 g ít nhất mỗi năm"
+    },
+    {
+      "from": "dtd",
+      "type": "MONITORED_BY",
+      "to": "hba1c",
+      "source": "kb2-muc-tieu-kiem-soat",
+      "note": "Mục tiêu chung của nhiều người lớn: < 7%, cá thể hóa theo bác sĩ"
+    },
+    {
+      "from": "giam-can",
+      "type": "REDUCES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-dpp-giam-nguy-co",
+      "note": "Nghiên cứu DPP (Knowler, NEJM 2002; 3.234 người nguy cơ cao): lối sống với mục tiêu giảm ≥ 7% cân nặng và 150 phút vận động/tuần giảm khoảng 58% số ca mắc sau trung bình 2,8 năm so với giả dược"
+    },
+    {
+      "from": "van-dong-150",
+      "type": "REDUCES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-van-dong"
+    },
+    {
+      "from": "dia-an",
+      "type": "REDUCES_RISK_OF",
+      "to": "dtd-typ2",
+      "source": "kb2-dia-an"
+    },
+    {
+      "from": "bo-thuoc-la",
+      "type": "REDUCES_RISK_OF",
+      "to": "tim-mach",
+      "source": "kb2-tim-mach"
+    },
+    {
+      "from": "kiem-soat-abc",
+      "type": "REDUCES_RISK_OF",
+      "to": "tim-mach",
+      "source": "kb2-tim-mach"
+    },
+    {
+      "from": "kiem-soat-abc",
+      "type": "REDUCES_RISK_OF",
+      "to": "bien-chung-than",
+      "source": "kb2-bien-chung-than"
+    },
+    {
+      "from": "kiem-soat-abc",
+      "type": "REDUCES_RISK_OF",
+      "to": "bien-chung-mat",
+      "source": "kb2-bien-chung-mat"
+    },
+    {
+      "from": "quy-tac-15-15",
+      "type": "TREATS",
+      "to": "ha-duong-huyet",
+      "source": "kb2-ha-duong-huyet-15-15",
+      "note": "15–20 g đường nhanh, chỉ khi còn tỉnh và nuốt được; lơ mơ/bất tỉnh gọi 115"
+    },
+    {
+      "from": "cham-soc-chan",
+      "type": "REDUCES_RISK_OF",
+      "to": "loet-ban-chan",
+      "source": "kb2-than-kinh-ban-chan"
+    }
+  ]
+}

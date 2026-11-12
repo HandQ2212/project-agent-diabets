@@ -1,6 +1,6 @@
 # Đối chiếu Knowledge Base với nguồn gốc (ADA 2026, QĐ 5481/QĐ-BYT)
 
-Người lập: Kelp (Knowledge) · Ngày: 2026-11-12 (giờ VN) · Phạm vi: `knowledge/sources_v2.json` (25 đoạn), `knowledge/sources.json` (18 đoạn), `knowledge/graph_entities.json`.
+Người lập: Kelp (Knowledge) · Ngày: 2026-11-12 (giờ VN) · Phạm vi: `knowledge/sources_v2.json` (25 đoạn), `knowledge/sources.json` (18 đoạn), `knowledge/graph_entities.json` — số đoạn tại thời điểm đối chiếu; sau khi Pollux áp dụng báo cáo này KB còn 18 + 40 đoạn, 48 thực thể.
 Báo cáo này KHÔNG sửa file KB; Atlas áp dụng. Chưa có chuyên gia y tế thẩm định: mọi đề xuất liên quan an toàn người dùng cần Boss/bác sĩ duyệt trước khi đưa vào chatbot.
 
 Quy ước nhãn nguồn: **[GỐC]** = đã đọc trực tiếp văn bản gốc; **[THỨ CẤP]** = trang tóm tắt/bên thứ ba/ghi nhớ; **[KHÔNG ĐỌC ĐƯỢC]**.

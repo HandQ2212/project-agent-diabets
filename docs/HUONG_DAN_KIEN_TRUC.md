@@ -2,7 +2,7 @@
 
 Tài liệu này đi theo đúng dàn ý thầy ghi trên bảng (ảnh `IMG_7908.jpeg`): **1 Giới thiệu → 2 Hệ đa agent → 3 Kiến trúc tổng quan → 4 Các thành phần (4.1 Deep Learning ⇒ Agent, 4.2 KB + RAG, 4.3 Rule + RL) → 5 Code + Demo**. Mỗi mục chỉ rõ *file code nào* làm việc đó để trả lời được khi thầy hỏi "phần này nằm ở đâu, chạy thế nào".
 
-Cập nhật 12/11/2026: mở rộng dữ liệu huấn luyện (BRFSS 20/22 biến, NHANES 5 chu kỳ), mở rộng KB (+25 đoạn hỏi–đáp) và thêm **Knowledge Graph Agent** trên Neo4j.
+Cập nhật 12/11/2026: mở rộng dữ liệu huấn luyện (BRFSS 20/22 biến, NHANES 5 chu kỳ), mở rộng KB (+40 đoạn hỏi–đáp, đối chiếu bản gốc ADA 2026 và QĐ 5481) và thêm **Knowledge Graph Agent** trên Neo4j.
 
 ---
 
@@ -121,9 +121,9 @@ Cách giải thích: **thêm thông tin (biến) và thêm mẫu đều giúp**;
 
 | Lớp | Nguồn | Nạp bằng | Trong Neo4j |
 | --- | --- | --- | --- |
-| Đoạn thủ công đã tóm tắt | WHO, ADA Standards of Care 2025, CDC, NIDDK, Bộ Y tế (QĐ 5481/QĐ-BYT) — `knowledge/sources.json` (18 đoạn) + `knowledge/sources_v2.json` (**25 đoạn mới**) | `python -m ml.seed_knowledge` | `(:Document {text, url, embedding})-[:ABOUT]->(:Topic)` |
+| Đoạn thủ công đã tóm tắt | WHO, ADA Standards of Care 2026, CDC, NIDDK, Bộ Y tế (QĐ 5481/QĐ-BYT) — `knowledge/sources.json` (18 đoạn) + `knowledge/sources_v2.json` (**40 đoạn mới**); khi ADA và Bộ Y tế khác nhau thì mỗi bên một đoạn, trích dẫn trỏ đúng URL nguồn | `python -m ml.seed_knowledge` | `(:Document {text, url, embedding})-[:ABOUT]->(:Topic)` |
 | Trang web tự thu thập | 25 URL CDC/NIDDK — `knowledge/web_sources.json` | `python -m ml.refresh_web` | `(:Document {review_status:'unreviewed_web'})` — chỉ hiện link, không dùng để sinh câu trả lời |
-| **Đồ thị thực thể** *(mới)* | `knowledge/graph_entities.json`: 47 thực thể, 53 quan hệ, mỗi quan hệ trỏ về đoạn tài liệu làm nguồn | `python -m ml.seed_graph` | `(:Entity:Test {name:'HbA1c'})-[:DIAGNOSES {threshold:'≥ 6,5%'}]->(:Entity:Disease)`, `-[:DESCRIBED_IN]->(:Document)` |
+| **Đồ thị thực thể** *(mới)* | `knowledge/graph_entities.json`: 48 thực thể, 53 quan hệ, mỗi quan hệ trỏ về đoạn tài liệu làm nguồn | `python -m ml.seed_graph` | `(:Entity:Test {name:'HbA1c'})-[:DIAGNOSES {threshold:'≥ 6,5%'}]->(:Entity:Disease)`, `-[:DESCRIBED_IN]->(:Document)` |
 
 **Các loại quan hệ trong đồ thị:** `HAS_SYMPTOM`, `INCREASES_RISK_OF`, `CAUSES`, `DIAGNOSES` (kèm ngưỡng), `CAN_CAUSE` (biến chứng), `MONITORED_BY` (xét nghiệm theo dõi), `REDUCES_RISK_OF`, `TREATS`, `IS_A`, `PROGRESSES_TO`.
 
@@ -182,6 +182,6 @@ Huấn luyện lại các mô hình mới: mở và chạy từ trên xuống `n
 
 ## Kiểm định nội dung và bước tiếp theo (12/11/2026)
 
-- **Thẩm định KB:** 25 đoạn mới và các ngưỡng trong đồ thị được rà độc lập so với NIDDK/CDC (đọc trực tiếp) và ADA 2025/2026 (qua tóm tắt thứ cấp vì trang gốc chặn truy cập tự động). Các ngưỡng cốt lõi đúng; đã sửa gán nguồn sai và bổ sung cảnh báo an toàn (acarbose khi hạ đường huyết, thuốc cần hỏi bác sĩ khi ốm, khám mắt mặc định hằng năm, ngưỡng OGTT thai kỳ riêng, hạ đường huyết do thuốc chứ không do bệnh). Còn cần đối chiếu bản gốc ADA 2026 và QĐ 5481/QĐ-BYT.
+- **Thẩm định KB:** đã đối chiếu với bản gốc ADA Standards of Care 2026 (toàn văn trên PMC) và QĐ 5481/QĐ-BYT (PDF 77 trang) — xem `docs/KB_DOI_CHIEU_NGUON_GOC.md`. Đã bỏ các số không có trong nguồn, thay link hỏng, và khi Việt Nam khác ADA (huyết áp <140/90 vs <130/80, tuổi sàng lọc 45 vs 35, đơn vị rượu 10 g cồn, DKA ≥14,0 mmol/L) thì tách thành hai đoạn, mỗi đoạn trích đúng URL của mình. **Chưa được chuyên gia y tế thẩm định** — cần nói rõ khi báo cáo.
 - **Embedding tiếng Việt:** `docs/EMBEDDING_EVAL.md` — `bge-m3` đạt hit@3 0,95 so với 0,59 của `nomic-embed-text` đang dùng; đề xuất chuyển (cần nạp lại vector, đổi ngưỡng 0,875 → 0,50).
 - **Dữ liệu châu Á/Việt Nam:** `docs/DATASET_RESEARCH_2026-11.md` — NAGALA (Nhật, 15.464 người, nhãn mắc mới sau ~5 năm, CC0, tải trực tiếp) là ứng viên huấn luyện kế tiếp cho bài toán *dự báo mắc mới*; WHO STEPS Việt Nam 2021 cần chủ dự án tự đăng ký.
