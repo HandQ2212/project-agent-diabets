@@ -16,7 +16,7 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
 from ml.train_nhanes import ClinicalCNN, FEATURES as NHANES_FEATURES
-from backend.app import rag, history, nhanes15
+from backend.app import rag, history, nhanes15, knowledge_graph
 from backend.app.agents import RuleAgent, CoordinatorState, conversational_reply
 from backend.app.limiter import limiter
 
@@ -284,11 +284,17 @@ def conversation_node(state: CoordinatorState) -> CoordinatorState:
 def knowledge_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
     search_question = rag.standalone_question(question, state.get('history', []))
-    sources = rag.retrieve(search_question, top_k=3, threshold=0.875)
-    return {
-        'sources': sources,
-        'trace': state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
-    }
+    sources = rag.retrieve(search_question, top_k=3)
+    trace = state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
+    # Knowledge Graph Agent: bổ sung quan hệ có cấu trúc (thực thể -> quan hệ -> thực thể) từ Neo4j.
+    graph_source = knowledge_graph.lookup(search_question)
+    if graph_source:
+        before = len(sources)
+        sources = knowledge_graph.merge_sources(sources, graph_source)
+        trace.append(f"Knowledge Graph Agent ({len(graph_source['facts'])} facts, +{len(sources) - before - 1} linked docs)")
+    else:
+        trace.append('Knowledge Graph Agent (No matching entity)')
+    return {'sources': sources, 'trace': trace}
 
 def response_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
@@ -392,7 +398,7 @@ def learning(req: RLRequest):
             'topic': 'Tất cả các chủ đề đã hoàn thành',
             'action': -1,
             'trace': ['Coordinator', 'Learning Agent (All modules completed)'],
-            'disclaimer': 'Mô phỏng giáo dục mô phỏng; không phải chỉ định điều trị y khoa.',
+            'disclaimer': 'Mô phỏng giáo dục; không phải chỉ định điều trị y khoa.',
             'status': 'completed',
             'message': 'Người dùng giả lập đã hoàn thành tất cả 4 chủ đề giáo dục hiện có. Không cần gợi ý thêm.'
         }
@@ -419,7 +425,7 @@ def learning(req: RLRequest):
             'action': chosen_action,
             'trace': ['Coordinator', 'Learning Agent (DQN Policy)' + (' → quy tắc chọn chủ đề chưa học' if overridden else '')],
             'policy_overridden': overridden,
-            'disclaimer': 'Mô phỏng giáo dục mô phỏng; không phải chỉ định điều trị y khoa.',
+            'disclaimer': 'Mô phỏng giáo dục; không phải chỉ định điều trị y khoa.',
             'status': 'active'
         }
     except Exception as exc:

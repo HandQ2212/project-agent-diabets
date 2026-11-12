@@ -10,19 +10,47 @@ log = logging.getLogger(__name__)
 
 OLLAMA = os.getenv('OLLAMA_URL', 'http://localhost:11434').rstrip('/')
 MODEL = os.getenv('OLLAMA_MODEL', 'qwen3:4b-instruct')
-EMBED = os.getenv('OLLAMA_EMBED_MODEL', 'nomic-embed-text')
+EMBED = os.getenv('OLLAMA_EMBED_MODEL', 'bge-m3')
 
+# Ngưỡng cosine THUẦN (-1..1) tối thiểu để một đoạn được coi là liên quan. Thang điểm phụ thuộc mô hình
+# embedding: 0.50 chọn cho bge-m3 (xem docs/EMBEDDING_EVAL.md); đổi mô hình thì phải đánh giá lại ngưỡng.
+# Lưu ý: vector.similarity.cosine của Neo4j trả (1+cos)/2 nên retrieve() quy đổi lại về cosine thuần.
+DEFAULT_THRESHOLD = 0.50
+
+# Lấy ngưỡng từ biến môi trường RAG_THRESHOLD (0..1); giá trị sai thì dùng mặc định và ghi cảnh báo.
+def _threshold_from_env(raw: str | None) -> float:
+    if raw is None or not raw.strip():
+        return DEFAULT_THRESHOLD
+    try:
+        value = float(raw)
+    except ValueError:
+        value = float('nan')
+    if not 0.0 <= value <= 1.0:
+        log.warning('RAG_THRESHOLD=%r is invalid; using default %s', raw, DEFAULT_THRESHOLD)
+        return DEFAULT_THRESHOLD
+    return value
+
+RAG_THRESHOLD = _threshold_from_env(os.getenv('RAG_THRESHOLD'))
+# Điểm cộng của _topic_boost và khoảng cách tối đa dưới ngưỡng để được cộng, theo cosine thuần.
+# Giá trị cũ (0.08 / 0.035) tính trên thang (1+cos)/2 của nomic, tương đương 0.16 / 0.07 cosine; bge-m3 có
+# thang hẹp hơn nên dùng 0.10 / 0.05. Boost vẫn chỉ áp dụng khi câu hỏi và chủ đề cùng khớp từ khóa.
+TOPIC_BOOST = 0.10
+TOPIC_BOOST_MARGIN = 0.05
+
+# Chuyển văn bản thành vector embedding bằng mô hình Ollama để so sánh ngữ nghĩa.
 def embed(text: str) -> list[float]:
     response = httpx.post(f'{OLLAMA}/api/embed', json={'model': EMBED, 'input': text}, timeout=90)
     response.raise_for_status()
     return response.json()['embeddings'][0]
 
+# Tạo kết nối Neo4j từ cấu hình môi trường để truy vấn kho tri thức.
 def driver():
     return GraphDatabase.driver(
         os.getenv('NEO4J_URI', 'bolt://localhost:7687'),
         auth=(os.getenv('NEO4J_USER', 'neo4j'), os.getenv('NEO4J_PASSWORD', 'change-this-neo4j-password'))
     )
 
+# Thử dịch câu hỏi sang tiếng Anh để tìm nguồn web; nếu lỗi thì dùng câu gốc.
 def english_search_query(question: str) -> str:
     """Translate Vietnamese search text locally to improve English web retrieval."""
     if not re.search(r'[à-ỹÀ-ỸđĐ]', question):
@@ -40,12 +68,14 @@ def english_search_query(question: str) -> str:
         log.warning('Could not translate web search query; using original question')
         return question
 
+# Cộng điểm cho nguồn thủ công khớp câu hỏi kết hợp phân loại và phòng ngừa.
 def _topic_boost(question: str, row: dict) -> float:
     """Promote a relevant manual summary for a combined types/prevention query.
 
     This does not change the handling of unreviewed web content. A minimum
     vector score still applies before the boost is considered.
     """
+    # Bỏ dấu và chuyển chữ thường để so khớp từ khóa trong câu hỏi, chủ đề.
     def normalize(value):
         value = unicodedata.normalize('NFD', value.lower().replace('đ', 'd'))
         return ''.join(c for c in value if unicodedata.category(c) != 'Mn')
@@ -59,11 +89,42 @@ def _topic_boost(question: str, row: dict) -> float:
     if (row.get('review_status') != 'unreviewed_web' and
             has(q, diabetes_terms) and has(q, type_terms) and has(q, prevention_terms) and
             has(topic, diabetes_terms) and has(topic, type_terms) and has(topic, prevention_terms)):
-        return 0.08
+        return TOPIC_BOOST
     return 0.0
 
-def retrieve(question: str, top_k: int = 3, threshold: float = 0.875) -> list[dict]:
-    """Retrieve top relevant documents from Neo4j knowledge graph using vector similarity."""
+# Lọc theo ngưỡng (có topic boost), bỏ URL trùng và trả tối đa top_k kết quả theo điểm giảm dần.
+def select_results(question: str, rows: list[dict], top_k: int, threshold: float) -> list[dict]:
+    """A narrowly scoped topic match helps multi-part questions find a relevant
+    manual summary even when English web chunks rank higher."""
+    candidates = []
+    for row in rows:
+        score = row.get('score')
+        if score is None:
+            continue
+        boost = _topic_boost(question, row) if score >= threshold - TOPIC_BOOST_MARGIN else 0.0
+        if score + boost >= threshold:
+            candidates.append((score + boost, row))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    results = []
+    seen_urls = set()
+    for _, row in candidates:
+        if row['url'] in seen_urls:
+            continue
+        results.append(row)
+        seen_urls.add(row['url'])
+        if len(results) >= top_k:
+            break
+    return results
+
+# Tìm đoạn tương đồng trong Neo4j, lọc theo ngưỡng và trả tối đa top_k URL khác nhau.
+def retrieve(question: str, top_k: int = 3, threshold: float | None = None) -> list[dict]:
+    """Retrieve top relevant documents from Neo4j knowledge graph using vector similarity.
+
+    Chỉ so sánh với Document có `embedding_model` đúng bằng mô hình hiện tại và cùng số chiều,
+    nên vector cũ (ví dụ 768 chiều của nomic) bị bỏ qua thay vì làm cosine lỗi hoặc vô nghĩa.
+    """
+    if threshold is None:
+        threshold = RAG_THRESHOLD
     try:
         vector = embed(question)
         translated_query = english_search_query(question)
@@ -72,9 +133,10 @@ def retrieve(question: str, top_k: int = 3, threshold: float = 0.875) -> list[di
             rows = db.execute_query(
                 '''
                 MATCH (d:Document)-[:ABOUT]->(t:Topic)
-                WHERE d.embedding IS NOT NULL
-                WITH d, t, vector.similarity.cosine(d.embedding,
-                    CASE WHEN d.web_source_id IS NOT NULL THEN $web_vector ELSE $vector END) AS score
+                WHERE d.embedding IS NOT NULL AND d.embedding_model = $model
+                  AND size(d.embedding) = $dim
+                WITH d, t, 2 * vector.similarity.cosine(d.embedding,
+                    CASE WHEN d.web_source_id IS NOT NULL THEN $web_vector ELSE $vector END) - 1 AS score
                 RETURN d.id AS id, d.title AS title, d.url AS url, d.text AS text,
                        d.date AS date, d.license AS license, d.review_status AS review_status,
                        d.fetched_at AS fetched_at, t.name AS topic, score
@@ -82,36 +144,24 @@ def retrieve(question: str, top_k: int = 3, threshold: float = 0.875) -> list[di
                 ''',
                 vector=vector,
                 web_vector=web_vector,
+                model=EMBED,
+                dim=len(vector),
                 candidate_limit=max(100, top_k * 4),
                 database_='neo4j'
             ).records
-        
-        # A narrowly scoped topic match helps multi-part questions find a
-        # relevant manual summary even when English web chunks rank higher.
-        candidates = []
-        for record in rows:
-            row = dict(record)
-            score = row.get('score')
-            if score is None:
-                continue
-            boost = _topic_boost(question, row) if score >= 0.84 else 0.0
-            if score + boost >= threshold:
-                candidates.append((score + boost, row))
-        candidates.sort(key=lambda item: item[0], reverse=True)
-        results = []
-        seen_urls = set()
-        for _, row in candidates:
-            if row['url'] in seen_urls:
-                continue
-            results.append(row)
-            seen_urls.add(row['url'])
-            if len(results) >= top_k:
-                break
-        return results
+            if not rows:
+                stale = db.execute_query(
+                    'MATCH (d:Document) WHERE d.embedding IS NOT NULL RETURN count(d) AS n',
+                    database_='neo4j').records[0]['n']
+                if stale:
+                    log.warning('No Document embedded with model %s (dim %d) among %d embedded documents; '
+                                're-run ml.seed_knowledge / ml.refresh_web', EMBED, len(vector), stale)
+        return select_results(question, [dict(r) for r in rows], top_k, threshold)
     except Exception as exc:
         log.exception(f"Error during RAG retrieval: {exc}")
         raise
 
+# Viết lại câu hỏi tiếp nối dựa trên các câu hỏi trước để phục vụ truy xuất.
 def standalone_question(question: str, history: list[dict]) -> str:
     """Rewrite follow-ups for retrieval, with a bounded local conversation context."""
     if not history:
@@ -132,6 +182,7 @@ def standalone_question(question: str, history: list[dict]) -> str:
         log.warning('Could not rewrite follow-up; using current question')
         return question
 
+# Trả phản hồi từng phần: thông báo thiếu nguồn hoặc sinh câu trả lời từ nguồn phù hợp.
 def answer_parts(question: str, sources: list[dict], history: list[dict] | None = None):
     """Generate grounded, cited Vietnamese answer based exclusively on retrieved sources."""
     if not sources:
@@ -206,5 +257,6 @@ Quy tắc bắt buộc:
         raise
 
 
+# Ghép các phần phản hồi thành một chuỗi hoàn chỉnh cho API không streaming.
 def answer(question: str, sources: list[dict], history: list[dict] | None = None) -> str:
     return ''.join(answer_parts(question, sources, history)).strip()

@@ -116,7 +116,9 @@ def test_out_of_domain_no_hallucination():
     assert response.status_code == 200
     data = response.json()
     # Should either retrieve 0 sources or answer that knowledge base has no sufficient info
-    assert "chưa tìm thấy tài liệu phù hợp" in data["answer"].lower() or "không chứa đủ thông tin" in data["answer"].lower() or len(data["sources"]) == 0
+    # "chưa đề cập" là câu từ chối do quy tắc 3 của prompt trong rag.answer_parts quy định.
+    refusals = ("chưa tìm thấy tài liệu phù hợp", "không chứa đủ thông tin", "chưa đề cập")
+    assert any(r in data["answer"].lower() for r in refusals) or len(data["sources"]) == 0
 
 def test_learning_agent_completion_state():
     """Verify state [0, 0, 0, 0] behavior."""
