@@ -614,7 +614,6 @@ function App() {
                           <AssistantBubble
                             key={index} turn={turn} index={index}
                             streaming={busy && isLast && !turn.done && !turn.error && !turn.stopped}
-                            traceOpen={false}
                             canRetry={isLast && !busy}
                             onRetry={() => sendChat(true)}
                             onAskAgain={() => askAgain(asked)}

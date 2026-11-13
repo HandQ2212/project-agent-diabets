@@ -166,15 +166,15 @@ export const COPY = {
   'arch.toData': 'Xem số liệu thật của từng khối: Dữ liệu và mô hình →',
   'risk.modelInfo': 'Mô hình này được đánh giá thế nào?',
   'risk.modelInfo.link': 'Xem chỉ số và dữ liệu huấn luyện',
-  // --- Key Neo thêm (text suy từ wireframe/bảng component, chưa có ở 3c) – chờ Luna duyệt ---
+  // --- Key bổ sung, Luna đã duyệt vào 3c ---
   'data.toc.models': 'Mô hình dự đoán',
   'data.toc.kb': 'Kho tri thức',
   'data.toc.sources': 'Nguồn đã duyệt',
   'data.assistant.ask': 'Xem các bước trong một câu trả lời',
   'data.assistant.dim': '{n} chiều',
   'data.model.accuracy': 'Độ chính xác tổng thể',
-  'data.cm.actualNeg': 'Thực tế: chưa chẩn đoán',
-  'data.cm.actualPos': 'Thực tế: đã chẩn đoán',
+  'data.cm.actualNeg': 'Thực tế: chưa được chẩn đoán',
+  'data.cm.actualPos': 'Thực tế: đã được chẩn đoán',
   'data.cm.predNeg': 'Mô hình: nhóm âm',
   'data.cm.predPos': 'Mô hình: nhóm dương',
   // --- Copy cũ giữ nguyên (3c cuối) ---

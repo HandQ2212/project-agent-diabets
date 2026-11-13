@@ -13,8 +13,6 @@ type Props = {
   index: number;
   /** Lượt đang stream (chưa `done`, chưa lỗi/dừng). */
   streaming: boolean;
-  /** Mở C6 sẵn cho lượt trả lời mới nhất. */
-  traceOpen: boolean;
   /** Hiện nút Thử lại cho lượt lỗi cuối khi không bận. */
   canRetry: boolean;
   onRetry: () => void;
@@ -24,7 +22,7 @@ type Props = {
   onStatus: (message: string) => void;
 };
 
-export function AssistantBubble({ turn, index, streaming, traceOpen, canRetry, onRetry, onAskAgain, onGoData, onStatus }: Props) {
+export function AssistantBubble({ turn, index, streaming, canRetry, onRetry, onAskAgain, onGoData, onStatus }: Props) {
   const traceRef = useRef<HTMLDetailsElement>(null);
   const finished = !!turn.done && !turn.error;
   const outcome = answerOutcome(finished ? turn.trace : undefined);
@@ -66,7 +64,7 @@ export function AssistantBubble({ turn, index, streaming, traceOpen, canRetry, o
         )}
         {finished && !!turn.trace?.length && <OutcomeSummary outcome={outcome} onOpenTrace={openTrace} onGoData={onGoData} />}
         {showSources && <SourceGroups sources={sources} turnIndex={index} facts={outcome.facts} webOpen={kind === 'links-only'} />}
-        {finished && !!turn.trace?.length && <TraceTimeline ref={traceRef} trace={turn.trace} outcome={outcome} defaultOpen={traceOpen} onGoData={onGoData} />}
+        {finished && !!turn.trace?.length && <TraceTimeline ref={traceRef} trace={turn.trace} outcome={outcome} defaultOpen={false} onGoData={onGoData} />}
         {disclaimer && <small className="chat-disclaimer">{t('chat.disclaimer')}</small>}
         {streaming && turn.content !== '' && <small className="chat-writing" aria-hidden="true">{t('pending.writing')}</small>}
       </div>
