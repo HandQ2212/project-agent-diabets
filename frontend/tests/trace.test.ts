@@ -179,3 +179,15 @@ test('REMOVED_NOTE: bỏ khi filtered và khớp nguyên văn; giữ tail web ph
   const verified = answerOutcome(T1);
   assert.equal(stripRemovedNote('X\n\n' + REMOVED_NOTE_V2, verified), 'X\n\n' + REMOVED_NOTE_V2);
 });
+
+test('TC-BUG2.6 category không phân biệt hoa thường: "emergency" vẫn hiện Gọi 115', () => {
+  for (const cat of ['emergency', 'Emergency', 'EMERGENCY']) {
+    const o = answerOutcome(blockedRule(cat));
+    assert.equal(o.kind, 'rule-blocked', cat);
+    assert.equal(o.category, 'EMERGENCY', cat);
+    assert.equal(needsEmergencyCall(o), true, cat);
+  }
+  assert.equal(needsEmergencyCall({ kind: 'rule-blocked', category: 'emergency' }), true);
+  assert.equal(needsEmergencyCall(answerOutcome(blockedRule('prompt_injection'))), false);
+  assert.equal(answerOutcome(blockedRule('prompt_injection')).category, 'PROMPT_INJECTION');
+});

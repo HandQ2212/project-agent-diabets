@@ -48,7 +48,7 @@ export function parseLine(line: string): { name: string; detail: string } {
   return { name: (m ? m[1] : line).trim(), detail: m ? m[2].trim() : '' };
 }
 
-const RULE_BLOCKED = /^Rule Agent \(Blocked: (\w+)\)$/;
+const RULE_BLOCKED = /^Rule Agent \(Blocked:\s*(\w+)\)$/i;
 const NUM_BLOCKED = /Number check: blocked(?:, unsupported: ?(.*?))?\)?$/i;
 const NUM_FILTERED = /Number check: filtered (\d+)\/(\d+) sentences?(?:, unsupported: ?(.*?))?\)?$/i;
 const NUM_REGENERATED = /Number check: regenerated(?:, unsupported: ?(.*?))?\)?$/i;
@@ -78,7 +78,7 @@ export function answerOutcome(trace: string[] | undefined): AnswerOutcome {
   };
 
   const rule = find(RULE_BLOCKED);
-  if (rule) return { kind: 'rule-blocked', category: rule[1], ...counts };
+  if (rule) return { kind: 'rule-blocked', category: rule[1].toUpperCase(), ...counts }; // category chuẩn hoá chữ hoa (TC-BUG2.6)
   if (lines.some(l => parseLine(l).name === 'Conversation Agent')) return { kind: 'conversation', ...counts };
   const blocked = find(NUM_BLOCKED);
   if (blocked) return { kind: 'number-blocked', unsupported: splitNums(blocked[1]), ...counts };
@@ -98,7 +98,7 @@ export function answerOutcome(trace: string[] | undefined): AnswerOutcome {
 export const isBlockedTrace = (trace?: string[]) => answerOutcome(trace).kind === 'rule-blocked';
 
 /** Chỉ EMERGENCY mới hiện Gọi 115 (BUG-2). */
-export const needsEmergencyCall = (o: AnswerOutcome) => o.kind === 'rule-blocked' && o.category === 'EMERGENCY';
+export const needsEmergencyCall = (o: AnswerOutcome) => o.kind === 'rule-blocked' && o.category?.toUpperCase() === 'EMERGENCY';
 
 type Translated = { text: string; status: StepStatus };
 
