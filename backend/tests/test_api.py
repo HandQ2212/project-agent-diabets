@@ -155,7 +155,7 @@ def test_stream_emits_fragments_and_sources(monkeypatch):
     from backend.app import main
     monkeypatch.setattr(main.rag, 'standalone_question', lambda q, h: q)
     monkeypatch.setattr(main.rag, 'retrieve', lambda *a, **k: [{'title': 'Nguồn', 'url': 'https://example.org', 'text': 'test'}])
-    monkeypatch.setattr(main.rag, 'answer_parts', lambda *a: iter(['Xin ', 'chào [1].']))
+    monkeypatch.setattr(main.rag, 'answer_parts', lambda *a, **k: iter(['Xin ', 'chào [1].']))
     response = client.post('/api/chat/stream', json={'question': 'Tiểu đường là gì?'})
     events = [__import__('json').loads(line) for line in response.text.splitlines()]
     assert ''.join(event['text'] for event in events if event['type'] == 'delta') == 'Xin chào [1].'

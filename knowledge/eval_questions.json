@@ -330,6 +330,43 @@
         "kb2-duong-huyet-binh-thuong",
         "kb2-tieu-chuan-chan-doan-so"
       ]
+    },
+    {
+      "q": "bao nhieu tuoi thi nen di xet nghiem duong huyet sang loc",
+      "relevant": [
+        "kb2-ai-nen-sang-loc",
+        "kb2-ai-nen-sang-loc-bytvn",
+        "kb2-sang-loc-yeu-to-nguy-co-bytvn"
+      ]
+    },
+    {
+      "q": "huyet ap muc tieu cho nguoi tieu duong la bao nhieu",
+      "relevant": [
+        "kb2-muc-tieu-kiem-soat",
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn"
+      ]
+    },
+    {
+      "q": "Mục tiêu LDL cholesterol cho người tiểu đường là bao nhiêu?",
+      "relevant": [
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn"
+      ]
+    },
+    {
+      "q": "muc tieu LDL cholesterol cho nguoi tieu duong la bao nhieu",
+      "relevant": [
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn"
+      ]
+    },
+    {
+      "q": "nguoi tieu duong uong ruou duoc bao nhieu moi ngay",
+      "relevant": [
+        "kb2-ruou-bia",
+        "kb2-ruou-bia-bytvn"
+      ]
     }
   ],
   "out_of_domain": [
