@@ -156,9 +156,14 @@ RL_POLICIES = [('dqn_policy', 'DQN'), ('greedy_heuristic', 'Luật tham lam'), (
 
 
 def _read_json(path: Path) -> dict | None:
+    """None khi file không có; file không đọc/parse được (thư mục, không có quyền, JSON hỏng) cũng None kèm cảnh báo,
+    để mô hình đó thành partial thay vì làm /api/about trả 500 (DEF-api-1.2)."""
     try:
         return json.loads(path.read_text(encoding='utf-8'))
     except FileNotFoundError:
+        return None
+    except (OSError, ValueError) as exc:
+        log.warning('Report %s/%s is unreadable (%s); metrics omitted', path.parent.name, path.name, type(exc).__name__)
         return None
 
 

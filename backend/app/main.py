@@ -363,7 +363,7 @@ def source_summary(source: dict) -> dict:
     B-3: nguồn bộ ba đồ thị kèm facts[{from, type, to, threshold?}].
     """
     status = source.get('review_status') or CURATED
-    summary = {'title': source['title'], 'url': source['url'], 'topic': source.get('topic', 'Y tế'),
+    summary = {'title': source.get('title'), 'url': source.get('url'), 'topic': source.get('topic', 'Y tế'),
                'review_status': status, 'fetched_at': source.get('fetched_at'),
                'publisher': PUBLISHERS.get(source.get('id')) if status == CURATED else None}
     if status == knowledge_graph.GRAPH_REVIEW_STATUS:

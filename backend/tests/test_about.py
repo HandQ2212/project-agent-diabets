@@ -420,3 +420,39 @@ def test_def_api_1_1_lock_is_not_held_while_building(tmp_path):
     finally:
         db.release.set()
         worker.join(5)
+
+
+# --- DEF-api-1.2: report không đọc được → partial, không 500 -----------------------------------------------
+
+def test_def_api_1_2_report_path_is_a_directory(tmp_path, caplog):
+    (tmp_path / 'brfss' / 'report.json').mkdir(parents=True)
+    (tmp_path / 'rl' / 'report.json').mkdir(parents=True)
+    with caplog.at_level(logging.WARNING):
+        assert about.model_info(spec('brfss'), tmp_path, True)['metrics_test'] is None
+        assert about.rl_info(tmp_path) is None
+    assert 'unreadable' in caplog.text and str(tmp_path) not in caplog.text
+
+
+def test_def_api_1_2_permission_error_and_bad_json(tmp_path, monkeypatch):
+    write_artifacts(tmp_path, {'symptoms': MLP_REPORT})
+    (tmp_path / 'brfss').mkdir()
+    (tmp_path / 'brfss' / 'report.json').write_text('{not json', encoding='utf-8')
+    real_read = Path.read_text
+
+    def read_text(self, *a, **k):
+        if self.parent.name == 'symptoms':
+            raise PermissionError(13, 'Permission denied')
+        return real_read(self, *a, **k)
+    monkeypatch.setattr(Path, 'read_text', read_text)
+    assert about.model_info(spec('symptoms'), tmp_path, True)['metrics_test'] is None
+    assert about.model_info(spec('brfss'), tmp_path, True)['metrics_test'] is None
+
+
+def test_def_api_1_2_endpoint_stays_200_with_unreadable_reports(tmp_path, monkeypatch):
+    svc = service(tmp_path, FakeDB())
+    (tmp_path / 'brfss' / 'report.json').mkdir(parents=True)
+    monkeypatch.setattr(main, 'ABOUT', svc)
+    response = TestClient(main.app).get('/api/about')
+    assert response.status_code == 200
+    brfss = next(m for m in response.json()['models'] if m['kind'] == 'brfss')
+    assert brfss['metrics_test'] is None

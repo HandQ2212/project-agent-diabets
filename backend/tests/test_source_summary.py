@@ -107,3 +107,8 @@ def test_stream_done_event_returns_the_same_sources(chat_pipeline, monkeypatch):
     done = json.loads(lines[-1])
     assert done['type'] == 'done'
     assert done['sources'] == [main.source_summary(CURATED_DOC), main.source_summary(WEB_DOC), main.source_summary(GRAPH)]
+
+
+def test_summary_tolerates_missing_title_and_url():
+    summary = main.source_summary({'id': 'x', 'text': 't'})
+    assert summary['title'] is None and summary['url'] is None and summary['review_status'] == 'curated'
