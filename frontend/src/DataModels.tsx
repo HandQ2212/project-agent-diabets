@@ -2,7 +2,7 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import type { HealthStatus } from './types';
 import { t, relLabel } from './copy.ts';
-import { fmtDec, fmtPct, fmtInt, fmtDateVN, fmtDateTimeVN, publisherFromTitle, PUBLISHERS } from './format.ts';
+import { fmtDec, fmtPct, fmtInt, fmtDateVN, fmtDateTimeVN, publisherFromTitle, PUBLISHERS, safeHref } from './format.ts';
 import {
   fetchAbout, kbDown, missingMetrics, filterSources, FILTER_OTHER,
   type AboutInfo, type AboutResult, type ModelInfo, type AssistantInfo, type KbInfo, type RlInfo
@@ -339,7 +339,7 @@ function ReviewedSources({ kb, onStatus }: { kb: KbInfo; onStatus: (s: string) =
             {shown.map(s => (
               <tr key={s.url + s.title}>
                 <td><span className="src-badge src-badge-curated">{s.publisher ?? t('data.src.other')}</span></td>
-                <td><a href={s.url} target="_blank" rel="noreferrer">{s.title}<span className="sr-only"> {t('src.newTab')}</span> <span aria-hidden="true">↗</span></a></td>
+                <td>{safeHref(s.url) ? <a href={safeHref(s.url)!} target="_blank" rel="noreferrer">{s.title}<span className="sr-only"> {t('src.newTab')}</span> <span aria-hidden="true">↗</span></a> : s.title}</td>
                 <td>{s.topic ?? ''}</td>
                 <td>{fmtDateVN(s.date)}</td>
               </tr>

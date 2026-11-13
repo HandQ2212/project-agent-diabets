@@ -2,7 +2,7 @@
 // Ngày giờ phải ra giống nhau dù TZ máy là gì (npm test chạy được với TZ bất kỳ).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fmtDec, fmtPct, fmtInt, fmtDateVN, fmtDateTimeVN, publisherFromTitle, splitCitations } from '../src/format.ts';
+import { fmtDec, fmtPct, fmtInt, fmtDateVN, fmtDateTimeVN, publisherFromTitle, splitCitations, safeHref } from '../src/format.ts';
 import { groupSources, sourceKind } from '../src/sourceGrouping.ts';
 import { classifyAbout, filterSources, kbDown, missingMetrics, FILTER_OTHER } from '../src/about.ts';
 import { t } from '../src/copy.ts';
@@ -110,4 +110,14 @@ test('#chat-status khi xong: bị chặn vì số / có nguồn / không nguồn
   assert.equal(doneStatus({ trace: ['Response Agent (Number check: blocked, unsupported: 77)'], sources: [{ title: 'a', url: 'b' }] }), t('status.blockedNum'));
   assert.equal(doneStatus({ trace: [], sources: [{ title: 'a', url: 'b' }, { title: 'c', url: 'd' }] }), 'Đã trả lời xong, 2 nguồn.');
   assert.equal(doneStatus({ trace: [], sources: [] }), 'Đã trả lời xong.');
+});
+
+test('TC-SEC.2/3 safeHref: chỉ http(s) mới thành link; javascript:/data:/tương đối/hỏng → null', () => {
+  assert.equal(safeHref('https://www.niddk.nih.gov/a?b=1'), 'https://www.niddk.nih.gov/a?b=1');
+  assert.equal(safeHref('http://example.org'), 'http://example.org/');
+  assert.equal(safeHref('  https://x.vn/  '), 'https://x.vn/');
+  for (const bad of ['javascript:alert(1)', 'JavaScript:alert(1)', ' javascript:alert(1)', 'java\tscript:alert(1)',
+    'data:text/html,<script>alert(1)</script>', 'vbscript:x', 'file:///etc/passwd', '/api/x', '//evil.com', 'không phải url', '', null, undefined]) {
+    assert.equal(safeHref(bad as string), null, String(bad));
+  }
 });

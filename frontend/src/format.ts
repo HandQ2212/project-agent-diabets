@@ -93,3 +93,17 @@ export function splitCitations(text: string, sourceCount: number): CitePart[] {
   pushText(text.slice(last));
   return out;
 }
+
+/**
+ * URL an toàn để đặt vào `href` (TC-SEC.2/3): chỉ http(s) tuyệt đối. `javascript:`, `data:`, URL tương đối,
+ * URL hỏng → null (UI hiện text, không có link).
+ */
+export function safeHref(url: string | null | undefined): string | null {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null;
+  } catch {
+    return null;
+  }
+}

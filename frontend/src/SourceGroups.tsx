@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Source } from './types';
 import { t, relLabel } from './copy.ts';
-import { fmtDateVN } from './format.ts';
+import { fmtDateVN, safeHref } from './format.ts';
 import { groupSources, type SourceItem } from './sourceGrouping.ts';
 
 export const sourceDomId = (turnIndex: number, n: number) => `src-${turnIndex}-${n}`;
@@ -31,9 +31,11 @@ function Item({ item, kind, turnIndex, facts }: { item: SourceItem; kind: 'revie
   return (
     <li id={sourceDomId(turnIndex, item.n)} tabIndex={-1} className={`src src-${badgeCls}`}>
       <span className={`src-badge src-badge-${badgeCls}`}>{badge}</span>
-      <a href={item.source.url} target="_blank" rel="noreferrer">
-        [{item.n}] {item.title}<span className="sr-only"> {t('src.newTab')}</span> <span aria-hidden="true">↗</span>
-      </a>
+      {safeHref(item.source.url) ? (
+        <a href={safeHref(item.source.url)!} target="_blank" rel="noreferrer">
+          [{item.n}] {item.title}<span className="sr-only"> {t('src.newTab')}</span> <span aria-hidden="true">↗</span>
+        </a>
+      ) : <span className="src-nolink">[{item.n}] {item.title}</span>}
       <Note item={item} kind={kind} facts={facts} />
       {kind === 'graph' && !!item.source.facts?.length && (
         <ul className="src-facts">
