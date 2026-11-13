@@ -297,3 +297,126 @@ def test_default_service_reports_the_running_configuration():
     assert assistant['llm'] == main.rag.MODEL and assistant['embedding'] == main.rag.EMBED
     assert assistant['top_k'] == main.RETRIEVE_TOP_K == 3 and assistant['min_cosine'] == main.rag.RAG_THRESHOLD
     assert assistant['number_guard'] in {'v1', 'v2'}
+
+
+# --- DEF-api-1.1: Neo4j nhận TCP nhưng im lặng / treo; request đồng thời ------------------------------------
+
+import socket
+import threading
+import time as _time
+
+
+@pytest.fixture
+def silent_neo4j(monkeypatch):
+    """Cổng TCP nhận kết nối nhưng không bao giờ trả lời (Neo4j treo, docker pause, GC dài)."""
+    server = socket.socket()
+    server.bind(('127.0.0.1', 0))
+    server.listen(64)
+    held, stop = [], threading.Event()
+
+    def accept():
+        server.settimeout(0.2)
+        while not stop.is_set():
+            try:
+                held.append(server.accept()[0])
+            except OSError:
+                continue
+    thread = threading.Thread(target=accept, daemon=True)
+    thread.start()
+    monkeypatch.setenv('NEO4J_URI', f'bolt://127.0.0.1:{server.getsockname()[1]}')
+    yield
+    stop.set()
+    thread.join(1)
+    for conn in held:
+        conn.close()
+    server.close()
+
+
+def real_driver_service(tmp_path):
+    svc = service(tmp_path, None)
+    svc._db_factory = about.kb_driver
+    return svc
+
+
+def test_def_api_1_1_silent_neo4j_returns_kb_null_within_deadline(tmp_path, silent_neo4j):
+    svc = real_driver_service(tmp_path)
+    started = _time.monotonic()
+    payload = svc.get()
+    elapsed = _time.monotonic() - started
+    assert payload['kb'] is None and payload['models']
+    assert elapsed <= 3.5, elapsed
+
+
+def test_def_api_1_1_endpoint_with_silent_neo4j_answers_200_quickly(tmp_path, silent_neo4j, monkeypatch):
+    monkeypatch.setattr(main, 'ABOUT', real_driver_service(tmp_path))
+    started = _time.monotonic()
+    response = TestClient(main.app).get('/api/about')
+    assert response.status_code == 200 and response.json()['kb'] is None
+    assert _time.monotonic() - started <= 3.5
+
+
+class HangingDB(FakeDB):
+    """Bắt tay xong rồi treo ở query (timeout phía server không cứu được): chỉ deadline phía client chặn được."""
+
+    def __init__(self):
+        super().__init__()
+        self.release, self.opened = threading.Event(), 0
+
+    def __enter__(self):
+        self.opened += 1
+        return self
+
+    def execute_query(self, query, database_=None, **params):
+        self.release.wait(10)
+        raise ConnectionError('released')
+
+
+def test_def_api_1_1_client_deadline_bounds_a_hung_query(tmp_path):
+    db = HangingDB()
+    svc = service(tmp_path, db)
+    svc._kb_deadline_s = 0.3
+    started = _time.monotonic()
+    try:
+        assert svc.get()['kb'] is None
+        assert _time.monotonic() - started < 1.0
+    finally:
+        db.release.set()
+
+
+def test_def_api_1_1_concurrent_requests_share_one_build_and_do_not_queue(tmp_path):
+    db = HangingDB()
+    svc = service(tmp_path, db)
+    svc._kb_deadline_s = 0.5
+    results, durations = [], []
+
+    def call():
+        t = _time.monotonic()
+        results.append(svc.get())
+        durations.append(_time.monotonic() - t)
+    threads = [threading.Thread(target=call) for _ in range(5)]
+    try:
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(5)
+        assert len(results) == 5 and all(r['kb'] is None for r in results)
+        assert max(durations) < 1.2                     # không xếp hàng 5 × 0,5 s
+        assert db.opened == 1                           # single-flight: chỉ một lượt đếm Neo4j
+        assert all(r is results[0] for r in results)
+    finally:
+        db.release.set()
+
+
+def test_def_api_1_1_lock_is_not_held_while_building(tmp_path):
+    db = HangingDB()
+    svc = service(tmp_path, db)
+    svc._kb_deadline_s = 2.0
+    worker = threading.Thread(target=svc.get)
+    try:
+        worker.start()
+        _time.sleep(0.2)                                # đang dựng payload
+        assert svc._lock.acquire(timeout=0.1)           # khoá rảnh: invalidate/get khác không bị chặn
+        svc._lock.release()
+    finally:
+        db.release.set()
+        worker.join(5)

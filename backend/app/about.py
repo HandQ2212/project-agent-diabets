@@ -13,6 +13,7 @@ import math
 import os
 import threading
 import time
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeout
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -23,6 +24,11 @@ log = logging.getLogger(__name__)
 VN = ZoneInfo('Asia/Ho_Chi_Minh')
 CACHE_TTL_S = 300.0
 CACHE_TTL_KB_DOWN_S = 30.0
+# Hạn chót cho toàn bộ phần đếm Neo4j (DEF-api-1.1). Driver có timeout riêng nhỏ hơn; deadline này chặn cả trường hợp
+# server bắt tay xong rồi treo (timeout của Query do server thực thi nên server treo thì không có tác dụng).
+KB_DEADLINE_S = 3.0
+KB_CONNECT_TIMEOUT_S = 2.0
+KB_ACQUIRE_TIMEOUT_S = 2.5
 NOT_FOR_DIAGNOSIS = 'Chỉ dùng cho học tập; không dùng để sàng lọc, chẩn đoán hay quyết định điều trị.'
 
 
@@ -247,25 +253,37 @@ def kb_stats(db, embed_model: str, publisher_of: Callable[[str], str | None]) ->
 def kb_driver():
     """Driver riêng có timeout ngắn: Neo4j sập thì /api/about trả nhanh (driver mặc định thử lại tới 30 s)."""
     from neo4j import GraphDatabase
+    # connection_timeout chỉ chặn bước mở socket; bước lấy connection (bolt handshake) cần connection_acquisition_timeout
+    # (mặc định 60 s) – thiếu nó thì server nhận TCP mà im lặng sẽ giữ request ~60 s (DEF-api-1.1).
     return GraphDatabase.driver(os.getenv('NEO4J_URI', 'bolt://localhost:7687'),
                                 auth=(os.getenv('NEO4J_USER', 'neo4j'), os.getenv('NEO4J_PASSWORD', '')),
-                                connection_timeout=3.0, max_transaction_retry_time=0.0)
+                                connection_timeout=KB_CONNECT_TIMEOUT_S,
+                                connection_acquisition_timeout=KB_ACQUIRE_TIMEOUT_S, max_transaction_retry_time=0.0)
 
 
 # --- Ghép payload + cache --------------------------------------------------------------------------------
 
 class AboutService:
-    """Dựng payload /api/about và cache theo TTL. Phụ thuộc truyền vào để test không cần file thật hay Neo4j."""
+    """Dựng payload /api/about và cache theo TTL. Phụ thuộc truyền vào để test không cần file thật hay Neo4j.
+
+    Đồng thời (DEF-api-1.1): khoá chỉ bảo vệ trạng thái, KHÔNG giữ trong lúc dựng payload. Mỗi lúc chỉ một request
+    dựng (single-flight); request khác tới trong lúc đó chờ chính kết quả ấy, nên không có lượt đếm Neo4j chồng nhau
+    và không request nào chờ lâu hơn một lần dựng (≤ KB_DEADLINE_S cộng phần đọc file).
+    """
 
     def __init__(self, *, artifacts: Callable[[], Path], availability: Callable[[], dict], llm: str, embedding: str,
                  top_k: int, min_cosine: float, number_guard: str, publisher_of: Callable[[str], str | None],
                  db_factory=kb_driver, clock: Callable[[], float] = time.monotonic,
-                 now: Callable[[], datetime] = lambda: datetime.now(VN)):
+                 now: Callable[[], datetime] = lambda: datetime.now(VN), kb_deadline_s: float = KB_DEADLINE_S):
         self._artifacts, self._availability = artifacts, availability
         self._assistant = {'llm': llm, 'llm_provider': 'Ollama', 'embedding': embedding, 'top_k': top_k,
                            'min_cosine': min_cosine, 'number_guard': number_guard}
         self._publisher_of, self._db_factory, self._clock, self._now = publisher_of, db_factory, clock, now
+        self._kb_deadline_s = kb_deadline_s
+        # Thread nền đếm Neo4j; nếu quá hạn thì bị bỏ lại và tự kết thúc theo timeout của driver (≤ vài giây).
+        self._kb_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='about-kb')
         self._cached: tuple[float, dict] | None = None
+        self._inflight: Future | None = None
         self._lock = threading.Lock()
 
     def invalidate(self) -> None:
@@ -276,15 +294,38 @@ class AboutService:
         with self._lock:
             if self._cached and self._clock() < self._cached[0]:
                 return self._cached[1]
+            pending, owner = self._inflight, self._inflight is None
+            if owner:
+                pending = self._inflight = Future()
+        if not owner:
+            return pending.result()
+        try:
             payload = self._build()
-            ttl = CACHE_TTL_S if payload['kb'] is not None else CACHE_TTL_KB_DOWN_S
+        except BaseException as exc:
+            pending.set_exception(exc)
+            raise
+        finally:
+            with self._lock:
+                self._inflight = None
+        ttl = CACHE_TTL_S if payload['kb'] is not None else CACHE_TTL_KB_DOWN_S
+        with self._lock:
             self._cached = (self._clock() + ttl, payload)
-            return payload
+        pending.set_result(payload)
+        return payload
+
+    def _count_kb(self) -> dict:
+        with self._db_factory() as db:
+            return kb_stats(db, self._assistant['embedding'], self._publisher_of)
 
     def _kb(self) -> dict | None:
+        future = self._kb_pool.submit(self._count_kb)
         try:
-            with self._db_factory() as db:
-                return kb_stats(db, self._assistant['embedding'], self._publisher_of)
+            return future.result(timeout=self._kb_deadline_s)
+        except FutureTimeout:
+            future.cancel()
+            log.warning('Knowledge base statistics took longer than %.1f s (Neo4j); returning kb=null',
+                        self._kb_deadline_s)
+            return None
         except Exception:
             log.warning('Knowledge base statistics unavailable (Neo4j); returning kb=null', exc_info=True)
             return None
