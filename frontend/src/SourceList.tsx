@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Source } from './types';
+import { safeHref } from './format.ts';
 
 function sourceKind(s: Source): { cls: string; label: string; note: string } {
   if (s.review_status === 'curated_graph' || s.title.startsWith('Đồ thị tri thức Neo4j')) {
@@ -25,7 +26,9 @@ export function SourceList({ sources, compact }: { sources: Source[]; compact?: 
           return (
             <li key={i} className={`src src-${k.cls}`}>
               <span className={`src-badge src-badge-${k.cls}`}>{k.label}</span>
-              <a href={s.url} target="_blank" rel="noreferrer">[{i + 1}] {title}<span className="sr-only"> (mở trong tab mới)</span> ↗</a>
+              {safeHref(s.url)
+                ? <a href={safeHref(s.url)!} target="_blank" rel="noreferrer">[{i + 1}] {title}<span className="sr-only"> (mở trong tab mới)</span> ↗</a>
+                : <span>[{i + 1}] {title}</span>}
               <small>
                 {k.note}{k.cls === 'web' && s.fetched_at ? ` · ${new Date(s.fetched_at).toLocaleDateString('vi-VN')}` : ''}
                 {first !== undefined ? ` · Cùng liên kết với nguồn [${first + 1}]` : ''}
