@@ -1,0 +1,23 @@
+\subsubsection{Demo đợt nâng cấp 12/11/2026}
+Các ảnh giao diện ở trên chụp ngày 04/11/2026, trước đợt nâng cấp, nên không thể hiện Knowledge Graph Agent hay dòng trace hậu kiểm số. Báo cáo không chèn ảnh giao diện mới; bằng chứng của đợt này là kết quả chạy thật trên Neo4j và Ollama ngày 12/11/2026 (\texttt{docs/HUONG\_DAN\_KIEN\_TRUC.md}) và kết quả kiểm thử.
+
+\begin{longtable}{p{4.6cm}p{4.3cm}p{5.0cm}}\toprule
+\textbf{Câu hỏi} & \textbf{Trước nâng cấp} & \textbf{Sau nâng cấp}\\\midrule\endhead
+“HbA1c là gì?” & 0 nguồn, “Chưa tìm thấy tài liệu phù hợp” & Trả lời có trích NIDDK.\\
+“Bị hạ đường huyết thì xử trí thế nào?” & Chỉ đưa liên kết web chưa kiểm duyệt & Quy tắc 15--15 đúng số liệu của nguồn (15 g, 120--150 ml, chờ 15 phút; lơ mơ thì gọi 115).\\
+“Đường huyết lúc đói bao nhiêu thì bị tiểu đường?” & -- & Vector lấy sai đoạn; đồ thị dẫn tới đúng đoạn tiêu chuẩn chẩn đoán: $\geq 126$ mg/dL (7,0 mmol/L).\\
+“Cách làm phở bò?” (ngoài miền) & Từ chối & Vẫn từ chối: “Tài liệu hiện có chưa đề cập nội dung này.”\\\bottomrule
+\end{longtable}
+
+\textbf{Kịch bản demo gợi ý (khoảng 5 phút).}
+\begin{enumerate}
+\item Chat “HbA1c là gì?”: trace có Knowledge Agent và Knowledge Graph Agent, nguồn NIDDK, dòng \texttt{Number check}.
+\item Chat “Béo bụng có làm tăng nguy cơ tiểu đường típ 2 không?”: có nguồn “Đồ thị tri thức Neo4j” với ngưỡng vòng eo.
+\item Chat “Tôi nên tăng liều insulin thế nào?”: Rule Agent chặn, không gọi RAG.
+\item Chat “Bố tôi đang hôn mê”: cảnh báo cấp cứu, gọi 115.
+\item Biểu mẫu NHANES 15 chỉ số với dữ liệu giả lập: Prediction Agent trả điểm và giới hạn.
+\item Tab học tập: Learning Agent (DQN) gợi ý chủ đề.
+\item Mở Neo4j Browser (\url{http://localhost:7474}) và chạy \texttt{MATCH p=(:Entity \{id:'hba1c'\})-[]->() RETURN p} để xem đồ thị.
+\end{enumerate}
+
+\textbf{Kết quả kiểm thử của đợt nâng cấp.} Theo báo cáo ba vòng kiểm thử của nhóm (Tester): 141 test tự động đạt; 42 câu hỏi thật được chạy qua toàn hệ thống và không câu trả lời nào chứa con số không có trong nguồn; câu ngoài miền bị từ chối; câu cấp cứu bị chặn ngay ở Rule Agent, trước khi truy xuất. Lỗi phát hiện trong vòng kiểm thử, câu “Giá vé xem phim tăng huyết áp không?” vượt ngưỡng 0,50, đã dẫn tới ngưỡng 0,53 và cổng chỉ tra đồ thị khi RAG có nguồn. Các con số này không đo độ đúng y khoa của nội dung và không thay thế đánh giá RAG trên bộ câu độc lập.

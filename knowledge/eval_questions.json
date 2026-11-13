@@ -1,0 +1,367 @@
+{
+  "in_domain": [
+    {
+      "q": "Bị hạ đường huyết thì xử trí thế nào?",
+      "relevant": [
+        "kb2-ha-duong-huyet-15-15",
+        "bytvn-hypoglycemia",
+        "ada-hypoglycemia-emergency"
+      ]
+    },
+    {
+      "q": "Đường huyết lúc đói bao nhiêu thì bị tiểu đường?",
+      "relevant": [
+        "kb2-tieu-chuan-chan-doan-so",
+        "kb2-tieu-chuan-chan-doan-bytvn",
+        "bytvn-diagnosis-guidelines",
+        "kb2-duong-huyet-binh-thuong"
+      ]
+    },
+    {
+      "q": "Duong huyet luc doi bao nhieu la bi tieu duong",
+      "relevant": [
+        "kb2-tieu-chuan-chan-doan-so",
+        "kb2-tieu-chuan-chan-doan-bytvn",
+        "bytvn-diagnosis-guidelines",
+        "kb2-duong-huyet-binh-thuong"
+      ]
+    },
+    {
+      "q": "HbA1c là gì vậy?",
+      "relevant": [
+        "kb2-hba1c-la-gi"
+      ]
+    },
+    {
+      "q": "hba1c 6.8 có nguy hiểm không, cần nhịn đói khi xét nghiệm không?",
+      "relevant": [
+        "kb2-hba1c-la-gi",
+        "kb2-tieu-chuan-chan-doan-so",
+        "kb2-tieu-chuan-chan-doan-bytvn",
+        "kb2-duong-huyet-binh-thuong"
+      ]
+    },
+    {
+      "q": "Tiền tiểu đường là gì, có chữa khỏi được không?",
+      "relevant": [
+        "kb2-tien-dai-thao-duong",
+        "kb2-dpp-giam-nguy-co"
+      ]
+    },
+    {
+      "q": "Đổi 126 mg/dL sang mmol/L như thế nào?",
+      "relevant": [
+        "kb2-doi-don-vi"
+      ]
+    },
+    {
+      "q": "Nghiệm pháp uống đường 75g làm như thế nào?",
+      "relevant": [
+        "kb2-nghiem-phap-ogtt"
+      ]
+    },
+    {
+      "q": "Bao nhiêu tuổi thì nên đi xét nghiệm đường huyết sàng lọc?",
+      "relevant": [
+        "kb2-ai-nen-sang-loc",
+        "kb2-ai-nen-sang-loc-bytvn",
+        "kb2-sang-loc-yeu-to-nguy-co-bytvn"
+      ]
+    },
+    {
+      "q": "BMI bao nhiêu thì người Việt bị coi là thừa cân?",
+      "relevant": [
+        "kb2-beo-bung-chau-a",
+        "kb2-vong-eo-giam-can-bytvn"
+      ]
+    },
+    {
+      "q": "Mục tiêu đường huyết cho người bị tiểu đường là bao nhiêu?",
+      "relevant": [
+        "kb2-muc-tieu-kiem-soat",
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn"
+      ]
+    },
+    {
+      "q": "Khi bị sốt, nôn, tiêu chảy thì người tiểu đường cần làm gì?",
+      "relevant": [
+        "kb2-ngay-om"
+      ]
+    },
+    {
+      "q": "Tiểu đường típ 1 và típ 2 khác nhau chỗ nào?",
+      "relevant": [
+        "kb2-typ1-typ2-khac-nhau",
+        "who-diabetes-types"
+      ]
+    },
+    {
+      "q": "Phụ nữ mang thai bị tiểu đường thai kỳ có nguy hiểm không?",
+      "relevant": [
+        "kb2-thai-ky",
+        "kb2-thai-ky-sau-sinh-ada"
+      ]
+    },
+    {
+      "q": "Tiểu đường ảnh hưởng đến thận như thế nào?",
+      "relevant": [
+        "kb2-bien-chung-than",
+        "kb2-bien-chung-than-bytvn"
+      ]
+    },
+    {
+      "q": "Bị tiểu đường có thể bị mù không? Bao lâu khám mắt một lần?",
+      "relevant": [
+        "kb2-bien-chung-mat",
+        "kb2-bien-chung-mat-bytvn"
+      ]
+    },
+    {
+      "q": "Chân tôi hay bị tê bì, châm chích, có phải do tiểu đường không?",
+      "relevant": [
+        "kb2-than-kinh-ban-chan",
+        "kb2-than-kinh-ban-chan-ada"
+      ]
+    },
+    {
+      "q": "Vì sao người tiểu đường dễ bị bệnh tim mạch?",
+      "relevant": [
+        "kb2-tim-mach",
+        "ada-smoking-cessation"
+      ]
+    },
+    {
+      "q": "Người tiểu đường nên ăn uống thế nào cho đúng?",
+      "relevant": [
+        "kb2-dia-an"
+      ]
+    },
+    {
+      "q": "Bị tiểu đường có được ăn cơm không?",
+      "relevant": [
+        "kb2-tinh-bot-chi-so-duong-huyet",
+        "kb2-chat-xo-chi-so-gi-ada"
+      ]
+    },
+    {
+      "q": "Mỗi tuần nên tập thể dục bao nhiêu phút nếu bị tiểu đường?",
+      "relevant": [
+        "kb2-van-dong",
+        "kb2-van-dong-bytvn",
+        "who-physical-activity"
+      ]
+    },
+    {
+      "q": "Bị tiểu đường uống bia rượu được không?",
+      "relevant": [
+        "kb2-ruou-bia",
+        "kb2-ruou-bia-bytvn"
+      ]
+    },
+    {
+      "q": "Cách tự đo đường huyết tại nhà cho đúng?",
+      "relevant": [
+        "kb2-theo-doi-tai-nha",
+        "bytvn-glycemic-targets"
+      ]
+    },
+    {
+      "q": "Bị tiểu đường làm tôi căng thẳng và chán nản, vậy có bình thường không?",
+      "relevant": [
+        "kb2-suc-khoe-tinh-than"
+      ]
+    },
+    {
+      "q": "HDL, triglyceride, cholesterol cao thì liên quan gì tiểu đường?",
+      "relevant": [
+        "kb2-chi-so-mo-mau"
+      ]
+    },
+    {
+      "q": "ALT và creatinine tăng có liên quan đến tiểu đường không?",
+      "relevant": [
+        "kb2-chi-so-gan-than"
+      ]
+    },
+    {
+      "q": "Kết quả dự đoán của Đường An có phải là chẩn đoán bệnh không?",
+      "relevant": [
+        "kb2-hieu-ket-qua-mo-hinh"
+      ]
+    },
+    {
+      "q": "Các triệu chứng điển hình của bệnh đái tháo đường là gì?",
+      "relevant": [
+        "cdc-classic-symptoms",
+        "vinmec-type2-signs",
+        "longchau-diabetes-faq"
+      ]
+    },
+    {
+      "q": "an nhieu uong nhieu tieu nhieu sut can la bi gi",
+      "relevant": [
+        "cdc-classic-symptoms",
+        "vinmec-type2-signs"
+      ]
+    },
+    {
+      "q": "Những ai có nguy cơ cao mắc tiểu đường típ 2?",
+      "relevant": [
+        "cdc-risk-factors"
+      ]
+    },
+    {
+      "q": "Làm sao để phòng ngừa tiểu đường típ 2?",
+      "relevant": [
+        "cdc-prevention-lifestyle",
+        "who-types-prevention-vn"
+      ]
+    },
+    {
+      "q": "Nhiễm toan ceton và tăng áp lực thẩm thấu là gì?",
+      "relevant": [
+        "bytvn-hyperglycemia-complications",
+        "kb2-dka-khong-tang-duong-ada"
+      ]
+    },
+    {
+      "q": "Biến chứng mạn tính của đái tháo đường gồm những gì?",
+      "relevant": [
+        "niddk-chronic-complications"
+      ]
+    },
+    {
+      "q": "Cách chăm sóc bàn chân để tránh loét ở người tiểu đường?",
+      "relevant": [
+        "kb2-than-kinh-ban-chan",
+        "kb2-than-kinh-ban-chan-ada"
+      ]
+    },
+    {
+      "q": "Hút thuốc lá và huyết áp cao có ảnh hưởng gì tới người bị tiểu đường?",
+      "relevant": [
+        "ada-smoking-cessation"
+      ]
+    },
+    {
+      "q": "Bệnh đái tháo đường là gì?",
+      "relevant": [
+        "who-diabetes-overview",
+        "vinmec-diabetes-overview"
+      ]
+    },
+    {
+      "q": "Đái tháo đường có những loại nào?",
+      "relevant": [
+        "who-diabetes-types",
+        "who-types-prevention-vn",
+        "kb2-typ1-typ2-khac-nhau"
+      ]
+    },
+    {
+      "q": "Tôi thấy run tay, vã mồ hôi, đói cào, có phải hạ đường huyết không và nên ăn gì ngay?",
+      "relevant": [
+        "kb2-ha-duong-huyet-15-15",
+        "bytvn-hypoglycemia",
+        "ada-hypoglycemia-emergency"
+      ]
+    },
+    {
+      "q": "Ba tôi 60 tuổi bị tiểu đường lâu năm, dạo này phù chân và nước tiểu có bọt, cần lưu ý gì?",
+      "relevant": [
+        "kb2-bien-chung-than",
+        "kb2-bien-chung-than-bytvn",
+        "niddk-chronic-complications"
+      ]
+    },
+    {
+      "q": "Chẩn đoán tiểu đường dựa vào những tiêu chuẩn nào theo Bộ Y tế?",
+      "relevant": [
+        "bytvn-diagnosis-guidelines",
+        "kb2-tieu-chuan-chan-doan-so",
+        "kb2-tieu-chuan-chan-doan-bytvn",
+        "kb2-duong-huyet-binh-thuong"
+      ]
+    },
+    {
+      "q": "Đường huyết sau ăn bao nhiêu là cao?",
+      "relevant": [
+        "kb2-muc-tieu-kiem-soat",
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn",
+        "kb2-tieu-chuan-chan-doan-so",
+        "kb2-tieu-chuan-chan-doan-bytvn",
+        "kb2-nghiem-phap-ogtt",
+        "kb2-duong-huyet-binh-thuong"
+      ]
+    },
+    {
+      "q": "Huyết áp mục tiêu cho người tiểu đường là bao nhiêu?",
+      "relevant": [
+        "kb2-muc-tieu-kiem-soat",
+        "kb2-muc-tieu-ha-ldl-ada",
+        "kb2-muc-tieu-bytvn"
+      ]
+    },
+    {
+      "q": "Hút thuốc ảnh hưởng tiểu đường thế nào?",
+      "relevant": [
+        "ada-smoking-cessation"
+      ]
+    },
+    {
+      "q": "Người tiểu đường uống rượu được bao nhiêu mỗi ngày?",
+      "relevant": [
+        "kb2-ruou-bia",
+        "kb2-ruou-bia-bytvn"
+      ]
+    },
+    {
+      "q": "Chỉ số đường huyết lúc đói bình thường là bao nhiêu?",
+      "relevant": [
+        "kb2-duong-huyet-binh-thuong",
+        "kb2-tieu-chuan-chan-doan-so"
+      ]
+    },
+    {
+      "q": "chi so duong huyet luc doi binh thuong la bao nhieu",
+      "relevant": [
+        "kb2-duong-huyet-binh-thuong",
+        "kb2-tieu-chuan-chan-doan-so"
+      ]
+    }
+  ],
+  "out_of_domain": [
+    {
+      "q": "Cách làm món phở bò ngon tại nhà?"
+    },
+    {
+      "q": "Hôm qua đội tuyển Việt Nam đá với Thái Lan tỉ số bao nhiêu?"
+    },
+    {
+      "q": "Viết giúp tôi hàm sắp xếp mảng bằng Python"
+    },
+    {
+      "q": "Thời tiết Hà Nội ngày mai có mưa không?"
+    },
+    {
+      "q": "Giá vàng SJC hôm nay bao nhiêu?"
+    },
+    {
+      "q": "Hướng dẫn cài đặt Windows 11 từ USB"
+    },
+    {
+      "q": "Ai là tổng thống Mỹ hiện nay?"
+    },
+    {
+      "q": "Gợi ý địa điểm du lịch Đà Nẵng 3 ngày 2 đêm"
+    },
+    {
+      "q": "Làm sao để học tiếng Anh giao tiếp nhanh?"
+    },
+    {
+      "q": "Cách trồng rau muống trong chậu"
+    }
+  ]
+}

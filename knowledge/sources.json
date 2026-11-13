@@ -4,7 +4,7 @@
     "title": "WHO: Bệnh đái tháo đường (Fact Sheet)",
     "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
     "topic": "Định nghĩa và Tổng quan",
-    "date": "2023-04-05",
+    "date": "2026-11-12",
     "license": "WHO Open Access / Public Health Guidance",
     "text": "Đái tháo đường là một bệnh mạn tính xảy ra khi tuyến tụy không sản xuất đủ insulin hoặc khi cơ thể không thể sử dụng hiệu quả lượng insulin mà nó tạo ra. Insulin là một hormone điều hòa lượng đường (glucose) trong máu. Tăng đường huyết không kiểm soát theo thời gian sẽ dẫn đến tổn thương nghiêm trọng nhiều hệ thống của cơ thể, đặc biệt là các dây thần kinh và mạch máu."
   },
@@ -13,125 +13,125 @@
     "title": "WHO: Phân loại các thể đái tháo đường",
     "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
     "topic": "Phân loại đái tháo đường",
-    "date": "2023-09-12",
+    "date": "2026-11-12",
     "license": "WHO Open Access / Public Health Guidance",
-    "text": "Các thể đái tháo đường chính gồm típ 1, típ 2 và đái tháo đường thai kỳ. Típ 1 liên quan đến cơ thể sản xuất rất ít hoặc không đủ insulin. Típ 2 liên quan đến việc cơ thể sử dụng insulin không hiệu quả. Đái tháo đường thai kỳ là tình trạng tăng đường huyết được phát hiện trong thai kỳ. Tiền đái tháo đường là tình trạng đường huyết cao hơn bình thường nhưng chưa đạt mức chẩn đoán đái tháo đường típ 2; đây không phải là một típ đái tháo đường."
+    "text": "Các thể đái tháo đường chính gồm típ 1, típ 2 và đái tháo đường thai kỳ. Típ 1 liên quan đến cơ thể sản xuất rất ít hoặc không đủ insulin. Típ 2 liên quan đến việc cơ thể sử dụng insulin không hiệu quả. Đái tháo đường thai kỳ là tình trạng tăng đường huyết được phát hiện trong thai kỳ. WHO gọi rối loạn dung nạp glucose (IGT) và rối loạn glucose lúc đói (IFG) là các trạng thái trung gian giữa bình thường và đái tháo đường (thường được gọi là tiền đái tháo đường); người ở các trạng thái này có nguy cơ cao tiến triển thành típ 2 nhưng không phải là điều chắc chắn."
   },
   {
     "id": "cdc-classic-symptoms",
     "title": "CDC: Triệu chứng cảnh báo đái tháo đường",
     "url": "https://www.cdc.gov/diabetes/basics/symptoms.html",
     "topic": "Triệu chứng lâm sàng",
-    "date": "2024-05-15",
+    "date": "2026-11-12",
     "license": "CDC Public Domain",
-    "text": "Các triệu chứng điển hình của bệnh đái tháo đường bao gồm 'tứ chứng kinh điển': đi tiểu thường xuyên đặc biệt là vào ban đêm (polyuria), khát nước nhiều và uống liên tục (polydipsia), ăn nhiều nhưng nhanh đói (polyphagia), và sụt cân nhanh chóng không rõ nguyên nhân (sudden weight loss). Ngoài ra, người bệnh thường cảm thấy mệt mỏi kiệt sức, nhìn mờ, khô ngứa da, các vết trầy xước hoặc vết thương rất lâu lành, và dễ bị nhiễm nấm hoặc nhiễm trùng tái diễn."
+    "text": "Theo CDC, các triệu chứng thường gặp của đái tháo đường gồm: đi tiểu nhiều, khát nhiều, đói nhiều, sụt cân không chủ ý, mệt mỏi, dễ cáu gắt, nhìn mờ, và nhiễm trùng đường tiết niệu hoặc nhiễm nấm tái diễn. Ở đái tháo đường típ 2 còn có thể gặp vết thương lâu lành, vùng da sạm màu ở nếp gấp và cảm giác tê hoặc châm chích ở bàn tay, bàn chân. Các triệu chứng này không đặc hiệu; chỉ xét nghiệm đường huyết mới xác định được bệnh."
   },
   {
     "id": "cdc-risk-factors",
     "title": "CDC: Các yếu tố nguy cơ của đái tháo đường típ 2",
     "url": "https://www.cdc.gov/diabetes/basics/risk-factors.html",
     "topic": "Yếu tố nguy cơ",
-    "date": "2024-01-10",
-    "license": "CDC Public Domain",
-    "text": "Các yếu tố nguy cơ mắc đái tháo đường típ 2 bao gồm: Thừa cân hoặc béo phì (chỉ số BMI cao); Tuổi tác từ 45 tuổi trở lên (mặc dù bệnh ngày càng trẻ hóa); Tiền sử gia đình có bố mẹ hoặc anh chị em ruột mắc đái tháo đường; Lối sống tĩnh tại, hoạt động thể chất ít hơn 3 lần một tuần; Tiền sử mắc đái tháo đường thai kỳ hoặc sinh con nặng trên 4 kg; Người có tiền sử tăng huyết áp (huyết áp từ 140/90 mmHg trở lên) hoặc rối loạn lipid máu."
+    "date": "2026-11-12",
+    "license": "CDC Public Domain: https://www.cdc.gov/diabetes/basics/risk-factors.html",
+    "text": "Các yếu tố nguy cơ mắc đái tháo đường típ 2 theo CDC gồm: thừa cân hoặc béo phì (chỉ số BMI cao); tuổi từ 45 trở lên; tiền sử gia đình có bố mẹ hoặc anh chị em ruột mắc đái tháo đường; lối sống tĩnh tại, hoạt động thể chất ít hơn 3 lần một tuần; tiền sử mắc đái tháo đường thai kỳ hoặc sinh con nặng trên khoảng 4 kg. Mốc tuổi bắt đầu sàng lọc và các yếu tố nguy cơ khác (như tăng huyết áp, rối loạn mỡ máu) được các hướng dẫn chuyên ngành (ADA, Bộ Y tế Việt Nam) nêu riêng, xem các đoạn về sàng lọc."
   },
   {
     "id": "cdc-prevention-lifestyle",
     "title": "NIDDK: Giảm nguy cơ đái tháo đường típ 2",
     "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes",
     "topic": "Dự phòng và Lối sống",
-    "date": "2024-04-02",
-    "license": "Tóm tắt tự viết, tham khảo NIDDK",
-    "text": "Có thể giảm nguy cơ hoặc làm chậm khởi phát đái tháo đường típ 2 bằng những thay đổi phù hợp và duy trì lâu dài: ăn uống lành mạnh, vận động đều đặn và kiểm soát cân nặng khi cần. Người có nguy cơ cao nên trao đổi với nhân viên y tế về kế hoạch phù hợp với sức khỏe cá nhân. Các biện pháp này không bảo đảm ngăn ngừa bệnh ở mọi người."
+    "date": "2026-11-12",
+    "license": "Tóm tắt tự viết, tham khảo NIDDK (Last Reviewed 11/2016): https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-type-2-diabetes",
+    "text": "Có thể giảm nguy cơ hoặc làm chậm khởi phát đái tháo đường típ 2 bằng những thay đổi phù hợp và duy trì lâu dài. Theo NIDDK, giảm khoảng 5–7% cân nặng ban đầu và vận động thể lực ít nhất 30 phút mỗi ngày, 5 ngày mỗi tuần, kết hợp ăn uống lành mạnh với khẩu phần vừa phải, có thể giúp phòng ngừa hoặc trì hoãn bệnh. Người có nguy cơ cao nên trao đổi với nhân viên y tế về kế hoạch phù hợp với sức khỏe cá nhân. Các biện pháp này không bảo đảm ngăn ngừa bệnh ở mọi người."
   },
   {
     "id": "bytvn-diagnosis-guidelines",
     "title": "Bộ Y tế Việt Nam: Hướng dẫn chẩn đoán và điều trị đái tháo đường típ 2",
-    "url": "https://kcb.vn/van-ban/quyet-dinh-so-5481-qd-byt-ve-viec-ban-hanh-tai-lieu-chuyen-mon-huong-dan-chan-doan-va-dieu-tri-dai-thao-duong-tip-2.html",
+    "url": "https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=11",
     "topic": "Tiêu chuẩn chẩn đoán",
-    "date": "2020-12-30",
-    "license": "Tài liệu chuyên môn Bộ Y tế Việt Nam",
+    "date": "2026-11-12",
+    "license": "Tài liệu chuyên môn Bộ Y tế Việt Nam (QĐ 5481/QĐ-BYT ngày 30/12/2020, bản PDF lưu tại Bệnh viện Đa khoa Bà Rịa)",
     "text": "Theo Hướng dẫn chẩn đoán của Bộ Y tế Việt Nam (Quyết định 5481/QĐ-BYT), tiêu chuẩn chẩn đoán đái tháo đường dựa vào 1 trong 4 tiêu chí: (1) Glucose huyết tương lúc đói (nhịn ăn ít nhất 8 giờ) từ 7.0 mmol/L (126 mg/dL) trở lên; (2) Glucose huyết tương ở thời điểm 2 giờ sau nghiệm pháp dung nạp glucose đường uống 75g từ 11.1 mmol/L (200 mg/dL) trở lên; (3) HbA1c từ 6.5% (48 mmol/mol) trở lên thực hiện tại phòng xét nghiệm chuẩn hóa; (4) Ở bệnh nhân có triệu chứng kinh điển của tăng glucose máu, mức glucose huyết tương ngẫu nhiên từ 11.1 mmol/L (200 mg/dL) trở lên. Tiêu chí 1, 2, 3 cần lặp lại lần hai để xác chẩn nếu không có triệu chứng kinh điển."
-  },
-  {
-    "id": "ada-nutrition-guidelines",
-    "title": "ADA: Dinh dưỡng hợp lý cho người bệnh đái tháo đường",
-    "url": "https://diabetes.org/food-nutrition",
-    "topic": "Chế độ dinh dưỡng",
-    "date": "2024-01-01",
-    "license": "ADA Standards of Medical Care",
-    "text": "Hiệp hội Đái tháo đường Hoa Kỳ (ADA) khuyến nghị phương pháp Đĩa ăn Đái tháo đường (Diabetes Plate Method): Chia đĩa ăn tiêu chuẩn đường kính 23 cm thành 3 phần: một nửa đĩa (50%) là các loại rau củ không chứa tinh bột (rau cải, súp lơ, dưa chuột, xà lách); một phần tư đĩa (25%) là thực phẩm giàu đạm nạc (cá, ức gà, đậu phụ, trứng); và một phần tư đĩa (25%) là thực phẩm giàu carbohydrate phức hợp (ngũ cốc nguyên hạt, gạo lứt, khoai lang, yến mạch). Cần tránh xa nước ngọt có gas, nước tăng lực, bánh kẹo ngọt và hạn chế mỡ động vật bão hòa."
   },
   {
     "id": "who-physical-activity",
     "title": "WHO: Khuyến nghị vận động thể lực cho sức khỏe",
     "url": "https://www.who.int/news-room/fact-sheets/detail/physical-activity",
     "topic": "Vận động thể lực",
-    "date": "2022-10-05",
-    "license": "WHO Open Access",
-    "text": "WHO khuyến nghị người trưởng thành nên duy trì ít nhất 150 đến 300 phút hoạt động thể lực cường độ trung bình (như đi bộ nhanh, đạp xe, bơi lội nhẹ nhàng) mỗi tuần, hoặc ít nhất 75 đến 150 phút hoạt động thể lực cường độ mạnh, hoặc kết hợp tương đương. Nên phân bổ đều các buổi tập trong tuần, không nên ngưng tập quá 2 ngày liên tiếp. Vận động giúp tế bào cơ sử dụng glucose hiệu quả hơn và tăng độ nhạy insulin độc lập với việc giảm cân."
+    "date": "2026-11-12",
+    "license": "WHO Open Access (trang tóm tắt về hoạt động thể lực): https://www.who.int/news-room/fact-sheets/detail/physical-activity",
+    "text": "Theo WHO, người trưởng thành nên vận động thể lực cường độ trung bình (như đi bộ nhanh, đạp xe, bơi lội nhẹ nhàng) ít nhất 150 phút mỗi tuần. Với người đái tháo đường, các hướng dẫn chuyên ngành (ADA, Bộ Y tế Việt Nam) có khuyến cáo riêng về số ngày và loại vận động; nên hỏi bác sĩ về loại và mức vận động phù hợp với tình trạng sức khỏe."
   },
   {
     "id": "ada-hypoglycemia-emergency",
-    "title": "ADA: Nhận biết và xử trí cấp cứu hạ đường huyết",
-    "url": "https://diabetes.org/living-with-diabetes/hypoglycemia",
+    "title": "ADA 2026: Hạ đường huyết và cách xử trí",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/",
     "topic": "Hạ đường huyết cấp tính",
-    "date": "2024-02-14",
-    "license": "ADA Standards of Medical Care",
-    "text": "Hạ đường huyết được xác định khi nồng độ glucose trong máu giảm xuống dưới 3.9 mmol/L (70 mg/dL). Triệu chứng sớm bao gồm run rẩy, vã mồ hôi lạnh, đói cồn cào, tim đập nhanh, chóng mặt, bồn chồn lo âu và nhìn mờ. Xử trí tức thì theo Quy tắc 15-15: Uống ngay 15g carbohydrate tác dụng nhanh (như nửa ly nước ngọt có đường, nửa ly nước ép hoa quả, 3-4 viên đường hoặc 1 thìa canh mật ong); sau đó nghỉ ngơi và đo lại đường huyết sau 15 phút. Nếu người bệnh lơ mơ, co giật hoặc hôn mê, TUYỆT ĐỐI không cho ăn uống qua đường miệng vì nguy cơ sặc khí quản, cần gọi cấp cứu 115 ngay lập tức."
+    "date": "2026-11-12",
+    "license": "ADA Standards of Care in Diabetes 2026 (Diabetes Care 49, Suppl 1), mục 6 (DOI 10.2337/dc26-S006), đọc toàn văn tại https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/ — tóm tắt tiếng Việt.",
+    "text": "Theo ADA Standards of Care 2026, hạ đường huyết mức 1 là glucose dưới 70 mg/dL (3,9 mmol/L); mức 2 là dưới 54 mg/dL (3,0 mmol/L); mức 3 là nặng, cần người khác giúp. Với người còn tỉnh táo, glucose là lựa chọn ưu tiên để xử trí (thường dùng 15 g carbohydrate), tránh dùng thức ăn nhiều béo hoặc đạm để xử trí ban đầu; 15 phút sau điều trị ban đầu, đo lại và lặp lại nếu vẫn còn hạ. Người dùng acarbose chỉ nên dùng glucose nguyên chất vì acarbose ức chế phân giải đường sucrose. Glucagon cần được kê cho mọi người dùng insulin hoặc có nguy cơ hạ đường huyết cao; người thân cần biết vị trí và cách dùng; bộ sơ cứu nên có glucose uống. Nếu người bệnh lơ mơ, co giật hoặc hôn mê, KHÔNG cho ăn uống qua miệng vì nguy cơ sặc (nguyên tắc sơ cứu chung), cần gọi cấp cứu 115. Một hoặc nhiều cơn hạ đường huyết mức 2–3 cần được bác sĩ xem lại kế hoạch điều trị."
+  },
+  {
+    "id": "bytvn-hypoglycemia",
+    "title": "Bộ Y tế Việt Nam: Xử trí hạ đường huyết",
+    "url": "https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=42",
+    "topic": "Hạ đường huyết (Bộ Y tế VN)",
+    "date": "2026-11-12",
+    "license": "Bộ Y tế Việt Nam, QĐ 5481/QĐ-BYT (30/12/2020), phần 6, bản PDF lưu tại Bệnh viện Đa khoa Bà Rịa: https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=42 — tóm tắt tiếng Việt.",
+    "text": "Theo hướng dẫn của Bộ Y tế Việt Nam (QĐ 5481/QĐ-BYT, phần 6), người bệnh hạ đường huyết còn tỉnh táo, tự uống được (glucose huyết dưới 3,9 mmol/L hay 70 mg/dL) được điều trị bằng 15–20 g glucose pha nước uống, hoặc bất cứ loại thực phẩm nào chứa carbohydrate có glucose dùng thay thế. Thử lại glucose huyết mao mạch sau 15 phút; nếu vẫn còn thấp thì nhắc lại liều như trên; nếu về bình thường thì cho ăn nhẹ ngay để tránh hạ đường huyết tái phát. Người hạ đường huyết mức độ 2 trở lên cần được tiêm glucagon (nếu có). Người bệnh có nhiều cơn hạ đường huyết hoặc hạ đường huyết không triệu chứng cần được theo dõi và đánh giá lại điều trị. Nếu bất tỉnh hoặc không nuốt được, gọi cấp cứu 115."
   },
   {
     "id": "bytvn-hyperglycemia-complications",
     "title": "Bộ Y tế Việt Nam: Biến chứng cấp tính do tăng đường huyết nặng",
-    "url": "https://kcb.vn/van-ban/quyet-dinh-so-5481-qd-byt-ve-viec-ban-hanh-tai-lieu-chuyen-mon-huong-dan-chan-doan-va-dieu-tri-dai-thao-duong-tip-2.html",
+    "url": "https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=45",
     "topic": "Biến chứng cấp tính",
-    "date": "2020-12-30",
-    "license": "Tài liệu chuyên môn Bộ Y tế Việt Nam",
-    "text": "Hai biến chứng cấp tính nguy hiểm đến tính mạng do tăng đường huyết nghiêm trọng là Nhiễm toan ceton do đái tháo đường (DKA, thường gặp ở típ 1) và Hội chứng tăng áp lực thẩm thấu do tăng glucose máu (HHS, thường gặp ở típ 2). Dấu hiệu báo động bao gồm: đường huyết tăng rất cao (>13.9 mmol/L đối với DKA hoặc >33.3 mmol/L đối với HHS), thở nhanh sâu (kiểu thở Kussmaul), hơi thở có mùi táo thối hoặc axeton, nôn ói liên tục, mất nước nghiêm trọng, da khô nóng, lú lẫn, li bì và hôn mê. Đây là tình trạng khẩn cấp đe dọa tính mạng, cần đưa người bệnh đến khoa hồi sức cấp cứu của bệnh viện ngay."
+    "date": "2026-11-12",
+    "license": "Bộ Y tế Việt Nam, QĐ 5481/QĐ-BYT (30/12/2020), phần cấp cứu tăng đường huyết, bản PDF lưu tại Bệnh viện Đa khoa Bà Rịa: https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=45 — tóm tắt tiếng Việt.",
+    "text": "Hai biến chứng cấp tính nguy hiểm đến tính mạng do tăng đường huyết nghiêm trọng là Nhiễm toan ceton do đái tháo đường (DKA, thường gặp ở típ 1) và Hội chứng tăng áp lực thẩm thấu do tăng glucose máu (HHS, thường gặp ở típ 2). Theo tiêu chuẩn của Bộ Y tế Việt Nam (QĐ 5481), DKA thường kèm đường huyết từ 14,0 mmol/L (trên 250 mg/dL) trở lên, còn HHS khi đường huyết trên 33,3 mmol/L (thường trên 600 mg/dL). Dấu hiệu báo động gồm thở nhanh sâu (kiểu thở Kussmaul), hơi thở có mùi táo thối hoặc axeton, nôn ói liên tục, mất nước nghiêm trọng, da khô nóng, lú lẫn, li bì và hôn mê. Lưu ý quan trọng: ở một số trường hợp DKA, đường huyết chỉ tăng nhẹ (theo QĐ 5481), nên đường huyết không quá cao không loại trừ DKA nếu có buồn nôn, nôn, đau bụng, thở nhanh, mệt lả. Đây là tình trạng khẩn cấp đe dọa tính mạng, cần đưa người bệnh đến cơ sở y tế có khả năng hồi sức cấp cứu ngay."
   },
   {
-    "id": "cdc-chronic-complications",
-    "title": "CDC: Các biến chứng mạn tính của bệnh đái tháo đường",
-    "url": "https://www.cdc.gov/diabetes/about/complications.html",
+    "id": "kb2-dka-khong-tang-duong-ada",
+    "title": "Nhiễm toan ceton khi đường huyết không quá cao và ngày ốm (ADA 2026)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/",
+    "topic": "Nhiễm toan ceton và ngày ốm (ADA)",
+    "date": "2026-11-12",
+    "license": "ADA Standards of Care in Diabetes 2026 (Diabetes Care 49, Suppl 1), mục 6 (DOI 10.2337/dc26-S006), đọc toàn văn tại https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/ — tóm tắt tiếng Việt. Ý về thuốc ức chế SGLT2 đối chiếu mục 9 (DOI 10.2337/dc26-S009): https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/",
+    "text": "Theo ADA Standards of Care 2026, nhiễm toan ceton (DKA) có thể xảy ra mà đường huyết không quá cao: thai phụ có thể bị DKA với glucose dưới 200 mg/dL (11,1 mmol/L); ở người đái tháo đường típ 2 dùng thuốc ức chế SGLT2, các yếu tố nguy cơ gồm chế độ ăn rất ít tinh bột, nhịn ăn kéo dài, mất nước, uống nhiều rượu. Người có nguy cơ DKA nên được hướng dẫn nhận biết dấu hiệu sớm, có dụng cụ đo ceton (nước tiểu hoặc máu) và biết cách xử trí đường huyết cao/ceton khi ốm (\"sick day advice\"). Người dùng insulin tích cực không nên ngừng hoặc bỏ insulin nền kể cả khi không ăn; cần có hướng dẫn chi tiết về chỉnh liều insulin khi ốm. Cần đi khám ngay nếu không uống nước được, nôn kéo dài, đường huyết hoặc ceton không cải thiện sau dùng insulin, lơ mơ hoặc có dấu hiệu nặng dần. Một số thuốc có thể phải tạm ngưng khi mất nước, nôn hoặc nhịn ăn; luôn hỏi bác sĩ hoặc dược sĩ."
+  },
+  {
+    "id": "niddk-chronic-complications",
+    "title": "NIDDK: Các biến chứng của đái tháo đường và cách phòng ngừa",
+    "url": "https://www.niddk.nih.gov/health-information/diabetes/overview/preventing-problems",
     "topic": "Biến chứng mạn tính",
-    "date": "2024-03-20",
-    "license": "CDC Public Domain",
-    "text": "Tăng glucose huyết mạn tính không kiểm soát gây tổn thương vi mạch và đại mạch, dẫn đến nhiều biến chứng: (1) Biến chứng tim mạch: xơ vữa động mạch, nhồi máu cơ tim, đột quỵ; (2) Biến chứng thận (bệnh thận đái tháo đường): tổn thương cầu thận dẫn đến suy thận mạn giai đoạn cuối phải chạy thận nhân tạo; (3) Biến chứng mắt (bệnh võng mạc đái tháo đường): tổn thương mạch máu võng mạc gây xuất huyết, phù hoàng điểm và mù lòa; (4) Biến chứng thần kinh: tê bì, giảm hoặc mất cảm giác châm chích ở bàn chân, bàn tay, tăng nguy cơ loét chân khó lành dẫn đến đoạn chi."
+    "date": "2026-11-12",
+    "license": "NIDDK (U.S. public domain) — tóm tắt tiếng Việt",
+    "text": "Đường huyết cao kéo dài có thể gây tổn thương nhiều cơ quan. Theo NIDDK, các biến chứng chính gồm: (1) bệnh tim mạch và đột quỵ do tổn thương mạch máu; (2) bệnh thần kinh đái tháo đường, có thể ảnh hưởng bàn chân, tay chân và cả các cơ quan như tim; (3) bệnh thận đái tháo đường; (4) bệnh mắt, có thể dẫn đến giảm thị lực và mù, nên khám mắt có giãn đồng tử ít nhất mỗi năm; (5) các vấn đề về bàn chân do tổn thương thần kinh và giảm lưu thông máu, có thể dẫn đến nhiễm trùng nặng; (6) bệnh nướu răng và các vấn đề răng miệng; ngoài ra còn nguy cơ hạ đường huyết do một số thuốc. Kiểm soát đường huyết, huyết áp, cholesterol, không hút thuốc và khám định kỳ giúp phòng ngừa hoặc làm chậm các biến chứng này."
   },
   {
-    "id": "ada-foot-care",
-    "title": "ADA: Hướng dẫn chăm sóc và bảo vệ bàn chân",
-    "url": "https://diabetes.org/living-with-diabetes/foot-care",
-    "topic": "Chăm sóc bàn chân",
-    "date": "2024-01-15",
-    "license": "ADA Standards of Medical Care",
-    "text": "Chăm sóc bàn chân là quy trình sống còn đối với người bệnh đái tháo đường để ngăn ngừa hoại tử và đoạn chi: (1) Kiểm tra bàn chân hằng ngày để tìm vết xước, phồng rộp, vết cắt, mụn nước hoặc vùng da đổi màu; (2) Rửa chân hằng ngày bằng nước ấm (kiểm tra nhiệt độ nước bằng cùi chỏ, không dùng chân), lau khô kỹ các kẽ ngón chân; (3) Không bao giờ đi chân đất cả trong nhà lẫn ngoài trời; (4) Chọn giày mềm, vừa vặn, không chật chội, kiểm tra bên trong giày trước khi xỏ; (5) Cắt móng chân theo đường ngang thẳng, không cắt khóe sâu; (6) Khi phát hiện vết loét hoặc đổi màu da bất thường, phải đến cơ sở y tế khám ngay."
-  },
-  {
-    "id": "idf-blood-glucose-monitoring",
-    "title": "IDF: Tầm quan trọng của tự theo dõi glucose máu và chỉ số HbA1c",
-    "url": "https://idf.org/about-diabetes/management-of-diabetes/",
+    "id": "bytvn-glycemic-targets",
+    "title": "Bộ Y tế Việt Nam: Mục tiêu HbA1c và theo dõi đường huyết",
+    "url": "https://benhviendakhoabaria.vn/sites/default/files/files/tin-tuc/5481_dai_thao_duong_type_2.pdf#page=21",
     "topic": "Theo dõi đường huyết và HbA1c",
-    "date": "2023-11-14",
-    "license": "International Diabetes Federation Guidelines",
-    "text": "Kiểm soát đường huyết hiệu quả đòi hỏi sự kết hợp giữa đo đường huyết mao mạch tại nhà và xét nghiệm HbA1c định kỳ: Chỉ số HbA1c phản ánh mức đường huyết trung bình trong 2 đến 3 tháng vừa qua. Mục tiêu HbA1c chung cho phần lớn người trưởng thành không mang thai là dưới 7.0% (53 mmol/mol), nhưng cần được cá thể hóa theo độ tuổi và bệnh đồng mắc dưới sự hướng dẫn của bác sĩ. Đo đường huyết mao mạch lúc đói và sau ăn giúp người bệnh nhận biết ảnh hưởng của các bữa ăn và mức vận động đến đường huyết."
+    "date": "2026-11-12",
+    "license": "Tài liệu chuyên môn Bộ Y tế Việt Nam (QĐ 5481/QĐ-BYT ngày 30/12/2020, Bảng 4–5; bản PDF lưu tại Bệnh viện Đa khoa Bà Rịa). Đối chiếu ADA Standards of Care in Diabetes 2026 (Diabetes Care 49, Suppl 1), mục 6 https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/",
+    "text": "Kiểm soát đường huyết hiệu quả đòi hỏi kết hợp đo đường huyết mao mạch tại nhà và xét nghiệm HbA1c định kỳ. HbA1c phản ánh mức đường huyết trung bình trong khoảng 2–3 tháng vừa qua. Theo Bộ Y tế Việt Nam (QĐ 5481, Bảng 4), mục tiêu cho người trưởng thành không mang thai: HbA1c dưới 7% (53 mmol/mol); glucose mao mạch lúc đói hoặc trước ăn 80–130 mg/dL (4,4–7,2 mmol/L); đỉnh glucose 1–2 giờ sau ăn dưới 180 mg/dL (10,0 mmol/L). ADA 2026 đưa ra mục tiêu HbA1c và glucose tương tự. Mục tiêu cần được cá thể hóa: có thể thấp hơn (HbA1c dưới 6,5%) ở người trẻ, mới chẩn đoán, ít nguy cơ hạ đường huyết; hoặc cao hơn (7,5–8%) ở người lớn tuổi, bệnh lâu năm, nhiều bệnh đi kèm hoặc từng hạ đường huyết nặng. Điều này do bác sĩ quyết định."
   },
   {
-    "id": "who-smoking-hypertension-diabetes",
-    "title": "WHO: Tác hại cộng hưởng của hút thuốc lá và tăng huyết áp trên bệnh nhân đái tháo đường",
-    "url": "https://www.who.int/news-room/fact-sheets/detail/tobacco",
-    "topic": "Thuốc lá và Tăng huyết áp",
-    "date": "2023-07-26",
-    "license": "WHO Open Access",
-    "text": "Người bệnh đái tháo đường hút thuốc lá có nguy cơ mắc bệnh tim mạch, đột quỵ, bệnh mạch máu ngoại biên và biến chứng thận cao gấp 2 đến 3 lần so với người không hút thuốc. Nicotine làm co mạch máu, giảm lưu thông máu đến chi dưới và làm trầm trọng thêm tình trạng kháng insulin. Kiểm soát huyết áp dưới 130/80 mmHg và cai thuốc lá hoàn toàn là hai biện pháp can thiệp phi thuốc quan trọng nhất để bảo vệ mạch máu và kéo dài tuổi thọ."
+    "id": "ada-smoking-cessation",
+    "title": "ADA 2026: Thuốc lá, thuốc lá điện tử và người đái tháo đường",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/",
+    "topic": "Hút thuốc lá và tim mạch",
+    "date": "2026-11-12",
+    "license": "ADA Standards of Care in Diabetes 2026 (Diabetes Care 49, Suppl 1), mục 5 (DOI 10.2337/dc26-S005), đọc toàn văn tại https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/ — tóm tắt tiếng Việt.",
+    "text": "Người đái tháo đường nên tránh hoàn toàn thuốc lá và thuốc lá điện tử (vape). ADA Standards of Care 2026 (mục 5, khuyến cáo 5.40) yêu cầu nhân viên y tế hỏi thường xuyên về việc dùng thuốc lá, khuyên tránh hoàn toàn, và với người đang dùng thì tư vấn cai thuốc kết hợp thuốc hỗ trợ hoặc giới thiệu đến dịch vụ cai thuốc. ADA nêu mối liên quan nhân quả giữa hút thuốc lá và đái tháo đường đã được xác lập từ hơn một thập kỷ: người đái tháo đường hút thuốc hoặc tiếp xúc khói thuốc có nguy cơ cao hơn về biến chứng mạch máu lớn (bệnh tim mạch, mạch ngoại biên) và mạch máu nhỏ (bệnh thận, tổn thương thị lực), HbA1c cao hơn và tử vong sớm hơn so với người không hút thuốc; nguy cơ mắc đái tháo đường típ 2 tăng theo mức hút và giảm dần khi bỏ thuốc càng lâu; bỏ thuốc làm giảm hoặc đảo ngược tác hại và có thể tăng tuổi thọ tới 10 năm. Kiểm soát huyết áp cũng quan trọng để bảo vệ tim mạch; mục tiêu huyết áp xem đoạn mục tiêu điều trị và do bác sĩ quyết định. Nếu muốn bỏ thuốc, hãy hỏi bác sĩ hoặc cơ sở y tế về hỗ trợ cai thuốc."
   },
   {
     "id": "vinmec-diabetes-overview",
     "title": "Vinmec: Tổng quan về bệnh đái tháo đường",
     "url": "https://www.vinmec.com/vie/bai-viet/tong-quan-ve-benh-dai-thao-duong-vi",
     "topic": "Tổng quan bệnh đái tháo đường",
-    "date": "2024-07-22",
-    "license": "Tóm tắt tự viết, tham khảo Vinmec",
+    "date": "2026-11-12",
+    "license": "Tóm tắt tự viết, tham khảo Vinmec (nguồn thương mại của bệnh viện tư, chỉ mang tính tham khảo; cập nhật trang 22/07/2024)",
     "text": "Đái tháo đường có nhiều thể, bao gồm típ 1, típ 2 và đái tháo đường thai kỳ. Một số người mắc típ 2 có triệu chứng nhẹ và không nhận ra bệnh. Việc sàng lọc và xét nghiệm cần được nhân viên y tế tư vấn theo yếu tố nguy cơ của từng người."
   },
   {
@@ -139,8 +139,8 @@
     "title": "Vinmec: Triệu chứng sớm của đái tháo đường típ 2",
     "url": "https://www.vinmec.com/vie/bai-viet/dau-hieu-som-cua-tieu-duong-type-2-vi",
     "topic": "Triệu chứng tiểu đường típ 2",
-    "date": "2024-07-22",
-    "license": "Tóm tắt tự viết, tham khảo Vinmec",
+    "date": "2026-11-12",
+    "license": "Tóm tắt tự viết, tham khảo Vinmec (nguồn thương mại của bệnh viện tư, chỉ mang tính tham khảo; trang nêu bệnh típ 2 diễn biến âm thầm, ít hoặc không có triệu chứng)",
     "text": "Đái tháo đường típ 2 có thể diễn biến âm thầm, với ít hoặc không có triệu chứng rõ ràng. Một số trường hợp chỉ được phát hiện khi đã xuất hiện biến chứng. Không thể loại trừ bệnh chỉ vì không thấy triệu chứng; hãy trao đổi với nhân viên y tế về việc kiểm tra phù hợp."
   },
   {
@@ -148,8 +148,8 @@
     "title": "Long Châu: Những câu hỏi thường gặp về bệnh tiểu đường",
     "url": "https://nhathuoclongchau.com.vn/bai-viet/tim-hieu-loi-giai-cho-nhung-cau-hoi-thuong-gap-o-benh-tieu-duong.html",
     "topic": "Triệu chứng và tìm hiểu bệnh tiểu đường",
-    "date": "",
-    "license": "Tóm tắt tự viết, tham khảo Long Châu",
+    "date": "2026-11-12",
+    "license": "Tóm tắt tự viết, tham khảo Nhà thuốc Long Châu (nguồn thương mại; trang trả về HTTP 403 với trình thu thập tự động nên chưa kiểm chứng được nội dung — chỉ mang tính tham khảo, cần người xác nhận)",
     "text": "Triệu chứng tiểu đường có thể khác nhau theo típ bệnh. Người mắc típ 2 có thể không có biểu hiện rõ và đôi khi phát hiện bệnh khi khám sức khỏe hoặc khi có biến chứng. Đi tiểu nhiều có thể là một dấu hiệu; chỉ triệu chứng không đủ để xác định chẩn đoán."
   },
   {
@@ -157,7 +157,7 @@
     "title": "WHO: Các loại đái tháo đường và phòng ngừa típ 2",
     "url": "https://www.who.int/news-room/fact-sheets/detail/diabetes",
     "topic": "Các loại tiểu đường và cách phòng ngừa",
-    "date": "2026-11-03",
+    "date": "2026-11-12",
     "license": "Tóm tắt tự viết, tham khảo WHO",
     "text": "Các loại đái tháo đường thường gặp gồm típ 1, típ 2 và đái tháo đường thai kỳ. Ở típ 1, cơ thể không sản xuất đủ insulin; hiện chưa biết cách phòng ngừa. Ở típ 2, cơ thể sử dụng insulin không hiệu quả. Đái tháo đường thai kỳ là tình trạng tăng đường huyết được phát hiện trong thai kỳ. Để giảm nguy cơ hoặc làm chậm khởi phát đái tháo đường típ 2, WHO khuyến nghị ăn uống lành mạnh, vận động thể chất thường xuyên, duy trì cân nặng phù hợp và tránh thuốc lá. Không có biện pháp nào bảo đảm ngăn ngừa bệnh ở tất cả mọi người."
   }

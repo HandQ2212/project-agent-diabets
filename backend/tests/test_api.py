@@ -158,5 +158,5 @@ def test_stream_emits_fragments_and_sources(monkeypatch):
     monkeypatch.setattr(main.rag, 'answer_parts', lambda *a: iter(['Xin ', 'chào [1].']))
     response = client.post('/api/chat/stream', json={'question': 'Tiểu đường là gì?'})
     events = [__import__('json').loads(line) for line in response.text.splitlines()]
-    assert [event['text'] for event in events if event['type'] == 'delta'] == ['Xin ', 'chào [1].']
+    assert ''.join(event['text'] for event in events if event['type'] == 'delta') == 'Xin chào [1].'
     assert events[-1]['type'] == 'done' and events[-1]['sources'][0]['title'] == 'Nguồn'

@@ -1,0 +1,403 @@
+{
+  "experiment": "nagala",
+  "purpose": "NAGALA: dự báo mắc đái tháo đường mới từ chỉ số baseline; so sánh có/không glucose đói + HbA1c.",
+  "smoke_test": false,
+  "source": {
+    "url": "https://zenodo.org/records/4996032/files/Data%20set%20Int%20J%20Obesity.xlsx?download=1",
+    "doi": "10.5061/dryad.8q0p192",
+    "paper": "Okamura et al., Int J Obes 2019;43:139-148, 10.1038/s41366-018-0076-3",
+    "license": "CC0",
+    "md5": "47edfb147078657a0eecfff7f9364532",
+    "sha256": "671359aea2019c848f969395f88e57f888eaba8463ea0351bcda8f1c947f5523"
+  },
+  "excluded_columns": {
+    "Patient Number": "định danh",
+    "Follow up duration, days": "đo sau baseline, gắn với kết cục (rò rỉ)",
+    "Baseline WC≥90 in Men, ≥80 in Women 0/1": "suy ra từ vòng eo",
+    "Baseline BMI≥25 0/1": "suy ra từ BMI",
+    "Obesity phenotype 1-8": "suy ra từ BMI/vòng eo/gan nhiễm mỡ, mã không rõ",
+    "Baseline Body Weight, kg": "trùng thông tin với BMI",
+    "Baseline HDL-cholesterol, mmol/L": "trùng đơn vị",
+    "Baseline Total Cholesterol, mmol/L": "trùng đơn vị",
+    "Baseline Triglycerides, mmol/L": "trùng đơn vị",
+    "Baseline HbA1c, mmol/mol": "trùng đơn vị (chỉ A dùng bản %)",
+    "Baseline Fasting plasma glucose, mmol/L": "trùng đơn vị (chỉ A dùng bản mg/dL)",
+    "Baseline Alcohol consumption, non:1, light:2, moderate:3, heavy:4": "suy ra từ g/tuần"
+  },
+  "feature_sets": {
+    "A_day_du": [
+      "age",
+      "ethanol_g_wk",
+      "bmi",
+      "waist_cm",
+      "alt",
+      "ast",
+      "ggt",
+      "hdl",
+      "total_chol",
+      "trig",
+      "sbp",
+      "dbp",
+      "sex_male",
+      "fatty_liver",
+      "exercise",
+      "smoking",
+      "fpg",
+      "hba1c"
+    ],
+    "B_khong_glucose_hba1c": [
+      "age",
+      "ethanol_g_wk",
+      "bmi",
+      "waist_cm",
+      "alt",
+      "ast",
+      "ggt",
+      "hdl",
+      "total_chol",
+      "trig",
+      "sbp",
+      "dbp",
+      "sex_male",
+      "fatty_liver",
+      "exercise",
+      "smoking"
+    ]
+  },
+  "feature_descriptions": {
+    "age": "Tuổi (năm)",
+    "ethanol_g_wk": "Rượu (g/tuần)",
+    "bmi": "BMI (kg/m²)",
+    "waist_cm": "Vòng eo (cm)",
+    "alt": "ALT (IU/L)",
+    "ast": "AST (IU/L)",
+    "ggt": "GGT (IU/L)",
+    "hdl": "HDL (mg/dL)",
+    "total_chol": "Cholesterol toàn phần (mg/dL)",
+    "trig": "Triglyceride (mg/dL)",
+    "sbp": "Huyết áp tâm thu (mmHg)",
+    "dbp": "Huyết áp tâm trương (mmHg)",
+    "sex_male": "Nam=1, nữ=0",
+    "fatty_liver": "Gan nhiễm mỡ 0/1",
+    "exercise": "Thói quen tập thể dục 0/1",
+    "smoking": "Hút thuốc 1 chưa, 2 từng, 3 đang",
+    "fpg": "Glucose đói (mg/dL)",
+    "hba1c": "HbA1c (%)"
+  },
+  "split": {
+    "scheme": "stratified 60/20/20 by label, random_state=42",
+    "train": 9278,
+    "validation": 3093,
+    "test": 3093,
+    "positives": {
+      "train": 224,
+      "validation": 75,
+      "test": 74
+    }
+  },
+  "training_config": {
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "max_epochs": 200,
+    "min_epochs": 40,
+    "patience": 25,
+    "batch_size": 128,
+    "learning_rate": 0.001
+  },
+  "selection_rule": "highest validation ROC-AUC (ties favor baseline order); threshold = max F1 on validation; Platt calibration fit on validation",
+  "versions": {
+    "A_day_du": {
+      "validation_metrics": {
+        "neural_seed_42": {
+          "roc_auc": 0.8917649657609896,
+          "pr_auc": 0.28047466035807234,
+          "precision": 0.09267563527653214,
+          "recall": 0.8266666666666667,
+          "f1": 0.16666666666666666
+        },
+        "neural_seed_44": {
+          "roc_auc": 0.8881643472498343,
+          "pr_auc": 0.30033474966392576,
+          "precision": 0.08953168044077135,
+          "recall": 0.8666666666666667,
+          "f1": 0.16229712858926343
+        },
+        "hist_gradient_boosting": {
+          "roc_auc": 0.8828628230616302,
+          "pr_auc": 0.2334121100952068,
+          "precision": 0.12531969309462915,
+          "recall": 0.6533333333333333,
+          "f1": 0.21030042918454936
+        },
+        "logistic_regression": {
+          "roc_auc": 0.8828451513143363,
+          "pr_auc": 0.2490814560765491,
+          "precision": 0.09431137724550898,
+          "recall": 0.84,
+          "f1": 0.1695827725437416
+        },
+        "neural_seed_43": {
+          "roc_auc": 0.8821161917384582,
+          "pr_auc": 0.2524056788923978,
+          "precision": 0.08920863309352518,
+          "recall": 0.8266666666666667,
+          "f1": 0.16103896103896104
+        },
+        "dummy": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.02424830261881668,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      },
+      "selected_model": "neural_seed_42",
+      "selected_threshold": 0.85,
+      "neural_runs": [
+        {
+          "seed": 42,
+          "best_epoch": 11,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8917649657609896
+        },
+        {
+          "seed": 43,
+          "best_epoch": 9,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8821161917384582
+        },
+        {
+          "seed": 44,
+          "best_epoch": 8,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8881643472498343
+        }
+      ],
+      "selected": "neural_seed_42",
+      "threshold": 0.85,
+      "test": {
+        "roc_auc": 0.8636383982525088,
+        "pr_auc": 0.23604270066994526,
+        "precision": 0.22033898305084745,
+        "recall": 0.527027027027027,
+        "f1": 0.3107569721115538,
+        "accuracy": 0.9440672486259295,
+        "brier_raw": 0.1334161013364792,
+        "brier_calibrated": 0.02046840824186802,
+        "brier_prior_only": 0.023352691208802578,
+        "pr_auc_random_baseline": 0.02392499191723246,
+        "confusion_matrix": [
+          [
+            2881,
+            138
+          ],
+          [
+            35,
+            39
+          ]
+        ]
+      },
+      "bootstrap_95": {
+        "roc_auc": [
+          0.8127296267781529,
+          0.9068590369103784
+        ],
+        "pr_auc": [
+          0.17085510545195778,
+          0.3340867501223282
+        ],
+        "recall": [
+          0.4189189189189189,
+          0.6351351351351351
+        ],
+        "precision": [
+          0.17552214809472294,
+          0.2658959537572254
+        ],
+        "brier_calibrated": [
+          0.019295355025678872,
+          0.02155355387367308
+        ]
+      },
+      "n_test": 3093,
+      "positives_test": 74,
+      "permutation_importance_validation": {
+        "fpg": 0.07158957366909653,
+        "hba1c": 0.06624121935056328,
+        "age": 0.017902805389882946,
+        "trig": 0.010326043737574541,
+        "smoking": 0.008682129445548924,
+        "bmi": 0.006251822398939744,
+        "fatty_liver": 0.005352330461674382,
+        "hdl": 0.0038073779544952726,
+        "total_chol": 0.0034808924232383465,
+        "sex_male": 0.003391650099403587,
+        "ggt": 0.00290258449304176,
+        "alt": 0.0028217362491716135,
+        "waist_cm": 0.002141815772034439,
+        "ast": 0.0018109123039540154,
+        "dbp": 8.040645018775328e-05,
+        "exercise": -0.0010444002650761952,
+        "ethanol_g_wk": -0.0012374641042632972,
+        "sbp": -0.004593770709078837
+      }
+    },
+    "B_khong_glucose_hba1c": {
+      "validation_metrics": {
+        "logistic_regression": {
+          "roc_auc": 0.8218246079081069,
+          "pr_auc": 0.10954481525221728,
+          "precision": 0.06998654104979811,
+          "recall": 0.6933333333333334,
+          "f1": 0.1271393643031785
+        },
+        "neural_seed_43": {
+          "roc_auc": 0.8184183786171858,
+          "pr_auc": 0.11996611375411774,
+          "precision": 0.06538461538461539,
+          "recall": 0.68,
+          "f1": 0.11929824561403508
+        },
+        "neural_seed_44": {
+          "roc_auc": 0.8174994477578972,
+          "pr_auc": 0.11695202699991077,
+          "precision": 0.06551297898640297,
+          "recall": 0.7066666666666667,
+          "f1": 0.11990950226244344
+        },
+        "neural_seed_42": {
+          "roc_auc": 0.8153214049039099,
+          "pr_auc": 0.10659671505856014,
+          "precision": 0.06729475100942127,
+          "recall": 0.6666666666666666,
+          "f1": 0.12224938875305623
+        },
+        "hist_gradient_boosting": {
+          "roc_auc": 0.7741550695825049,
+          "pr_auc": 0.08439987140379492,
+          "precision": 0.08577405857740586,
+          "recall": 0.5466666666666666,
+          "f1": 0.14828209764918626
+        },
+        "dummy": {
+          "roc_auc": 0.5,
+          "pr_auc": 0.02424830261881668,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      },
+      "selected_model": "logistic_regression",
+      "selected_threshold": 0.8,
+      "neural_runs": [
+        {
+          "seed": 42,
+          "best_epoch": 9,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8153214049039099
+        },
+        {
+          "seed": 43,
+          "best_epoch": 9,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8184183786171858
+        },
+        {
+          "seed": 44,
+          "best_epoch": 8,
+          "epochs_run": 40,
+          "updates": 2920,
+          "stopped_early": true,
+          "val_auc": 0.8174994477578972
+        }
+      ],
+      "selected": "logistic_regression",
+      "threshold": 0.8,
+      "test": {
+        "roc_auc": 0.8084832099406463,
+        "pr_auc": 0.08478609973930512,
+        "precision": 0.09444444444444444,
+        "recall": 0.22972972972972974,
+        "f1": 0.13385826771653545,
+        "accuracy": 0.9288716456514711,
+        "brier_raw": 0.16406501829624176,
+        "brier_calibrated": 0.022790350019931793,
+        "brier_prior_only": 0.023352691208802578,
+        "pr_auc_random_baseline": 0.02392499191723246,
+        "confusion_matrix": [
+          [
+            2856,
+            163
+          ],
+          [
+            57,
+            17
+          ]
+        ]
+      },
+      "bootstrap_95": {
+        "roc_auc": [
+          0.7631190523083534,
+          0.853667649928829
+        ],
+        "pr_auc": [
+          0.06679539132520036,
+          0.12101922664308928
+        ],
+        "recall": [
+          0.13513513513513514,
+          0.32432432432432434
+        ],
+        "precision": [
+          0.05668799953666165,
+          0.1309035153328347
+        ],
+        "brier_calibrated": [
+          0.02220165324397385,
+          0.02332911887206137
+        ]
+      },
+      "n_test": 3093,
+      "positives_test": 74,
+      "permutation_importance_validation": {
+        "age": 0.052184669759222334,
+        "bmi": 0.03807731389441123,
+        "fatty_liver": 0.02398100287165885,
+        "alt": 0.018034901700905624,
+        "hdl": 0.013909432295118106,
+        "dbp": 0.011552904793461393,
+        "trig": 0.011282968853545317,
+        "smoking": 0.010996686547382329,
+        "ethanol_g_wk": 0.004853545394300796,
+        "ast": 0.0007214490832780363,
+        "total_chol": 0.0006238126794785859,
+        "sex_male": -0.0005036447978794655,
+        "ggt": -0.0006684338413961433,
+        "waist_cm": -0.0009878506737354242,
+        "exercise": -0.0010077313894412022,
+        "sbp": -0.002571681024961414
+      }
+    }
+  },
+  "libraries": {
+    "python": "3.15.2",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "sklearn": "1.9.1",
+    "torch": "2.15.0"
+  },
+  "warning": "Retrospective experiment on Japanese health-check cohort; not Vietnamese, not clinical validation. Label criteria not verified from full paper text."
+}

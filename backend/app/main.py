@@ -16,7 +16,7 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
 from ml.train_nhanes import ClinicalCNN, FEATURES as NHANES_FEATURES
-from backend.app import rag, history, nhanes15
+from backend.app import rag, history, nhanes15, knowledge_graph
 from backend.app.agents import RuleAgent, CoordinatorState, conversational_reply
 from backend.app.limiter import limiter
 
@@ -284,11 +284,32 @@ def conversation_node(state: CoordinatorState) -> CoordinatorState:
 def knowledge_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
     search_question = rag.standalone_question(question, state.get('history', []))
-    sources = rag.retrieve(search_question, top_k=3, threshold=0.875)
-    return {
-        'sources': sources,
-        'trace': state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
-    }
+    sources = rag.retrieve(search_question, top_k=3)
+    trace = state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
+    # Knowledge Graph Agent: bổ sung quan hệ có cấu trúc (thực thể -> quan hệ -> thực thể) từ Neo4j.
+    # Cổng liên quan: chỉ tra đồ thị khi RAG đã thấy ≥1 nguồn vượt ngưỡng. Khớp tên thực thể không chứng tỏ
+    # câu hỏi thuộc miền ("Giá vé xem phim tăng huyết áp không?"), nên đồ thị không được lách ngưỡng RAG.
+    if not sources:
+        trace.append('Knowledge Graph Agent (Skipped: no relevant source)')
+        return {'sources': sources, 'trace': trace}
+    graph_source = knowledge_graph.lookup(search_question)
+    if graph_source:
+        before = len(sources)
+        sources = knowledge_graph.merge_sources(sources, graph_source)
+        trace.append(f"Knowledge Graph Agent ({len(graph_source['facts'])} facts, +{len(sources) - before - 1} linked docs)")
+    else:
+        trace.append('Knowledge Graph Agent (No matching entity)')
+    return {'sources': sources, 'trace': trace}
+
+def number_check_trace(answer_text) -> list[str]:
+    """Dòng trace cho hậu kiểm số (chỉ có khi câu trả lời đi qua rag.guard_answer)."""
+    check = getattr(answer_text, 'check', None)
+    if not check or check['status'] == 'skipped':
+        return []
+    detail = {'passed': 'passed', 'regenerated': 'regenerated, unsupported: ' + ', '.join(check['numbers']),
+              'blocked': 'blocked, unsupported: ' + ', '.join(check['numbers'])}[check['status']]
+    return [f'Response Agent (Number check: {detail})']
+
 
 def response_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
@@ -296,9 +317,11 @@ def response_node(state: CoordinatorState) -> CoordinatorState:
     answer_text = rag.answer(question, sources, state.get('history', []))
     links_only = bool(sources) and all(source.get('review_status') == 'unreviewed_web' for source in sources)
     response_step = 'Response Agent (No source)' if not sources else ('Response Agent (Links to unreviewed sources)' if links_only else 'Response Agent (Cited Generation)')
+    trace = state.get('trace', []) + [response_step]
+    trace.extend(number_check_trace(answer_text))
     return {
         'answer': answer_text,
-        'trace': state.get('trace', []) + [response_step]
+        'trace': trace
     }
 
 # Build LangGraph Coordinator
@@ -366,11 +389,15 @@ def chat_stream(req: ChatRequest):
             else:
                 state.update(knowledge_node(state))
                 sources = state['sources']
-                for part in rag.answer_parts(req.question, sources, state['history']):
-                    yield event('delta', text=part)
+                # Không gửi token trước khi hậu kiểm số: gom toàn bộ, kiểm, rồi mới phát từng đoạn nhỏ.
+                checked = rag.guard_answer(req.question, sources, state['history'],
+                                           first_text=''.join(rag.answer_parts(req.question, sources, state['history'])))
+                for i in range(0, len(checked), 48):
+                    yield event('delta', text=checked[i:i + 48])
                 links_only = bool(sources) and all(s.get('review_status') == 'unreviewed_web' for s in sources)
                 step = 'Response Agent (No source)' if not sources else ('Response Agent (Links to unreviewed sources)' if links_only else 'Response Agent (Cited Generation)')
                 state['trace'].append(step)
+                state['trace'].extend(number_check_trace(checked))
             history.record('chat')
             summary = [{k: s.get(k) for k in ('title', 'url', 'topic', 'review_status', 'fetched_at')} for s in state.get('sources', [])]
             yield event('done', sources=summary, trace=state['trace'], disclaimer=DISCLAIMER)
@@ -392,7 +419,7 @@ def learning(req: RLRequest):
             'topic': 'Tất cả các chủ đề đã hoàn thành',
             'action': -1,
             'trace': ['Coordinator', 'Learning Agent (All modules completed)'],
-            'disclaimer': 'Mô phỏng giáo dục mô phỏng; không phải chỉ định điều trị y khoa.',
+            'disclaimer': 'Mô phỏng giáo dục; không phải chỉ định điều trị y khoa.',
             'status': 'completed',
             'message': 'Người dùng giả lập đã hoàn thành tất cả 4 chủ đề giáo dục hiện có. Không cần gợi ý thêm.'
         }
@@ -419,7 +446,7 @@ def learning(req: RLRequest):
             'action': chosen_action,
             'trace': ['Coordinator', 'Learning Agent (DQN Policy)' + (' → quy tắc chọn chủ đề chưa học' if overridden else '')],
             'policy_overridden': overridden,
-            'disclaimer': 'Mô phỏng giáo dục mô phỏng; không phải chỉ định điều trị y khoa.',
+            'disclaimer': 'Mô phỏng giáo dục; không phải chỉ định điều trị y khoa.',
             'status': 'active'
         }
     except Exception as exc:

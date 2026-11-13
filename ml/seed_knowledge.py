@@ -2,11 +2,12 @@
 import json
 import logging
 from pathlib import Path
-from backend.app.rag import driver, embed
+from backend.app.rag import driver, embed, EMBED
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
+# Đọc nguồn thủ công, tạo embedding và nạp Document, Topic cùng quan hệ vào Neo4j.
 def seed(path: str = 'knowledge/sources.json'):
     data = json.loads(Path(path).read_text(encoding='utf-8'))
     log.info(f"Loaded {len(data)} documents from {path}")
@@ -36,7 +37,8 @@ def seed(path: str = 'knowledge/sources.json'):
                     d.topic = $topic,
                     d.date = $date,
                     d.license = $license,
-                    d.embedding = $embedding
+                    d.embedding = $embedding,
+                    d.embedding_model = $embedding_model
                 MERGE (t:Topic {name: $topic})
                 MERGE (d)-[:ABOUT]->(t)
                 ''',
@@ -48,6 +50,7 @@ def seed(path: str = 'knowledge/sources.json'):
                 date=doc.get('date', ''),
                 license=doc.get('license', ''),
                 embedding=vector,
+                embedding_model=EMBED,
                 database_='neo4j'
             )
             count += 1
@@ -56,3 +59,6 @@ def seed(path: str = 'knowledge/sources.json'):
 
 if __name__ == '__main__':
     seed()
+    # Đợt bổ sung 12/11/2026: các đoạn dạng hỏi–đáp (HbA1c, ngưỡng chẩn đoán, biến chứng, dinh dưỡng...).
+    if Path('knowledge/sources_v2.json').exists():
+        seed('knowledge/sources_v2.json')
