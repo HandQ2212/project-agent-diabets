@@ -6,7 +6,7 @@
 
 - Website demo được cấu hình: [diabetes.handq2212.site](https://diabetes.handq2212.site). Ngày 05/11/2026, yêu cầu kiểm tra tự động nhận HTTP 403 từ Cloudflare; chưa xác nhận truy cập công khai bằng trình duyệt. Website phụ thuộc máy chủ cá nhân và tunnel, không phải dịch vụ luôn sẵn sàng.
 - Mã nguồn GitHub: [HandQ2212/project-agent-diabets](https://github.com/HandQ2212/project-agent-diabets).
-- [Báo cáo PDF](bao_cao_project/Bao_cao_Duong_An.pdf), [mã nguồn báo cáo](bao_cao_project/Bao_cao_Duong_An.tex) và [notebook huấn luyện](notebooks/training/README.md).
+- [Báo cáo PDF](bao_cao_project/project01_CT_04_hainn.277.pdf), [mã nguồn báo cáo](bao_cao_project/Bao_cao_Duong_An.tex) và [notebook huấn luyện](notebooks/training/README.md).
 
 Không nhập dữ liệu sức khỏe thật hoặc thông tin nhận dạng. Phân loại không phải chẩn đoán; không sử dụng ứng dụng để đưa ra quyết định điều trị.
 

@@ -721,7 +721,7 @@ function App() {
 
       <footer>
         <div>
-          <strong><span aria-hidden="true">✳</span> đường an</strong> — Hệ đa tác tử học thuật nghiên cứu bệnh đái tháo đường.
+          <strong><span aria-hidden="true">✳</span> đường an</strong> — Hệ multi agent học thuật nghiên cứu bệnh đái tháo đường.
         </div>
         <div>Kiến thức tham khảo cho mục đích học tập</div>
         <span>PHI LÂM SÀNG · DỰ ÁN HỌC THUẬT</span>

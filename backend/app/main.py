@@ -54,7 +54,7 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 ROOT = Path(os.getenv('ARTIFACTS_DIR', 'artifacts'))
-DISCLAIMER = 'Công cụ học thuật nghiên cứu hệ đa tác tử, không chẩn đoán hoặc thay thế tư vấn của nhân viên y tế.'
+DISCLAIMER = 'Công cụ học thuật nghiên cứu hệ multi agent, không chẩn đoán hoặc thay thế tư vấn của nhân viên y tế.'
 
 class PredictionRequest(BaseModel):
     kind: Literal['symptoms', 'brfss', 'nhanes_research', 'nhanes15_research']
