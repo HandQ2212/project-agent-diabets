@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
 from ml.train_nhanes import ClinicalCNN, FEATURES as NHANES_FEATURES
 from backend.app import rag, history, nhanes15, knowledge_graph
+from backend.app.publishers import PUBLISHERS
 from backend.app.agents import RuleAgent, CoordinatorState, conversational_reply
 from backend.app.limiter import limiter
 
@@ -344,6 +345,29 @@ graph.add_edge('blocked', END)
 
 coordinator = graph.compile()
 
+CURATED = 'curated'
+
+
+def source_summary(source: dict) -> dict:
+    """Nguồn trả cho client (/api/chat, /api/chat/stream) – REQ-DA-04 B-1/B-2/B-3.
+
+    B-1: tài liệu đã duyệt (review_status null) → 'curated'; 'unreviewed_web', 'curated_graph' giữ nguyên.
+    B-2: publisher tra theo id Document từ knowledge/sources*.json (None với web chưa duyệt và nguồn đồ thị).
+    B-3: nguồn bộ ba đồ thị kèm facts[{from, type, to, threshold?}].
+    """
+    status = source.get('review_status') or CURATED
+    summary = {'title': source['title'], 'url': source['url'], 'topic': source.get('topic', 'Y tế'),
+               'review_status': status, 'fetched_at': source.get('fetched_at'),
+               'publisher': PUBLISHERS.get(source.get('id')) if status == CURATED else None}
+    if status == knowledge_graph.GRAPH_REVIEW_STATUS:
+        # Bộ ba thiếu đầu/cuối/loại thì bỏ, không làm hỏng cả câu trả lời.
+        summary['facts'] = [{'from': f['from_name'], 'type': f['type'], 'to': f['to_name'],
+                             **({'threshold': f['threshold']} if f.get('threshold') else {})}
+                            for f in source.get('facts') or []
+                            if f.get('from_name') and f.get('type') and f.get('to_name')]
+    return summary
+
+
 @app.post('/api/chat')
 def chat(req: ChatRequest):
     """Multi-Agent Chat endpoint with LangGraph coordination."""
@@ -358,11 +382,7 @@ def chat(req: ChatRequest):
         ) from exc
 
     history.record('chat')
-    sources_summary = [
-        {'title': s['title'], 'url': s['url'], 'topic': s.get('topic', 'Y tế'),
-         'review_status': s.get('review_status'), 'fetched_at': s.get('fetched_at')}
-        for s in result.get('sources', [])
-    ]
+    sources_summary = [source_summary(s) for s in result.get('sources', [])]
     return {
         'answer': result['answer'],
         'sources': sources_summary,
@@ -399,7 +419,7 @@ def chat_stream(req: ChatRequest):
                 state['trace'].append(step)
                 state['trace'].extend(number_check_trace(checked))
             history.record('chat')
-            summary = [{k: s.get(k) for k in ('title', 'url', 'topic', 'review_status', 'fetched_at')} for s in state.get('sources', [])]
+            summary = [source_summary(s) for s in state.get('sources', [])]
             yield event('done', sources=summary, trace=state['trace'], disclaimer=DISCLAIMER)
         except Exception:
             log.exception('Streaming chat pipeline error')
