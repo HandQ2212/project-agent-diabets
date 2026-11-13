@@ -625,7 +625,7 @@ function App() {
                       {waiting && <PendingTurn key={pendingSince} startedAt={pendingSince} onSlow={() => setChatStatus(t('status.slow'))} />}
                       <div ref={chatEnd} />
                     </div>
-                    <p className="sr-only" role="status">{chatStatus}</p>
+                    <p className="sr-only" id="chat-status" role="status">{chatStatus}</p>
                     <form className="chat-composer" onSubmit={e => { e.preventDefault(); sendChat(); }}>
                       <label className="sr-only" htmlFor="chat-question">Nhập câu hỏi</label>
                       <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" aria-describedby={ollamaDown ? 'chat-hint chat-hint-off' : 'chat-hint'} />
