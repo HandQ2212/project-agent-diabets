@@ -16,7 +16,8 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
 from ml.train_nhanes import ClinicalCNN, FEATURES as NHANES_FEATURES
-from backend.app import rag, history, nhanes15, knowledge_graph
+from backend.app import rag, history, nhanes15, knowledge_graph, number_guard
+from backend.app.about import AboutService
 from backend.app.publishers import PUBLISHERS
 from backend.app.agents import RuleAgent, CoordinatorState, conversational_reply
 from backend.app.limiter import limiter
@@ -146,6 +147,15 @@ def validate_features(kind: str, raw: dict):
         d['_BMI5'] = bmi
     return d
 
+def model_availability() -> dict[str, bool]:
+    """Mô hình nào đủ file để /api/predict chạy (dùng chung cho /api/health và /api/about)."""
+    return {
+        'symptoms': (ROOT / 'symptoms' / 'model.pt').exists(),
+        'brfss': (ROOT / 'brfss' / 'model.pt').exists(),
+        'nhanes_research': (ROOT / 'nhanes_research' / 'model.pt').exists() and (ROOT / 'nhanes_research' / 'scaler.joblib').exists(),
+        'nhanes15_research': all((ROOT / 'nhanes15_web' / f).exists() for f in ('neural_seed_42.pt', 'preprocessor.joblib', 'report.json')),
+    }
+
 @app.get('/api/health')
 def health():
     """Live health check with granular dependency status."""
@@ -169,12 +179,7 @@ def health():
 
     return {
         'status': 'ok',
-        'models': {
-            'symptoms': (ROOT / 'symptoms' / 'model.pt').exists(),
-            'brfss': (ROOT / 'brfss' / 'model.pt').exists(),
-            'nhanes_research': (ROOT / 'nhanes_research' / 'model.pt').exists() and (ROOT / 'nhanes_research' / 'scaler.joblib').exists(),
-            'nhanes15_research': all((ROOT / 'nhanes15_web' / f).exists() for f in ('neural_seed_42.pt', 'preprocessor.joblib', 'report.json')),
-        },
+        'models': model_availability(),
         'rl': (ROOT / 'rl' / 'education_policy.zip').exists(),
         'services': {
             'neo4j': neo4j_ok,
@@ -282,10 +287,12 @@ def conversation_node(state: CoordinatorState) -> CoordinatorState:
         'trace': state.get('trace', []) + ['Conversation Agent'],
     }
 
+RETRIEVE_TOP_K = 3
+
 def knowledge_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
     search_question = rag.standalone_question(question, state.get('history', []))
-    sources = rag.retrieve(search_question, top_k=3)
+    sources = rag.retrieve(search_question, top_k=RETRIEVE_TOP_K)
     trace = state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
     # Knowledge Graph Agent: bổ sung quan hệ có cấu trúc (thực thể -> quan hệ -> thực thể) từ Neo4j.
     # Cổng liên quan: chỉ tra đồ thị khi RAG đã thấy ≥1 nguồn vượt ngưỡng. Khớp tên thực thể không chứng tỏ
@@ -426,6 +433,20 @@ def chat_stream(req: ChatRequest):
             yield event('error', message='Không thể hoàn tất câu trả lời. Vui lòng kiểm tra Ollama và Neo4j rồi thử lại.')
 
     return StreamingResponse(generate(), media_type='application/x-ndjson', headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+ABOUT = AboutService(
+    artifacts=lambda: ROOT, availability=model_availability, llm=rag.MODEL, embedding=rag.EMBED,
+    top_k=RETRIEVE_TOP_K, min_cosine=rag.RAG_THRESHOLD,
+    number_guard='v2' if hasattr(number_guard, 'GuardContext') else 'v1', publisher_of=PUBLISHERS.get)
+
+
+@app.get('/api/about')
+def about():
+    """Mô hình, dữ liệu, trợ lý và quy mô kho tri thức cho trang "Dữ liệu và mô hình" (REQ-DA-04, design 6c).
+
+    Luôn 200: report thiếu → metrics null; Neo4j lỗi → kb null. Cache ngắn trong AboutService.
+    """
+    return ABOUT.get()
 
 @app.post('/api/learning')
 def learning(req: RLRequest):
