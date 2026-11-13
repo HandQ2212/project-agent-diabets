@@ -24,6 +24,8 @@ Tải CSV từ [UCI Early Stage Diabetes Risk Prediction](https://archive.ics.uc
 
 `knowledge/sources.json` là tập đoạn giới thiệu ngắn, không phải knowledge base y tế hoàn chỉnh. Hãy kiểm tra tính chính xác, cập nhật, giấy phép, phân đoạn, metadata và chất lượng truy xuất trước khi mở rộng; không sao chép nguyên văn hàng loạt tài liệu có bản quyền. Chỉ dùng nguồn đã được kiểm chứng và trích URL.
 
+**Snapshot Neo4j.** `knowledge/knowledge_graph.cypher` là bản xuất toàn bộ đồ thị (node, quan hệ, embedding, constraint) bằng `docker compose exec api python -m ml.export_graph --out knowledge/knowledge_graph.cypher`; nạp lại vào một Neo4j 5 rỗng bằng `cypher-shell -u neo4j -p <mật khẩu> -f knowledge_graph.cypher` (MERGE theo khoá nên nạp lại không tạo trùng).
+
 Biến `_RFHYPE6` không có trong bộ 2022 đã tải, nên không dùng làm đầu vào cho bộ ba năm.
 
 ## Đối chiếu assignment cũ (04/11/2026)
