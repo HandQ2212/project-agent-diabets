@@ -282,7 +282,9 @@ def test_ut12_ac9_events_keep_the_v1_schema_and_end_with_exactly_one_done(pipeli
     assert all(set(e) == {'type', 'text'} for e in events if e['type'] == 'delta')
     assert [e['type'] for e in events].count('done') == 1 and events[-1]['type'] == 'done'
     assert set(events[-1]) == {'type', 'sources', 'trace', 'disclaimer'}
-    assert set(events[-1]['sources'][0]) == {'title', 'url', 'topic', 'review_status', 'fetched_at'}
+    # Trường v1 luôn có; REQ-DA-04 chỉ thêm publisher (B-2) và facts cho nguồn đồ thị (B-3).
+    v1 = {'title', 'url', 'topic', 'review_status', 'fetched_at'}
+    assert v1 <= set(events[-1]['sources'][0]) <= v1 | {'publisher', 'facts'}
 
 
 def test_ut13_ac9_trace_matches_v1_steps_with_one_number_check_line(pipeline):

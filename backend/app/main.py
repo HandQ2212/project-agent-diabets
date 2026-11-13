@@ -18,7 +18,9 @@ from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
 from ml.train_nhanes import ClinicalCNN, FEATURES as NHANES_FEATURES
-from backend.app import rag, history, nhanes15, knowledge_graph
+from backend.app import rag, history, nhanes15, knowledge_graph, number_guard
+from backend.app.about import AboutService
+from backend.app.publishers import PUBLISHERS
 from backend.app.agents import RuleAgent, CoordinatorState, conversational_reply
 from backend.app.limiter import limiter
 
@@ -147,6 +149,15 @@ def validate_features(kind: str, raw: dict):
         d['_BMI5'] = bmi
     return d
 
+def model_availability() -> dict[str, bool]:
+    """Mô hình nào đủ file để /api/predict chạy (dùng chung cho /api/health và /api/about)."""
+    return {
+        'symptoms': (ROOT / 'symptoms' / 'model.pt').exists(),
+        'brfss': (ROOT / 'brfss' / 'model.pt').exists(),
+        'nhanes_research': (ROOT / 'nhanes_research' / 'model.pt').exists() and (ROOT / 'nhanes_research' / 'scaler.joblib').exists(),
+        'nhanes15_research': all((ROOT / 'nhanes15_web' / f).exists() for f in ('neural_seed_42.pt', 'preprocessor.joblib', 'report.json')),
+    }
+
 @app.get('/api/health')
 def health():
     """Live health check with granular dependency status."""
@@ -170,12 +181,7 @@ def health():
 
     return {
         'status': 'ok',
-        'models': {
-            'symptoms': (ROOT / 'symptoms' / 'model.pt').exists(),
-            'brfss': (ROOT / 'brfss' / 'model.pt').exists(),
-            'nhanes_research': (ROOT / 'nhanes_research' / 'model.pt').exists() and (ROOT / 'nhanes_research' / 'scaler.joblib').exists(),
-            'nhanes15_research': all((ROOT / 'nhanes15_web' / f).exists() for f in ('neural_seed_42.pt', 'preprocessor.joblib', 'report.json')),
-        },
+        'models': model_availability(),
         'rl': (ROOT / 'rl' / 'education_policy.zip').exists(),
         'services': {
             'neo4j': neo4j_ok,
@@ -283,10 +289,12 @@ def conversation_node(state: CoordinatorState) -> CoordinatorState:
         'trace': state.get('trace', []) + ['Conversation Agent'],
     }
 
+RETRIEVE_TOP_K = 3
+
 def knowledge_node(state: CoordinatorState) -> CoordinatorState:
     question = state['question']
     search_question = rag.standalone_question(question, state.get('history', []))
-    sources = rag.retrieve(search_question, top_k=3)
+    sources = rag.retrieve(search_question, top_k=RETRIEVE_TOP_K)
     trace = state.get('trace', []) + [f"Knowledge Agent (Retrieved {len(sources)} sources)"]
     # Knowledge Graph Agent: bổ sung quan hệ có cấu trúc (thực thể -> quan hệ -> thực thể) từ Neo4j.
     # Cổng liên quan: chỉ tra đồ thị khi RAG đã thấy ≥1 nguồn vượt ngưỡng. Khớp tên thực thể không chứng tỏ
@@ -357,6 +365,29 @@ graph.add_edge('blocked', END)
 
 coordinator = graph.compile()
 
+CURATED = 'curated'
+
+
+def source_summary(source: dict) -> dict:
+    """Nguồn trả cho client (/api/chat, /api/chat/stream) – REQ-DA-04 B-1/B-2/B-3.
+
+    B-1: tài liệu đã duyệt (review_status null) → 'curated'; 'unreviewed_web', 'curated_graph' giữ nguyên.
+    B-2: publisher tra theo id Document từ knowledge/sources*.json (None với web chưa duyệt và nguồn đồ thị).
+    B-3: nguồn bộ ba đồ thị kèm facts[{from, type, to, threshold?}].
+    """
+    status = source.get('review_status') or CURATED
+    summary = {'title': source.get('title'), 'url': source.get('url'), 'topic': source.get('topic', 'Y tế'),
+               'review_status': status, 'fetched_at': source.get('fetched_at'),
+               'publisher': PUBLISHERS.get(source.get('id')) if status == CURATED else None}
+    if status == knowledge_graph.GRAPH_REVIEW_STATUS:
+        # Bộ ba thiếu đầu/cuối/loại thì bỏ, không làm hỏng cả câu trả lời.
+        summary['facts'] = [{'from': f['from_name'], 'type': f['type'], 'to': f['to_name'],
+                             **({'threshold': f['threshold']} if f.get('threshold') else {})}
+                            for f in source.get('facts') or []
+                            if f.get('from_name') and f.get('type') and f.get('to_name')]
+    return summary
+
+
 @app.post('/api/chat')
 def chat(req: ChatRequest):
     """Multi-Agent Chat endpoint with LangGraph coordination."""
@@ -371,11 +402,7 @@ def chat(req: ChatRequest):
         ) from exc
 
     history.record('chat')
-    sources_summary = [
-        {'title': s['title'], 'url': s['url'], 'topic': s.get('topic', 'Y tế'),
-         'review_status': s.get('review_status'), 'fetched_at': s.get('fetched_at')}
-        for s in result.get('sources', [])
-    ]
+    sources_summary = [source_summary(s) for s in result.get('sources', [])]
     return {
         'answer': result['answer'],
         'sources': sources_summary,
@@ -451,7 +478,7 @@ def stream_events(state: dict, make_deps: Callable[[], StreamDeps]) -> Iterator[
             state['trace'].append(step)
             state['trace'].extend(number_check_trace(checked))
         history.record('chat')
-        summary = [{k: s.get(k) for k in ('title', 'url', 'topic', 'review_status', 'fetched_at')} for s in state.get('sources', [])]
+        summary = [source_summary(s) for s in state.get('sources', [])]
         yield _event('done', sources=summary, trace=state['trace'], disclaimer=DISCLAIMER)
     except Exception:
         log.exception('Streaming chat pipeline error')
@@ -538,6 +565,20 @@ async def _closing(lines: Iterator[str]):
             yield line
     finally:
         lines.close()
+
+ABOUT = AboutService(
+    artifacts=lambda: ROOT, availability=model_availability, llm=rag.MODEL, embedding=rag.EMBED,
+    top_k=RETRIEVE_TOP_K, min_cosine=rag.RAG_THRESHOLD,
+    number_guard='v2' if hasattr(number_guard, 'GuardContext') else 'v1', publisher_of=PUBLISHERS.get)
+
+
+@app.get('/api/about')
+def about():
+    """Mô hình, dữ liệu, trợ lý và quy mô kho tri thức cho trang "Dữ liệu và mô hình" (REQ-DA-04, design 6c).
+
+    Luôn 200: report thiếu → metrics null; Neo4j lỗi → kb null. Cache ngắn trong AboutService.
+    """
+    return ABOUT.get()
 
 @app.post('/api/learning')
 def learning(req: RLRequest):
