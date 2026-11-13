@@ -4,14 +4,16 @@ import os
 import time
 import math
 from pathlib import Path
-from typing import Literal
+from dataclasses import dataclass
+from typing import Callable, Iterator, Literal
 import joblib
 import numpy as np
 import pandas as pd
 import torch
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.concurrency import iterate_in_threadpool
 from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel, Field, field_validator
 from ml.train import Network, SYMPTOMS, BRFSS
@@ -56,7 +58,7 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 ROOT = Path(os.getenv('ARTIFACTS_DIR', 'artifacts'))
-DISCLAIMER = 'Công cụ học thuật nghiên cứu hệ đa tác tử, không chẩn đoán hoặc thay thế tư vấn của nhân viên y tế.'
+DISCLAIMER = 'Công cụ học thuật nghiên cứu hệ multi agent, không chẩn đoán hoặc thay thế tư vấn của nhân viên y tế.'
 
 class PredictionRequest(BaseModel):
     kind: Literal['symptoms', 'brfss', 'nhanes_research', 'nhanes15_research']
@@ -310,12 +312,23 @@ def knowledge_node(state: CoordinatorState) -> CoordinatorState:
     return {'sources': sources, 'trace': trace}
 
 def number_check_trace(answer_text) -> list[str]:
-    """Dòng trace cho hậu kiểm số (chỉ có khi câu trả lời đi qua rag.guard_answer)."""
+    """Dòng trace cho hậu kiểm số (câu trả lời đi qua rag.guard_answer hoặc stream theo câu).
+
+    'filtered' (chỉ stream tạo) ghi "filtered k/n sentences": k câu bị lược trên n câu nội dung. Chuỗi này
+    không chứa chữ "blocked" để frontend (isBlockedTrace) không coi câu trả lời là bị chặn.
+    """
     check = getattr(answer_text, 'check', None)
     if not check or check['status'] == 'skipped':
         return []
-    detail = {'passed': 'passed', 'regenerated': 'regenerated, unsupported: ' + ', '.join(check['numbers']),
-              'blocked': 'blocked, unsupported: ' + ', '.join(check['numbers'])}[check['status']]
+    status, unsupported = check['status'], ', '.join(check.get('numbers') or [])
+    if status == 'passed':
+        detail = 'passed'
+    elif status == 'filtered':
+        detail = f"filtered {check.get('removed', 0)}/{check.get('total', 0)} sentences, unsupported: {unsupported}"
+    elif status in ('regenerated', 'blocked'):
+        detail = f'{status}, unsupported: {unsupported}'
+    else:
+        raise ValueError(f'Unknown number check status: {status!r}')
     return [f'Response Agent (Number check: {detail})']
 
 
@@ -397,42 +410,161 @@ def chat(req: ChatRequest):
         'disclaimer': DISCLAIMER
     }
 
+@dataclass(frozen=True)
+class StreamDeps:
+    """Các cộng tác viên của T1 (REQ-DA-03) mà stream theo câu cần; test thay bằng fake qua dependency_overrides.
+
+    Interface chốt ở docs/reqs/REQ-DA-03/design-data.md §3. Stream chỉ ghép luồng; mọi luật về số và biên câu
+    thuộc guard/splitter để /api/chat và stream cho cùng phán quyết.
+    """
+    answer_parts: Callable[..., Iterator[str]]                 # rag.answer_parts(q, sources, history, include_tail=)
+    context_for_turn: Callable[[str, list, list], object]      # GuardContext.for_turn -> ctx | None (bỏ kiểm)
+    guard: object                                              # .check(text, ctx) -> verdict(.ok, .unsupported)
+    splitter_factory: Callable[[], object]                     # -> .feed(token) / .flush(), mỗi request một cái
+    removed_note: str                                          # number_guard.REMOVED_NOTE
+    safe_fallback: Callable[[list], str]                       # rag.safe_fallback(sources)
+    unreviewed_tail: Callable[[list], str | None]              # rag.unreviewed_tail(sources)
+    checked_answer: Callable[..., str]                         # rag.CheckedAnswer(text, status, numbers, removed, total)
+
+    @classmethod
+    def from_t1(cls) -> 'StreamDeps':
+        # Import trễ: chỉ đường đi qua RAG mới cần T1, nên Rule/Conversation vẫn chạy nếu T1 hỏng.
+        from backend.app.number_guard import GuardContext, NumberGuard, REMOVED_NOTE
+        from backend.app.sentence_split import SentenceSplitter
+        return cls(answer_parts=rag.answer_parts, context_for_turn=GuardContext.for_turn, guard=NumberGuard(),
+                   splitter_factory=SentenceSplitter, removed_note=REMOVED_NOTE, safe_fallback=rag.safe_fallback,
+                   unreviewed_tail=rag.unreviewed_tail, checked_answer=rag.CheckedAnswer)
+
+
+def stream_deps_provider() -> Callable[[], StreamDeps]:
+    """FastAPI dependency: trả hàm dựng StreamDeps (gọi trễ). Test ghi đè qua app.dependency_overrides."""
+    return StreamDeps.from_t1
+
+
+STREAM_ERROR_MESSAGE = 'Không thể hoàn tất câu trả lời. Vui lòng kiểm tra Ollama và Neo4j rồi thử lại.'
+
+
 @app.post('/api/chat/stream')
-def chat_stream(req: ChatRequest):
-    """Stream answer fragments over HTTP after the same input safety checks."""
-    def event(kind, **payload):
-        return json.dumps({'type': kind, **payload}, ensure_ascii=False) + '\n'
+def chat_stream(req: ChatRequest, make_deps: Callable[[], StreamDeps] = Depends(stream_deps_provider)):
+    """Stream câu trả lời theo câu: mỗi câu qua hậu kiểm số trước khi phát (REQ-DA-03 §5)."""
+    state = {'question': req.question, 'history': [m.model_dump() for m in req.history]}
+    return StreamingResponse(_closing(stream_events(state, make_deps)), media_type='application/x-ndjson',
+                             headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
-    def generate():
-        try:
-            state = {'question': req.question, 'history': [m.model_dump() for m in req.history]}
-            state.update(rules_node(state))
-            if not state['safety_passed']:
-                state.update(blocked_node(state))
-                yield event('delta', text=state['answer'])
-            elif conversational_reply(state['question']):
-                state.update(conversation_node(state))
-                yield event('delta', text=state['answer'])
-            else:
-                state.update(knowledge_node(state))
-                sources = state['sources']
-                # Không gửi token trước khi hậu kiểm số: gom toàn bộ, kiểm, rồi mới phát từng đoạn nhỏ.
-                checked = rag.guard_answer(req.question, sources, state['history'],
-                                           first_text=''.join(rag.answer_parts(req.question, sources, state['history'])))
-                for i in range(0, len(checked), 48):
-                    yield event('delta', text=checked[i:i + 48])
-                links_only = bool(sources) and all(s.get('review_status') == 'unreviewed_web' for s in sources)
-                step = 'Response Agent (No source)' if not sources else ('Response Agent (Links to unreviewed sources)' if links_only else 'Response Agent (Cited Generation)')
-                state['trace'].append(step)
-                state['trace'].extend(number_check_trace(checked))
-            history.record('chat')
-            summary = [source_summary(s) for s in state.get('sources', [])]
-            yield event('done', sources=summary, trace=state['trace'], disclaimer=DISCLAIMER)
-        except Exception:
-            log.exception('Streaming chat pipeline error')
-            yield event('error', message='Không thể hoàn tất câu trả lời. Vui lòng kiểm tra Ollama và Neo4j rồi thử lại.')
 
-    return StreamingResponse(generate(), media_type='application/x-ndjson', headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+def _event(kind: str, **payload) -> str:
+    return json.dumps({'type': kind, **payload}, ensure_ascii=False) + '\n'
+
+
+def stream_events(state: dict, make_deps: Callable[[], StreamDeps]) -> Iterator[str]:
+    """Các dòng NDJSON: delta × 0..n rồi đúng 1 done hoặc 1 error (schema v1, AC-9).
+
+    Client ngắt kết nối → GeneratorExit (không phải Exception) đi qua, không record history, không yield thêm.
+    """
+    try:
+        state.update(rules_node(state))
+        if not state['safety_passed']:
+            state.update(blocked_node(state))
+            yield _event('delta', text=state['answer'])
+        elif conversational_reply(state['question']):
+            state.update(conversation_node(state))
+            yield _event('delta', text=state['answer'])
+        else:
+            state.update(knowledge_node(state))
+            sources = state['sources']
+            checked = yield from _sentence_events(state, make_deps())
+            links_only = bool(sources) and all(s.get('review_status') == 'unreviewed_web' for s in sources)
+            step = 'Response Agent (No source)' if not sources else ('Response Agent (Links to unreviewed sources)' if links_only else 'Response Agent (Cited Generation)')
+            state['trace'].append(step)
+            state['trace'].extend(number_check_trace(checked))
+        history.record('chat')
+        summary = [source_summary(s) for s in state.get('sources', [])]
+        yield _event('done', sources=summary, trace=state['trace'], disclaimer=DISCLAIMER)
+    except Exception:
+        log.exception('Streaming chat pipeline error')
+        yield _event('error', message=STREAM_ERROR_MESSAGE)
+
+
+def _sentence_events(state: dict, deps: StreamDeps) -> Iterator[str]:
+    """Các dòng delta theo câu; giá trị trả về (qua `yield from`) là CheckedAnswer, hoặc None khi bỏ kiểm.
+
+    - ctx None (không có nguồn đã duyệt): phát theo câu, không kiểm, như v1 (không có dòng Number check).
+    - Có ctx: câu vi phạm bị lược và log (chỉ số câu + số vi phạm, không log nội dung); cuối luồng thêm
+      REMOVED_NOTE (filtered) hoặc thay bằng safe_fallback nếu không câu nào phát được (blocked).
+    - Không sinh lại khi stream (ADR-REQ-DA-03-01). Lỗi giữa chừng: câu dở trong splitter bị bỏ, không flush.
+    """
+    question, sources, turns = state['question'], state['sources'], state['history']
+    ctx = deps.context_for_turn(question, sources, turns)
+    checking = ctx is not None
+    # Có kiểm: tail do stream tự phát cuối luồng (unreviewed_tail), sau REMOVED_NOTE.
+    parts = (deps.answer_parts(question, sources, turns, include_tail=False) if checking
+             else deps.answer_parts(question, sources, turns))
+    splitter = deps.splitter_factory()
+    emitted, unsupported = [], []
+    removed = total = 0
+    pending = ''   # câu không có chữ/số (khoảng trắng, ký hiệu) được gộp vào câu kế, không đếm
+
+    def delta(text: str) -> str:
+        emitted.append(text)
+        return _event('delta', text=text)
+
+    def sentences():
+        for token in parts:
+            yield from splitter.feed(token)
+        yield from splitter.flush()
+
+    try:
+        for sentence in sentences():
+            sentence, pending = pending + sentence, ''
+            if not any(ch.isalnum() for ch in sentence):
+                pending = sentence
+                continue
+            if not emitted:
+                sentence = sentence.lstrip()
+            if checking:
+                total += 1
+                verdict = deps.guard.check(sentence, ctx)
+                if not verdict.ok:
+                    removed += 1
+                    unsupported.extend(n for n in verdict.unsupported if n not in unsupported)
+                    log.warning('Number check: removed sentence %d, unsupported %s', total, list(verdict.unsupported))
+                    continue
+            yield delta(sentence)
+    finally:
+        close = getattr(parts, 'close', None)
+        if close:
+            close()   # đóng httpx.stream tới Ollama khi client ngắt hoặc lỗi (EC-17)
+
+    if pending.strip() and emitted:
+        yield delta(pending)   # phần đuôi chỉ có ký hiệu: không có chữ số nên không cần kiểm
+    if not checking:
+        return None
+    if removed == 0:
+        status = 'passed'
+    elif emitted:
+        status = 'filtered'
+        yield delta('\n\n' + deps.removed_note)
+    else:
+        status = 'blocked'
+        yield delta(deps.safe_fallback(sources))
+    tail = deps.unreviewed_tail(sources)
+    if tail and status != 'blocked':
+        yield delta(tail)
+    return deps.checked_answer(''.join(emitted), status, unsupported, removed, total)
+
+
+async def _closing(lines: Iterator[str]):
+    """Phát generator đồng bộ qua threadpool và LUÔN đóng nó khi response kết thúc hoặc client ngắt.
+
+    Starlette (1.10) không gọi close() cho iterator đồng bộ khi client ngắt, chỉ chờ GC. Đóng tường minh để
+    finally của _sentence_deltas đóng kết nối Ollama ngay (EC-17). to_thread.run_sync không huỷ giữa chừng,
+    nên lúc tới finally generator không còn đang chạy.
+    """
+    try:
+        async for line in iterate_in_threadpool(lines):
+            yield line
+    finally:
+        lines.close()
 
 ABOUT = AboutService(
     artifacts=lambda: ROOT, availability=model_availability, llm=rag.MODEL, embedding=rag.EMBED,

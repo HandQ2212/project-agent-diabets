@@ -147,6 +147,7 @@ Kho tri thức (KB) gồm ba lớp đều lưu trong Neo4j: đoạn tổng hợp
 Thu thập web là tác vụ riêng: kiểm tra HTTPS, host cho phép, robots.txt, kích thước và redirect; sau đó tạo embedding và cập nhật dữ liệu theo transaction. Nguồn web mang nhãn \texttt{unreviewed\_web}; nguồn nhập thủ công cũng chưa được chuyên gia xác nhận. Cần kiểm chứng nội dung và kiểm thử truy xuất trước ứng dụng thực tế.
 \input{noi_dung/04_rag.tex}
 \input{noi_dung/04_kb_v2.tex}
+\input{noi_dung/04_guard_v2.tex}
 \subsection{Reinforcement Learning: tác tử gợi ý học tập}
 Môi trường gồm bốn chủ đề. Trạng thái là bốn cờ nhị phân cần học, hành động chọn một chủ đề; phần thưởng $+1$ cho chủ đề cần học, $-0,25$ khi chọn lại, và $0$ nếu tất cả đã hoàn tất. Một episode tối đa bốn bước. DQN được huấn luyện 30.000 timestep; đánh giá 200 episode cho mỗi nhóm trong 5 nhóm seed.
 \fig{07_ket_qua_rl.png}{.85}{Tổng thưởng trung bình qua năm nhóm seed, lấy từ báo cáo RL đã lưu}
@@ -169,16 +170,17 @@ Trong nguyên mẫu, Coordinator điều phối luồng hỏi đáp và giao di�
 \subsection{Demo giao diện và triển khai}
 Địa chỉ local: \url{http://localhost:8080}; tài liệu API: \url{http://localhost:8001/docs}. Địa chỉ demo được cấu hình: \url{https://diabetes.handq2212.site}; mã nguồn GitHub: \url{https://github.com/HandQ2212/project-agent-diabets}. Ngày 05/11/2026, yêu cầu kiểm tra tự động nhận HTTP 403 từ Cloudflare; chưa xác nhận truy cập công khai bằng trình duyệt. Website phụ thuộc máy host, Docker Desktop và Ollama đang chạy, không phải dịch vụ luôn sẵn sàng.
 
-Ngày 05/11/2026, danh sách có 18 đoạn thủ công và 25 nguồn web; sau lần nạp đã kiểm tra, Neo4j ghi nhận 25 nguồn và 190 đoạn web có embedding. Sau đợt nâng cấp 12/11/2026, KB có 18 + 40 đoạn thủ công và đồ thị 48 thực thể / 53 quan hệ; 190 đoạn web được nạp lại bằng \texttt{bge-m3}. Nguồn web vẫn chưa được kiểm duyệt chuyên môn. Các ảnh sau chụp ngày 04/11/2026, trước khi bổ sung biểu mẫu NHANES 15 chỉ số; chỉ minh họa giao diện phiên bản thời điểm chụp.
+Ngày 05/11/2026, danh sách có 18 đoạn thủ công và 25 nguồn web; sau lần nạp đã kiểm tra, Neo4j ghi nhận 25 nguồn và 190 đoạn web có embedding. Sau đợt nâng cấp 12/11/2026, KB có 18 + 40 đoạn thủ công và đồ thị 48 thực thể / 53 quan hệ; 190 đoạn web được nạp lại bằng \texttt{bge-m3}. Nguồn web vẫn chưa được kiểm duyệt chuyên môn. Các ảnh 01--05, 09 và 10 được chụp tự động bằng Chrome headless ngày 12/11/2026 từ ứng dụng đang chạy tại \texttt{localhost:8080}, sau đợt sửa giao diện; ảnh hỏi đáp là một lượt hỏi thật qua Ollama và Neo4j. Ảnh 08 vẫn là ảnh ngày 04/11/2026, chụp giao diện phiên bản cũ.
 \subsubsection{Minh chứng giao diện và trace}
-\fig{01_trang_chu.png}{.95}{Trang chủ Đường An chụp từ ứng dụng đang chạy}
+\fig{01_trang_chu.png}{.95}{Trang chủ Đường An (12/11/2026)}
 \fig{02_giao_dien_chat.png}{.95}{Giao diện nhập câu hỏi và các câu hỏi gợi ý}
-\fig{03_chat_va_truy_vet.png}{.95}{Ví dụ hỏi đáp thực tế: nguồn web chưa duyệt được hiển thị dạng liên kết; trace cho thấy các bước đã chạy}
-\fig{04_danh_gia_mo_hinh.png}{.95}{Giao diện phiên bản trước khi bổ sung biểu mẫu NHANES 15 chỉ số}
+\fig{03_chat_va_truy_vet.png}{.95}{Một lượt hỏi đáp thật (12/11/2026): nguồn gồm bốn đoạn tri thức đã tóm tắt và một thực thể đồ thị Neo4j; trace sáu bước gồm Knowledge Graph Agent và hậu kiểm số (\texttt{Number check: passed})}
+\fig{04_danh_gia_mo_hinh.png}{.95}{Trang đánh giá mô hình với biểu mẫu NHANES 15 chỉ số và các bộ dữ liệu khác}
 \fig{05_mo_phong_rl.png}{.95}{Giao diện mô phỏng lựa chọn chủ đề giáo dục}
-\fig{08_ket_qua_phan_loai.png}{.95}{Kết quả phân loại BRFSS với dữ liệu giả lập và trace Prediction Agent}
+\fig{08_ket_qua_phan_loai.png}{.95}{Kết quả phân loại BRFSS với dữ liệu giả lập và trace Prediction Agent (ảnh 04/11/2026, giao diện cũ)}
 \fig{09_ket_qua_rl.png}{.95}{Kết quả chọn chủ đề DQN với trạng thái giả lập và trace Learning Agent}
-Ảnh trace cho thấy Coordinator $\rightarrow$ Rule Agent $\rightarrow$ Knowledge Agent $\rightarrow$ Response Agent trên một yêu cầu cụ thể; đây là bằng chứng cho đường đi quan sát được, không chứng minh mọi trường hợp đầu vào đều an toàn hoặc chính xác.
+\fig{10_kien_truc.png}{.95}{Trang kiến trúc hệ đa tác tử trong ứng dụng}
+Ảnh trace cho thấy Coordinator $\rightarrow$ Rule Agent $\rightarrow$ Knowledge Agent $\rightarrow$ Knowledge Graph Agent $\rightarrow$ Response Agent trên một yêu cầu cụ thể; đây là bằng chứng cho đường đi quan sát được, không chứng minh mọi trường hợp đầu vào đều an toàn hoặc chính xác.
 \input{noi_dung/05_demo_v2.tex}
 \subsubsection{Kết quả kiểm tra dịch vụ và lưu ý tái lập}
 Khởi động Ollama với hai mô hình \texttt{qwen3:4b-instruct}, \texttt{bge-m3} (trước 12/11/2026 là \texttt{nomic-embed-text}); chạy \texttt{docker compose up --build -d}; nạp tài liệu thủ công, nạp đồ thị (\texttt{ml.seed\_graph}) và dùng profile ingest cho các nguồn web. Sáu notebook ban đầu trong \texttt{notebooks/training} đã chạy đầy đủ và lưu các biểu đồ, đầu ra và báo cáo trong \texttt{artifacts/notebook\_runs}. Các artifact này không tự cập nhật model website; mô hình NHANES 15 chỉ số trên web được sao chép cố định từ lần chạy đã chọn để bảo đảm đúng bộ tiền xử lý và ngưỡng. Không đưa mật khẩu, dữ liệu gốc hoặc credential tunnel vào hồ sơ.

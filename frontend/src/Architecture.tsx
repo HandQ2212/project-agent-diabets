@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from './copy.ts';
 
 type BoxProps = { title: string; desc: string; cls?: string; reads?: string; extra?: string };
 
@@ -30,7 +31,7 @@ const flow = [
   'Response Agent viết câu trả lời có trích dẫn, kèm nguồn và các bước đã chạy.'
 ];
 
-export function Architecture() {
+export function Architecture({ onGoData }: { onGoData?: (anchor?: string) => void }) {
   return (
     <div className="panel arch">
       <section aria-labelledby="arch-l1" className="arch-layer">
@@ -43,7 +44,7 @@ export function Architecture() {
         <div className="arch-row">
           <Box title="Web, sách, hướng dẫn" desc="WHO · ADA · CDC · NIDDK · Bộ Y tế" />
           <Link label="tạo" />
-          <Box title="Neo4j KB" desc="Tài liệu có vector và đồ thị thực thể" cls="graph" />
+          <Box title="Neo4j KB" desc={t('arch.kb.desc')} cls="graph" />
         </div>
       </section>
       <div className="arch-down" aria-hidden="true">↓</div>
@@ -75,6 +76,7 @@ export function Architecture() {
         <p className="chat-note">Màu viền trái của từng tác tử giống màu thẻ trong "Luồng xử lý" ở tab Hỏi đáp.</p>
         <ul>{legend.map(([c, n]) => <li key={c}><span className={`arch-swatch arch-box ${c}`} aria-hidden="true" />{n}</li>)}</ul>
       </div>
+      {onGoData && <p className="arch-todata"><button type="button" className="linkbutton" onClick={() => onGoData()}>{t('arch.toData')}</button></p>}
     </div>
   );
 }

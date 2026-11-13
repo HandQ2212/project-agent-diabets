@@ -3,10 +3,15 @@ import { createRoot } from 'react-dom/client';
 import './style.css';
 import type { Answer, ChatTurn, HealthStatus } from './types';
 import { friendlyError, chatErrorMessage, postApi, readDetail, HttpError, StreamInterrupted, StreamFailed } from './api';
-import { formatTrace, isBlockedTrace } from './trace';
 import { TracePipeline } from './TracePipeline';
 import { SourceList } from './SourceList';
 import { Architecture } from './Architecture';
+import { AssistantBubble } from './AssistantBubble';
+import { doneStatus } from './chatState.ts';
+import { NdjsonEventReader, type StreamEvent } from './stream.ts';
+import { PendingTurn } from './PendingTurn';
+import { DataModels } from './DataModels';
+import { t } from './copy.ts';
 import { nhanes15Groups, nhanesBasicFields, fieldHint, type NumberField } from './formSpec';
 
 const symptoms: [string, string, string][] = [
@@ -70,7 +75,8 @@ const views = [
   ['risk', 'Đánh giá mô hình'],
   ['chat', 'Hỏi đáp'],
   ['rl', 'Mô phỏng RL'],
-  ['arch', 'Kiến trúc hệ thống']
+  ['arch', 'Kiến trúc hệ thống'],
+  ['data', t('nav.data')]
 ] as const;
 
 const starterQuestions = [
@@ -80,7 +86,7 @@ const starterQuestions = [
   'Phương pháp đĩa ăn đái tháo đường của ADA phân chia ra sao?'
 ];
 
-type View = 'home' | 'risk' | 'chat' | 'rl' | 'arch';
+type View = 'home' | 'risk' | 'chat' | 'rl' | 'arch' | 'data';
 type Kind = 'symptoms' | 'brfss' | 'nhanes_research' | 'nhanes15_research';
 
 const datasetTabs: [Kind, string][] = [
@@ -90,8 +96,6 @@ const datasetTabs: [Kind, string][] = [
   ['symptoms', 'UCI (triệu chứng)']
 ];
 
-const MSG_WAITING = 'Đang kiểm tra an toàn và tìm tài liệu…';
-const MSG_WRITING = 'Đang viết câu trả lời…';
 const MSG_OLLAMA_DOWN = 'Chưa gửi được vì mô hình ngôn ngữ chưa chạy. Hãy khởi động Ollama rồi tải lại trang.';
 const RL_DISCLAIMER = 'Đây là mô phỏng học tập, không phải chỉ định điều trị.';
 
@@ -117,6 +121,9 @@ function App() {
   const [question, setQuestion] = useState('');
   const [conversation, setConversation] = useState<ChatTurn[]>([]);
   const [chatStatus, setChatStatus] = useState('');
+  const [pendingSince, setPendingSince] = useState(0);
+  /** Mục cần cuộn tới khi mở SCR-2 (`data-models`, `data-kb`, `model-<kind>`…). */
+  const [dataAnchor, setDataAnchor] = useState<string | undefined>(undefined);
   const chatEnd = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -159,6 +166,22 @@ function App() {
     setAnswer(null);
     setError('');
     setNotice('');
+  };
+
+  const goData = (anchor?: string) => {
+    reset('data');
+    setDataAnchor(anchor);
+  };
+
+  /** C4 "Hỏi lại cách khác": điền lại câu hỏi, focus ô nhập, đặt con trỏ cuối, không tự gửi. */
+  const askAgain = (text: string) => {
+    setQuestion(text);
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById('chat-question') as HTMLTextAreaElement | null;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
   };
 
   const switchKind = (k: Kind) => {
@@ -206,7 +229,8 @@ function App() {
     if (retry) { if (question.trim() === text) setQuestion(''); } else setQuestion('');
     setError('');
     setBusy(true);
-    setChatStatus(MSG_WAITING);
+    setChatStatus(t('status.start'));
+    setPendingSince(performance.now());
     nearBottom.current = true;
     const controller = new AbortController();
     abortRef.current = controller;
@@ -233,29 +257,28 @@ function App() {
       started = true;
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      const events = new NdjsonEventReader();
       let done = false;
+      const handle = (event: StreamEvent) => {
+        if (event.type === 'delta') {
+          if (!created) setChatStatus(t('status.writing'));
+          updateAssistant(event.text, {});
+        } else if (event.type === 'done') {
+          updateAssistant(undefined, { sources: event.sources, trace: event.trace, done: true });
+          setChatStatus(doneStatus(event));
+          done = true;
+        } else {
+          throw new StreamFailed();
+        }
+      };
       while (true) {
         const chunk = await reader.read();
-        buffer += decoder.decode(chunk.value, { stream: !chunk.done });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (!line) continue;
-          const event = JSON.parse(line);
-          if (event.type === 'delta') {
-            if (!created) setChatStatus(MSG_WRITING);
-            updateAssistant(event.text, {});
-          }
-          if (event.type === 'done') {
-            updateAssistant(undefined, { sources: event.sources, trace: event.trace, done: true });
-            const n = Array.isArray(event.sources) ? event.sources.length : 0;
-            setChatStatus(n ? `Đã trả lời xong, ${n} nguồn.` : 'Đã trả lời xong.');
-            done = true;
-          }
-          if (event.type === 'error') throw new StreamFailed();
+        const text = decoder.decode(chunk.value, { stream: !chunk.done });
+        for (const event of events.push(text)) handle(event);
+        if (chunk.done) {
+          for (const event of events.flush()) handle(event);
+          break;
         }
-        if (chunk.done) break;
       }
       if (!done) throw new StreamInterrupted();
     } catch (e) {
@@ -300,8 +323,6 @@ function App() {
     </label>
   );
 
-  let lastAssistant = -1;
-  conversation.forEach((t, i) => { if (t.role === 'assistant') lastAssistant = i; });
   const lastTurn = conversation[conversation.length - 1];
   const waiting = busy && (lastTurn?.role !== 'assistant' || (lastTurn.content === '' && !lastTurn.stopped));
   const resultStatus = answer ? (view === 'rl' ? 'Đã có đề xuất chủ đề.' : 'Đã có kết quả.') : '';
@@ -411,7 +432,7 @@ function App() {
           <>
             <div className="pagehead">
               <div className="eyebrow">
-                ĐƯỜNG AN / {view === 'risk' ? 'ĐÁNH GIÁ MÔ HÌNH' : view === 'chat' ? 'HỎI ĐÁP ĐA AGENT' : view === 'arch' ? 'KIẾN TRÚC HỆ THỐNG' : 'MÔ PHỎNG RL'}
+                {view === 'data' ? t('data.eyebrow') : <>ĐƯỜNG AN / {view === 'risk' ? 'ĐÁNH GIÁ MÔ HÌNH' : view === 'chat' ? 'HỎI ĐÁP ĐA AGENT' : view === 'arch' ? 'KIẾN TRÚC HỆ THỐNG' : 'MÔ PHỎNG RL'}</>}
               </div>
               <h1>
                 {view === 'risk'
@@ -420,6 +441,8 @@ function App() {
                   ? 'Hỏi đáp thông tin y tế có nguồn'
                   : view === 'arch'
                   ? 'Kiến trúc hệ đa tác tử'
+                  : view === 'data'
+                  ? t('data.title')
                   : 'Học tăng cường điều phối lộ trình học tập'}
               </h1>
               <p>
@@ -429,11 +452,15 @@ function App() {
                   ? 'Rule Agent kiểm soát an toàn trước khi Knowledge Agent truy xuất tài liệu từ Neo4j và Response Agent trích dẫn nguồn.'
                   : view === 'arch'
                   ? 'Dữ liệu, đồ thị tri thức, RAG, học tăng cường và luật an toàn cùng đi qua Coordinator tới Response Agent.'
+                  : view === 'data'
+                  ? t('data.lead')
                   : 'Mô hình DQN học chính sách tối ưu hóa lựa chọn chủ đề giáo dục sức khỏe dựa trên nhu cầu giả lập.'}
               </p>
             </div>
 
-            {view === 'arch' ? <Architecture /> : (
+            {view === 'arch' ? <Architecture onGoData={goData} /> : view === 'data' ? (
+              <DataModels health={health} anchor={dataAnchor} onAnchorDone={() => setDataAnchor(undefined)} onTryModel={k => { reset('risk'); setKind(k); setValues({}); }} onAsk={() => reset('chat')} />
+            ) : (
             <div className={`workgrid ${view === 'chat' ? 'chat-workgrid' : ''}`}>
               <section className="panel">
                 {view === 'risk' ? (
@@ -578,39 +605,30 @@ function App() {
                     >
                       {!conversation.length && <div className="chat-welcome"><span className="chat-welcome-icon" aria-hidden="true">✳</span><h2>Hôm nay bạn muốn tìm hiểu điều gì?</h2><p>Đặt câu hỏi về bệnh tiểu đường và tiếp tục trao đổi theo ngữ cảnh.</p><div className="chat-suggestions">{starterQuestions.map(q => <button className="pill" type="button" key={q} onClick={() => { setQuestion(q); document.getElementById('chat-question')?.focus(); }}>{q}</button>)}</div></div>}
                       {conversation.map((turn, index) => {
-                        const blocked = turn.role === 'assistant' && isBlockedTrace(turn.trace);
                         const isLast = index === conversation.length - 1;
-                        const ok = turn.role === 'assistant' && turn.done && !turn.error && !blocked;
+                        if (turn.role === 'user') {
+                          return <div key={index} className="chat-row user"><div className="chat-bubble"><div className="chat-text">{turn.content}</div></div></div>;
+                        }
+                        const asked = conversation[index - 1]?.role === 'user' ? conversation[index - 1].content : '';
                         return (
-                          <div key={index} className={`chat-row ${turn.role}`}>
-                            {turn.role === 'assistant' && <span className="chat-avatar" aria-hidden="true">✳</span>}
-                            <div className={`chat-bubble ${turn.error ? 'chat-error' : ''} ${blocked ? 'chat-safety' : ''}`}>
-                              {blocked && <strong className="chat-safety-title">Cảnh báo an toàn</strong>}
-                              {turn.content && <div className="chat-text">{turn.content}</div>}
-                              {turn.stopped && <small className="chat-stopped">Đã dừng trả lời.</small>}
-                              {turn.error && (
-                                <div className="chat-error-msg">
-                                  <span>{turn.error}</span>
-                                  {isLast && !busy && <button type="button" className="chat-retry" onClick={() => sendChat(true)}>Thử lại</button>}
-                                </div>
-                              )}
-                              {blocked && <a className="chat-call" href="tel:115">Gọi 115</a>}
-                              {!!turn.sources?.length && <SourceList compact sources={turn.sources} />}
-                              {!!turn.trace?.length && <details className="chat-trace" open={index === lastAssistant}><summary>Các bước xử lý ({formatTrace(turn.trace).length})</summary><TracePipeline trace={turn.trace} hideTitle /></details>}
-                              {blocked && <small className="chat-safety-note">Hệ thống dừng tại Rule Agent, không tìm tài liệu.</small>}
-                              {ok && <small className="chat-disclaimer">Thông tin tham khảo, không thay thế tư vấn của bác sĩ.</small>}
-                              {busy && isLast && turn.role === 'assistant' && !turn.done && turn.content !== '' && <small className="chat-writing" aria-hidden="true">{MSG_WRITING}</small>}
-                            </div>
-                          </div>
+                          <AssistantBubble
+                            key={index} turn={turn} index={index}
+                            streaming={busy && isLast && !turn.done && !turn.error && !turn.stopped}
+                            canRetry={isLast && !busy}
+                            onRetry={() => sendChat(true)}
+                            onAskAgain={() => askAgain(asked)}
+                            onGoData={goData}
+                            onStatus={setChatStatus}
+                          />
                         );
                       })}
-                      {waiting && <div className="chat-row assistant"><span className="chat-avatar" aria-hidden="true">✳</span><div className="chat-bubble chat-thinking" aria-hidden="true">{MSG_WAITING}</div></div>}
+                      {waiting && <PendingTurn key={pendingSince} startedAt={pendingSince} onSlow={() => setChatStatus(t('status.slow'))} />}
                       <div ref={chatEnd} />
                     </div>
-                    <p className="sr-only" role="status">{chatStatus}</p>
+                    <p className="sr-only" id="chat-status" role="status">{chatStatus}</p>
                     <form className="chat-composer" onSubmit={e => { e.preventDefault(); sendChat(); }}>
                       <label className="sr-only" htmlFor="chat-question">Nhập câu hỏi</label>
-                      <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" aria-describedby={ollamaDown ? 'chat-hint chat-hint-off' : 'chat-hint'} />
+                      <textarea id="chat-question" required minLength={2} maxLength={1500} rows={2} value={question} onChange={e => setQuestion(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); sendChat(); } }} placeholder="Nhập câu hỏi của bạn…" aria-describedby={ollamaDown ? 'chat-hint chat-hint-off' : 'chat-hint'} />
                       {busy
                         ? <button type="button" className="chat-stop" aria-label="Dừng câu trả lời" onClick={stopChat}>Dừng</button>
                         : <button type="submit" disabled={ollamaDown || question.trim().length < 2} aria-label="Gửi câu hỏi">↑</button>}
@@ -690,6 +708,7 @@ function App() {
                         </div>
                         <p className="meaning-text">{answer.meaning}</p>
                         <p className="score-note">Điểm này không phải xác suất bạn mắc bệnh. Hãy hỏi bác sĩ nếu bạn lo lắng.</p>
+                        <p className="score-note model-info">{t('risk.modelInfo')} <button type="button" className="linkbutton" onClick={() => goData(`model-${kind}`)}>{t('risk.modelInfo.link')} →</button></p>
                       </div>
                     )}
 
@@ -721,7 +740,7 @@ function App() {
 
       <footer>
         <div>
-          <strong><span aria-hidden="true">✳</span> đường an</strong> — Hệ đa tác tử học thuật nghiên cứu bệnh đái tháo đường.
+          <strong><span aria-hidden="true">✳</span> đường an</strong> — Hệ multi agent học thuật nghiên cứu bệnh đái tháo đường.
         </div>
         <div>Kiến thức tham khảo cho mục đích học tập</div>
         <span>PHI LÂM SÀNG · DỰ ÁN HỌC THUẬT</span>

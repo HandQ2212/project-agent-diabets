@@ -1,4 +1,17 @@
-export type Source = { title: string; url: string; topic?: string; review_status?: string | null; fetched_at?: string | null };
+/** Sự kiện đồ thị đi kèm nguồn `curated_graph` (B-3, backend chưa có – UI chạy được khi thiếu). */
+export type GraphFact = { from: string; type: string; to: string; threshold?: string | number | null };
+
+export type Source = {
+  title: string;
+  url: string;
+  topic?: string;
+  review_status?: string | null;
+  fetched_at?: string | null;
+  /** B-2 (chưa có ở backend): cơ quan ban hành. */
+  publisher?: string | null;
+  /** B-3 (chưa có ở backend). */
+  facts?: GraphFact[];
+};
 
 export type Answer = {
   answer?: string;

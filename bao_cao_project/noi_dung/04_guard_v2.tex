@@ -1,0 +1,48 @@
+\subsubsection{Hậu kiểm số v2 và stream theo câu (REQ-DA-03)}\label{sec:guardv2}
+\textbf{Trạng thái:} mã nằm trên nhánh \texttt{req-da-03/t1-t3}, chưa triển khai lên website demo. Toàn bộ test tự động đều đạt, nhưng bản này \emph{chưa được đo trên LLM thật}. Bảng \ref{tab:guardv2} vì vậy chỉ có số đo của bản đang chạy.
+
+Bản hậu kiểm số mô tả ở mục trên có ba điểm yếu, do nhóm kiểm thử chỉ ra:
+\begin{enumerate}
+\item \textbf{Chặn nhầm câu đúng.} Mọi phép quy đổi đơn vị đều bị chặn vì kết quả không có nguyên văn trong nguồn, ví dụ 250~mg/dL $\rightarrow$ 13,9~mmol/L.
+\item \textbf{Số mớm qua được.} Số trong câu hỏi luôn được chấp nhận, nên người dùng có thể gài số (“Có phải bình thường là 70--99 không?”). Mỗi số lại được kiểm riêng lẻ, nên khoảng “70--99” vẫn qua khi 70 và 99 nằm ở hai đoạn nguồn khác nhau.
+\item \textbf{Chữ đầu tiên hiện chậm.} Câu trả lời phải sinh xong mới được kiểm và phát.
+\end{enumerate}
+
+Bản v2 vẫn tất định và không gọi LLM:
+\begin{itemize}
+\item \textbf{Phân vai số.} Mỗi số được xếp là \emph{số thường}, \emph{ngưỡng} (đi với “dưới”, “từ \dots{} trở lên”, “mục tiêu”, “bình thường”, $<$, $\geq$\dots) hoặc \emph{đầu mút khoảng} (“$a$--$b$”, “từ $a$ đến $b$”).
+\item \textbf{Khoảng} chỉ hợp lệ khi chính cặp $(a,b)$ có trong nguồn đã duyệt. Khoảng sai bị báo nguyên cụm.
+\item \textbf{Quy đổi} được chấp nhận khi số đó bằng số gốc chia hoặc nhân một hệ số có trong nguồn của lượt hỏi (18 cho glucose, 38,7 cho cholesterol, 88,6 cho triglyceride). Kết quả làm tròn half-up đúng số chữ số câu trả lời ghi: $250/18$ được viết 13,89, 13,9 hoặc 14; viết 13,8 hay 13 thì bị loại. Số gốc phải được nêu trong cùng đoạn. Nếu không có điều kiện này, “dưới 6\%” sẽ lọt vì $99/18 \approx 6$.
+\item \textbf{Số trong câu hỏi} chỉ được nhắc lại như số đo của người dùng, không được dùng làm ngưỡng hay giá trị chuẩn.
+\item \textbf{Stream theo câu.} Token của LLM được ghép thành câu, và mỗi câu qua hậu kiểm rồi mới được gửi. Câu vi phạm bị lược và thay bằng một câu ghi chú cố định (trace \texttt{Number check: filtered k/n sentences}); nếu mọi câu đều vi phạm thì trả câu an toàn. Câu chưa kiểm không bao giờ được gửi, kể cả khi lỗi hoặc ngắt giữa chừng. Định dạng NDJSON và trace giữ nguyên, nên giao diện không phải sửa.
+\end{itemize}
+
+\textbf{Bộ regression nội dung.} \texttt{knowledge/answer\_regression.json} gồm 21 câu chia 5 nhóm: dụ bịa giá trị bình thường (4), mớm số (4), quy đổi (3), so sánh ADA với Bộ Y tế (4) và cặp có dấu/không dấu (6). Mỗi câu có cụm bắt buộc kèm id nguồn chứa nó, cụm bị cấm và trạng thái hậu kiểm chấp nhận được. Lệnh \texttt{python -m ml.run\_answer\_regression --runs 3} chạy qua \texttt{/api/chat/stream}; một câu chỉ đạt khi đúng cả 3/3 lần. Báo cáo của lệnh ghi thời điểm theo giờ Việt Nam, commit, model, thời gian tới chữ đầu tiên và thời gian tới khi xong.
+
+\begin{table}[H]\centering\small
+\begin{tabular}{lcc}\toprule
+\textbf{Chỉ số} & \textbf{Bản đang chạy (v1)} & \textbf{v2} \\\midrule
+Thời gian tới chữ đầu tiên, trung vị & 16,4 s & chưa đo \\
+Thời gian tới chữ đầu tiên, p95 & 30,4 s & chưa đo \\
+Thời gian tới khi xong, trung vị & 16,4 s & chưa đo \\\midrule
+Dụ bịa giá trị bình thường & 4/4 & chưa đo \\
+Mớm số & 3/4 & chưa đo \\
+Quy đổi đơn vị & 1/3 & chưa đo \\
+So sánh ADA -- Bộ Y tế & 3/4 & chưa đo \\
+Cặp có dấu / không dấu & 5/6 & chưa đo \\
+\textbf{Tổng số câu đạt} & \textbf{16/21} & chưa đo \\\bottomrule
+\end{tabular}
+\caption{Regression nội dung trên \texttt{qwen3:4b-instruct}, MacBook Pro M1 Pro, ngày 12/11/2026 (v1: mỗi câu chạy 1 lần)}\label{tab:guardv2}
+\end{table}
+
+Ở bản v1, chữ đầu tiên đến gần như cùng lúc với lúc câu trả lời xong, đúng với nguyên nhân đã nêu. Mục tiêu đặt ra cho v2: trung vị không quá 5~s, p95 không quá 9~s. Bản v1 trượt 5/21 câu:
+\begin{itemize}
+\item Hai câu quy đổi đơn vị, vì prompt cũ cấm quy đổi; v2 sửa điểm này.
+\item Hai câu về huyết áp mục tiêu (có dấu và không dấu): câu trả lời có nêu 140/90 nhưng không gắn với Bộ Y tế.
+\item Một câu gài “3 đơn vị rượu”: câu trả lời không nêu mức 1--2 đơn vị của Bộ Y tế.
+\end{itemize}
+Ba câu cuối phụ thuộc vào việc LLM gắn tên cơ quan; v2 chưa có cơ chế tất định cho việc này. Lần chấm đầu cho 13/21, vì hàm chấm đã tính cả các câu bác bỏ đúng (“không phải là 70--99”) là vi phạm. Hàm chấm đã được sửa và chấm lại trên chính các câu trả lời đã lưu.
+
+Phần tất định có 177 test tự động đạt (25 test cần Neo4j/Ollama thật được bỏ qua), gồm: bảng quyết định của hậu kiểm, quy tắc làm tròn, tách câu (nối lại đúng văn bản gốc với 50 cách cắt token ngẫu nhiên), luồng stream khi lỗi hoặc ngắt kết nối, và cấu trúc bộ regression.
+
+\textbf{Giới hạn của v2.} Hậu kiểm không kiểm đơn vị (mg/dL hay mmol/L), nên một số bịa trùng đúng giá trị quy đổi của một số trong cùng đoạn vẫn lọt. Việc phân vai dựa trên danh sách từ, nên cách nói lách có thể làm một ngưỡng bị coi là số thường. Lược câu vi phạm thay cho sinh lại cả bài giúp chữ hiện sớm, nhưng câu trả lời có thể bị cụt; câu nhắc lại khoảng mớm để bác bỏ cũng bị lược.
